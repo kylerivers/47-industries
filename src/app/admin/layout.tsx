@@ -3,9 +3,11 @@
 import { ReactNode } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname()
+  const { data: session } = useSession()
   const isActive = (path: string) => pathname === path
 
   const navItems = [
@@ -144,24 +146,30 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                   fontSize: '14px',
                   fontWeight: 500,
                   margin: 0
-                }}>Admin User</p>
+                }}>{session?.user?.name || 'Admin User'}</p>
                 <p style={{
                   fontSize: '12px',
                   color: '#71717a',
                   margin: 0
-                }}>admin@47industries.com</p>
+                }}>{session?.user?.email || 'admin@47industries.com'}</p>
               </div>
-              <button style={{
-                padding: '10px 24px',
-                fontSize: '14px',
-                fontWeight: 500,
-                background: '#18181b',
-                color: '#ffffff',
-                border: '1px solid #3f3f46',
-                borderRadius: '12px',
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}>Logout</button>
+              <button
+                onClick={async () => {
+                  const { signOut } = await import('next-auth/react')
+                  signOut({ callbackUrl: '/admin/login' })
+                }}
+                style={{
+                  padding: '10px 24px',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  background: '#18181b',
+                  color: '#ffffff',
+                  border: '1px solid #3f3f46',
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >Logout</button>
             </div>
           </div>
         </header>

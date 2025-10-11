@@ -1,9 +1,24 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { getToken } from 'next-auth/jwt'
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const hostname = request.headers.get('host') || ''
   const url = request.nextUrl.clone()
+
+  // Check authentication for admin routes (except login page)
+  if (url.pathname.startsWith('/admin') && !url.pathname.startsWith('/admin/login')) {
+    const token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET
+    })
+
+    if (!token || token.role !== 'ADMIN') {
+      const loginUrl = new URL('/admin/login', request.url)
+      loginUrl.searchParams.set('callbackUrl', request.url)
+      return NextResponse.redirect(loginUrl)
+    }
+  }
 
   // Force HTTPS redirect in production
   if (
