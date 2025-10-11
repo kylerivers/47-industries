@@ -1,25 +1,6 @@
-"use client"
-
-import { useState } from 'react'
+import Custom3DPrintingForm from '@/components/Custom3DPrintingForm'
 
 export default function Custom3DPrintingPage() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    company: '',
-    material: 'PLA',
-    finish: 'Standard',
-    color: 'Black',
-    quantity: 1,
-    notes: '',
-  })
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    // TODO: Implement form submission to API
-    alert('Form submission will be implemented with backend!')
-  }
 
   return (
     <div className="min-h-screen py-20">
