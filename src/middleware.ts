@@ -21,7 +21,9 @@ export function middleware(request: NextRequest) {
     // If on admin subdomain, redirect to /admin path
     if (!url.pathname.startsWith('/admin')) {
       url.pathname = '/admin' + url.pathname
-      return NextResponse.rewrite(url)
+      const response = NextResponse.rewrite(url)
+      response.headers.set('x-pathname', url.pathname)
+      return response
     }
   }
 
@@ -36,5 +38,8 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(adminUrl, 301)
   }
 
-  return NextResponse.next()
+  // Add pathname header for all requests
+  const response = NextResponse.next()
+  response.headers.set('x-pathname', url.pathname)
+  return response
 }
