@@ -1,0 +1,542 @@
+// 47 Industries E-Commerce Platform - Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+// ============================================
+// AUTHENTICATION & USER MANAGEMENT
+// ============================================
+
+enum Role {
+  CUSTOMER
+  ADMIN
+  SUPER_ADMIN
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String?
+  image         String?
+  role          Role      @default(CUSTOMER)
+  emailVerified DateTime?
+
+  // Relations
+  accounts      Account[]
+  sessions      Session[]
+  orders        Order[]
+  cartItems     CartItem[]
+  addresses     Address[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([email])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ============================================
+// E-COMMERCE - PRODUCTS & CATEGORIES
+// ============================================
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?   @db.Text
+  image       String?
+  parentId    String?
+  parent      Category? @relation("CategoryToCategory", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children    Category[] @relation("CategoryToCategory")
+  products    Product[]
+  active      Boolean   @default(true)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([slug])
+  @@index([parentId])
+}
+
+model Product {
+  id            String       @id @default(cuid())
+  name          String
+  slug          String       @unique
+  description   String       @db.Text
+  shortDesc     String?      @db.VarChar(500)
+  price         Decimal      @db.Decimal(10, 2)
+  comparePrice  Decimal?     @db.Decimal(10, 2)
+  costPrice     Decimal?     @db.Decimal(10, 2)
+  images        Json         // Array of image URLs
+  categoryId    String
+  category      Category     @relation(fields: [categoryId], references: [id])
+  stock         Int          @default(0)
+  sku           String?      @unique
+  weight        Decimal?     @db.Decimal(10, 2)
+  dimensions    String?
+  tags          Json?        // Array of tags
+  featured      Boolean      @default(false)
+  active        Boolean      @default(true)
+
+  // 3D Printing specific
+  material      String?
+  printTime     Int?         // in minutes
+  layerHeight   Decimal?     @db.Decimal(5, 3)
+  infill        Int?         // percentage
+
+  // Relations
+  orderItems    OrderItem[]
+  cartItems     CartItem[]
+  reviews       Review[]
+
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([slug])
+  @@index([categoryId])
+  @@index([sku])
+  @@index([featured])
+}
+
+// ============================================
+// SHOPPING CART
+// ============================================
+
+model CartItem {
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity   Int      @default(1)
+  sessionId  String?
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+  @@index([productId])
+  @@index([sessionId])
+}
+
+// ============================================
+// ORDERS & CHECKOUT
+// ============================================
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+model Order {
+  id              String        @id @default(cuid())
+  orderNumber     String        @unique
+  userId          String?
+  user            User?         @relation(fields: [userId], references: [id])
+
+  // Customer Info (for guest checkout)
+  customerName    String
+  customerEmail   String
+  customerPhone   String?
+
+  // Pricing
+  subtotal        Decimal       @db.Decimal(10, 2)
+  tax             Decimal       @db.Decimal(10, 2) @default(0)
+  shipping        Decimal       @db.Decimal(10, 2) @default(0)
+  discount        Decimal       @db.Decimal(10, 2) @default(0)
+  total           Decimal       @db.Decimal(10, 2)
+
+  // Status
+  status          OrderStatus   @default(PENDING)
+  paymentStatus   PaymentStatus @default(PENDING)
+
+  // Payment
+  stripePaymentId String?       @unique
+  stripeSessionId String?       @unique
+
+  // Shipping
+  shippingAddressId String?
+  shippingAddress Address?      @relation(fields: [shippingAddressId], references: [id])
+  trackingNumber  String?
+  carrier         String?
+
+  // Discount Code
+  discountCode    String?
+
+  // Relations
+  items           OrderItem[]
+
+  // Notes
+  customerNotes   String?       @db.Text
+  adminNotes      String?       @db.Text
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([orderNumber])
+  @@index([status])
+  @@index([stripePaymentId])
+  @@index([shippingAddressId])
+}
+
+model OrderItem {
+  id          String   @id @default(cuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+
+  name        String
+  price       Decimal  @db.Decimal(10, 2)
+  quantity    Int
+  total       Decimal  @db.Decimal(10, 2)
+
+  // Snapshot of product details at time of order
+  image       String?
+  sku         String?
+
+  createdAt   DateTime @default(now())
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model Address {
+  id          String  @id @default(cuid())
+  userId      String
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  fullName    String
+  company     String?
+  address1    String
+  address2    String?
+  city        String
+  state       String
+  zipCode     String
+  country     String  @default("US")
+  phone       String?
+
+  isDefault   Boolean @default(false)
+
+  orders      Order[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// ============================================
+// DISCOUNT CODES
+// ============================================
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+}
+
+model DiscountCode {
+  id            String        @id @default(cuid())
+  code          String        @unique
+  description   String?       @db.Text
+  type          DiscountType
+  value         Decimal       @db.Decimal(10, 2)
+  minPurchase   Decimal?      @db.Decimal(10, 2)
+  maxUses       Int?
+  usedCount     Int           @default(0)
+  active        Boolean       @default(true)
+  startsAt      DateTime?
+  expiresAt     DateTime?
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([code])
+}
+
+// ============================================
+// CUSTOM 3D PRINTING REQUESTS
+// ============================================
+
+enum CustomRequestStatus {
+  PENDING
+  REVIEWING
+  QUOTED
+  APPROVED
+  IN_PRODUCTION
+  COMPLETED
+  CANCELLED
+}
+
+model CustomRequest {
+  id            String              @id @default(cuid())
+  requestNumber String              @unique
+
+  // Customer Info
+  name          String
+  email         String
+  phone         String?
+  company       String?
+
+  // File Upload
+  fileUrl       String
+  fileName      String
+  fileSize      Int                 // in bytes
+
+  // Specifications
+  material      String
+  finish        String
+  color         String
+  quantity      Int
+  dimensions    String?
+  scale         Decimal?            @db.Decimal(5, 2)
+
+  // Additional Info
+  notes         String?             @db.Text
+  deadline      DateTime?
+
+  // Quote
+  estimatedPrice Decimal?           @db.Decimal(10, 2)
+  estimatedDays  Int?
+  quoteNotes     String?            @db.Text
+  quotedAt       DateTime?
+  quotedBy       String?
+
+  // Status
+  status        CustomRequestStatus @default(PENDING)
+
+  // Admin Notes
+  adminNotes    String?             @db.Text
+
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@index([email])
+  @@index([status])
+  @@index([requestNumber])
+}
+
+// ============================================
+// SERVICE INQUIRIES (Web/App Development)
+// ============================================
+
+enum ServiceType {
+  WEB_DEVELOPMENT
+  APP_DEVELOPMENT
+  AI_SOLUTIONS
+  CONSULTATION
+  OTHER
+}
+
+enum InquiryStatus {
+  NEW
+  CONTACTED
+  PROPOSAL_SENT
+  NEGOTIATING
+  ACCEPTED
+  DECLINED
+  COMPLETED
+}
+
+model ServiceInquiry {
+  id            String         @id @default(cuid())
+  inquiryNumber String         @unique
+
+  // Customer Info
+  name          String
+  email         String
+  phone         String?
+  company       String?
+  website       String?
+
+  // Service Details
+  serviceType   ServiceType
+  budget        String?
+  timeline      String?
+  description   String         @db.Text
+
+  // Attachments
+  attachments   Json?
+
+  // Status
+  status        InquiryStatus  @default(NEW)
+
+  // Follow-up
+  assignedTo    String?
+  estimatedCost Decimal?       @db.Decimal(10, 2)
+  proposalUrl   String?
+  adminNotes    String?        @db.Text
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([email])
+  @@index([status])
+  @@index([serviceType])
+  @@index([inquiryNumber])
+}
+
+// ============================================
+// REVIEWS & RATINGS
+// ============================================
+
+model Review {
+  id          String   @id @default(cuid())
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId      String
+
+  rating      Int
+  title       String?
+  comment     String?  @db.Text
+  verified    Boolean  @default(false)
+  approved    Boolean  @default(false)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([productId])
+  @@index([userId])
+  @@index([approved])
+}
+
+// ============================================
+// CONTENT MANAGEMENT
+// ============================================
+
+model Page {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  content     String   @db.LongText
+  metaTitle   String?
+  metaDesc    String?  @db.Text
+  active      Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([slug])
+}
+
+// ============================================
+// MEDIA LIBRARY
+// ============================================
+
+enum MediaType {
+  IMAGE
+  DOCUMENT
+  STL_FILE
+  OTHER
+}
+
+model Media {
+  id          String    @id @default(cuid())
+  name        String
+  url         String
+  type        MediaType
+  size        Int       // in bytes
+  mimeType    String
+  alt         String?
+  caption     String?   @db.Text
+
+  // R2 specific
+  key         String    @unique
+  bucket      String
+
+  createdAt   DateTime  @default(now())
+
+  @@index([type])
+  @@index([key])
+}
+
+// ============================================
+// SETTINGS
+// ============================================
+
+model Setting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String   @db.Text
+  description String?  @db.Text
+
+  updatedAt   DateTime @updatedAt
+
+  @@index([key])
+}
+
+// ============================================
+// ANALYTICS & TRACKING
+// ============================================
+
+model PageView {
+  id          String   @id @default(cuid())
+  path        String
+  userAgent   String?  @db.Text
+  ip          String?
+  referrer    String?  @db.Text
+
+  createdAt   DateTime @default(now())
+
+  @@index([path])
+  @@index([createdAt])
+}
