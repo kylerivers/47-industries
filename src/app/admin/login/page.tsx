@@ -24,6 +24,8 @@ export default function AdminLoginPage() {
     setError('')
     setLoading(true)
 
+    console.log('Login attempt with:', usernameOrEmail)
+
     try {
       const result = await signIn('credentials', {
         usernameOrEmail,
@@ -31,13 +33,21 @@ export default function AdminLoginPage() {
         redirect: false,
       })
 
+      console.log('Sign in result:', result)
+
       if (result?.error) {
+        console.error('Login error:', result.error)
         setError(result.error)
       } else if (result?.ok) {
+        console.log('Login successful, redirecting...')
         router.push('/admin')
         router.refresh()
+      } else {
+        console.error('Unexpected result:', result)
+        setError('Login failed. Please check your credentials.')
       }
     } catch (err) {
+      console.error('Exception during login:', err)
       setError('An error occurred. Please try again.')
     } finally {
       setLoading(false)
