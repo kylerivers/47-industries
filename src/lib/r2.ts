@@ -1,20 +1,32 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 
-if (!process.env.R2_ACCOUNT_ID || !process.env.R2_ACCESS_KEY_ID || !process.env.R2_SECRET_ACCESS_KEY) {
-  throw new Error('Missing Cloudflare R2 environment variables')
+function checkR2Config() {
+  if (!process.env.R2_ACCOUNT_ID || !process.env.R2_ACCESS_KEY_ID || !process.env.R2_SECRET_ACCESS_KEY) {
+    throw new Error('Missing Cloudflare R2 environment variables')
+  }
 }
 
-const R2_ENDPOINT = `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`
+function getR2Client() {
+  checkR2Config()
 
-export const r2Client = new S3Client({
-  region: 'auto',
-  endpoint: R2_ENDPOINT,
-  credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID,
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
-  },
-})
+  const R2_ENDPOINT = `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`
+
+  return new S3Client({
+    region: 'auto',
+    endpoint: R2_ENDPOINT,
+    credentials: {
+      accessKeyId: process.env.R2_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+    },
+  })
+}
+
+export const isR2Configured = Boolean(
+  process.env.R2_ACCOUNT_ID &&
+  process.env.R2_ACCESS_KEY_ID &&
+  process.env.R2_SECRET_ACCESS_KEY
+)
 
 /**
  * Upload a file to Cloudflare R2
@@ -24,6 +36,7 @@ export async function uploadToR2(
   file: Buffer | Uint8Array | Blob,
   contentType: string
 ): Promise<string> {
+  const r2Client = getR2Client()
   const bucketName = process.env.R2_BUCKET_NAME || '47industries-files'
 
   const command = new PutObjectCommand({
@@ -44,6 +57,7 @@ export async function uploadToR2(
  * Delete a file from Cloudflare R2
  */
 export async function deleteFromR2(key: string): Promise<void> {
+  const r2Client = getR2Client()
   const bucketName = process.env.R2_BUCKET_NAME || '47industries-files'
 
   const command = new DeleteObjectCommand({
@@ -58,6 +72,7 @@ export async function deleteFromR2(key: string): Promise<void> {
  * Generate a pre-signed URL for temporary file access
  */
 export async function getR2SignedUrl(key: string, expiresIn: number = 3600): Promise<string> {
+  const r2Client = getR2Client()
   const bucketName = process.env.R2_BUCKET_NAME || '47industries-files'
 
   const command = new GetObjectCommand({
