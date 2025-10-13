@@ -183,7 +183,3 @@ export default function AdminDashboard() {
     </div>
   )
 }
-
-export const metadata = {
-  title: 'Dashboard - Admin - 47 Industries',
-}
