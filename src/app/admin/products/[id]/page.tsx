@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -32,7 +32,8 @@ interface Product {
   infill: number | null
 }
 
-export default function EditProductPage({ params }: { params: { id: string } }) {
+export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
   const router = useRouter()
   const [isMobile, setIsMobile] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -85,7 +86,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
 
   const fetchProduct = async () => {
     try {
-      const res = await fetch(`/api/admin/products/${params.id}`)
+      const res = await fetch(`/api/admin/products/${id}`)
       if (!res.ok) {
         router.push('/admin/products')
         return
@@ -129,7 +130,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
     try {
       const filteredImages = imageUrls.filter(url => url.trim() !== '')
 
-      const res = await fetch(`/api/admin/products/${params.id}`, {
+      const res = await fetch(`/api/admin/products/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

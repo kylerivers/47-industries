@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma'
 // GET /api/admin/products/[id] - Get a single product
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -15,8 +15,9 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const product = await prisma.product.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         category: {
           select: {
@@ -45,7 +46,7 @@ export async function GET(
 // PUT /api/admin/products/[id] - Update a product
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -54,11 +55,12 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const body = await req.json()
 
     // Check if product exists
     const existingProduct = await prisma.product.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!existingProduct) {
@@ -77,7 +79,7 @@ export async function PUT(
       const slugExists = await prisma.product.findFirst({
         where: {
           slug,
-          id: { not: params.id },
+          id: { not: id },
         },
       })
 
@@ -90,7 +92,7 @@ export async function PUT(
     }
 
     const product = await prisma.product.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         name: body.name,
         slug,
@@ -137,7 +139,7 @@ export async function PUT(
 // DELETE /api/admin/products/[id] - Delete a product
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -146,9 +148,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
+
     // Check if product exists
     const product = await prisma.product.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!product) {
@@ -157,13 +161,13 @@ export async function DELETE(
 
     // Check if product is in any orders
     const orderItemsCount = await prisma.orderItem.count({
-      where: { productId: params.id },
+      where: { productId: id },
     })
 
     if (orderItemsCount > 0) {
       // Don't delete, just deactivate
       await prisma.product.update({
-        where: { id: params.id },
+        where: { id },
         data: { active: false },
       })
 
@@ -174,7 +178,7 @@ export async function DELETE(
 
     // Safe to delete
     await prisma.product.delete({
-      where: { id: params.id },
+      where: { id },
     })
 
     return NextResponse.json({ message: 'Product deleted successfully' })
