@@ -1,0 +1,95 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
+
+// GET /api/admin/inquiries/[id] - Get single inquiry
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions)
+
+    if (!session || session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const inquiry = await prisma.serviceInquiry.findUnique({
+      where: { id: params.id },
+    })
+
+    if (!inquiry) {
+      return NextResponse.json({ error: 'Inquiry not found' }, { status: 404 })
+    }
+
+    return NextResponse.json(inquiry)
+  } catch (error) {
+    console.error('Error fetching inquiry:', error)
+    return NextResponse.json(
+      { error: 'Failed to fetch inquiry' },
+      { status: 500 }
+    )
+  }
+}
+
+// PUT /api/admin/inquiries/[id] - Update inquiry
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions)
+
+    if (!session || session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await req.json()
+
+    const inquiry = await prisma.serviceInquiry.update({
+      where: { id: params.id },
+      data: {
+        status: body.status,
+        assignedTo: body.assignedTo,
+        estimatedCost: body.estimatedCost,
+        proposalUrl: body.proposalUrl,
+        adminNotes: body.adminNotes,
+      },
+    })
+
+    return NextResponse.json(inquiry)
+  } catch (error) {
+    console.error('Error updating inquiry:', error)
+    return NextResponse.json(
+      { error: 'Failed to update inquiry' },
+      { status: 500 }
+    )
+  }
+}
+
+// DELETE /api/admin/inquiries/[id] - Delete inquiry
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions)
+
+    if (!session || session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    await prisma.serviceInquiry.delete({
+      where: { id: params.id },
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Error deleting inquiry:', error)
+    return NextResponse.json(
+      { error: 'Failed to delete inquiry' },
+      { status: 500 }
+    )
+  }
+}

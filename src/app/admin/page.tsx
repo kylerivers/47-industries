@@ -2,8 +2,17 @@
 
 import { useState, useEffect } from 'react'
 
+interface Stats {
+  totalOrders: number
+  revenue: number
+  customRequests: number
+  serviceInquiries: number
+}
+
 export default function AdminDashboard() {
   const [isMobile, setIsMobile] = useState(false)
+  const [stats, setStats] = useState<Stats | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768)
@@ -12,11 +21,28 @@ export default function AdminDashboard() {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
-  const stats = [
-    { label: 'Total Orders', value: '0', gradient: 'linear-gradient(90deg, #3b82f6, #60a5fa)' },
-    { label: 'Revenue', value: '$0', gradient: 'linear-gradient(90deg, #10b981, #34d399)' },
-    { label: '3D Print Requests', value: '0', gradient: 'linear-gradient(90deg, #8b5cf6, #a78bfa)' },
-    { label: 'Service Inquiries', value: '0', gradient: 'linear-gradient(90deg, #f59e0b, #fbbf24)' },
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const res = await fetch('/api/admin/stats')
+        if (res.ok) {
+          const data = await res.json()
+          setStats(data)
+        }
+      } catch (error) {
+        console.error('Failed to fetch stats:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchStats()
+  }, [])
+
+  const statsDisplay = [
+    { label: 'Total Orders', value: loading ? '...' : (stats?.totalOrders ?? 0).toString(), gradient: 'linear-gradient(90deg, #3b82f6, #60a5fa)' },
+    { label: 'Revenue', value: loading ? '...' : `$${(stats?.revenue ?? 0).toLocaleString()}`, gradient: 'linear-gradient(90deg, #10b981, #34d399)' },
+    { label: '3D Print Requests', value: loading ? '...' : (stats?.customRequests ?? 0).toString(), gradient: 'linear-gradient(90deg, #8b5cf6, #a78bfa)' },
+    { label: 'Service Inquiries', value: loading ? '...' : (stats?.serviceInquiries ?? 0).toString(), gradient: 'linear-gradient(90deg, #f59e0b, #fbbf24)' },
   ]
 
   const quickActions = [
@@ -50,7 +76,7 @@ export default function AdminDashboard() {
         gap: isMobile ? '16px' : '24px',
         marginBottom: isMobile ? '24px' : '32px'
       }}>
-        {stats.map((stat) => (
+        {statsDisplay.map((stat) => (
           <div
             key={stat.label}
             style={{

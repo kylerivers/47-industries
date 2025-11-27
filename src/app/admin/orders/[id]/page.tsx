@@ -1,0 +1,609 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useRouter, useParams } from 'next/navigation'
+import Link from 'next/link'
+
+interface OrderItem {
+  id: string
+  name: string
+  price: number
+  quantity: number
+  total: number
+  image?: string
+  sku?: string
+  product: {
+    id: string
+    name: string
+    slug: string
+    images: any
+  }
+}
+
+interface Address {
+  id: string
+  fullName: string
+  company?: string
+  address1: string
+  address2?: string
+  city: string
+  state: string
+  zipCode: string
+  country: string
+  phone?: string
+}
+
+interface Order {
+  id: string
+  orderNumber: string
+  customerName: string
+  customerEmail: string
+  customerPhone?: string
+  subtotal: number
+  tax: number
+  shipping: number
+  discount: number
+  total: number
+  status: string
+  paymentStatus: string
+  stripePaymentId?: string
+  trackingNumber?: string
+  carrier?: string
+  discountCode?: string
+  customerNotes?: string
+  adminNotes?: string
+  items: OrderItem[]
+  shippingAddress?: Address
+  createdAt: string
+  updatedAt: string
+}
+
+export default function OrderDetailPage() {
+  const router = useRouter()
+  const params = useParams()
+  const [order, setOrder] = useState<Order | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  // Form state
+  const [status, setStatus] = useState('')
+  const [paymentStatus, setPaymentStatus] = useState('')
+  const [trackingNumber, setTrackingNumber] = useState('')
+  const [carrier, setCarrier] = useState('')
+  const [adminNotes, setAdminNotes] = useState('')
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  useEffect(() => {
+    fetchOrder()
+  }, [params.id])
+
+  const fetchOrder = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch(`/api/admin/orders/${params.id}`)
+      if (res.ok) {
+        const data = await res.json()
+        setOrder(data)
+        setStatus(data.status)
+        setPaymentStatus(data.paymentStatus)
+        setTrackingNumber(data.trackingNumber || '')
+        setCarrier(data.carrier || '')
+        setAdminNotes(data.adminNotes || '')
+      } else {
+        router.push('/admin/orders')
+      }
+    } catch (error) {
+      console.error('Error fetching order:', error)
+      router.push('/admin/orders')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSave = async () => {
+    try {
+      setSaving(true)
+      const res = await fetch(`/api/admin/orders/${params.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status,
+          paymentStatus,
+          trackingNumber: trackingNumber || null,
+          carrier: carrier || null,
+          adminNotes: adminNotes || null,
+        }),
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        setOrder(data)
+        alert('Order updated successfully!')
+      } else {
+        alert('Failed to update order')
+      }
+    } catch (error) {
+      console.error('Error updating order:', error)
+      alert('Failed to update order')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const getStatusColor = (s: string) => {
+    const colors: Record<string, string> = {
+      PENDING: '#f59e0b',
+      PROCESSING: '#3b82f6',
+      PAID: '#10b981',
+      SHIPPED: '#8b5cf6',
+      DELIVERED: '#10b981',
+      CANCELLED: '#ef4444',
+      REFUNDED: '#6b7280',
+    }
+    return colors[s] || '#6b7280'
+  }
+
+  const getPaymentStatusColor = (s: string) => {
+    const colors: Record<string, string> = {
+      PENDING: '#f59e0b',
+      PROCESSING: '#3b82f6',
+      SUCCEEDED: '#10b981',
+      FAILED: '#ef4444',
+      REFUNDED: '#6b7280',
+    }
+    return colors[s] || '#6b7280'
+  }
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  }
+
+  const getProductImage = (item: OrderItem) => {
+    if (item.image) return item.image
+    if (item.product?.images) {
+      const images = typeof item.product.images === 'string'
+        ? JSON.parse(item.product.images)
+        : item.product.images
+      if (Array.isArray(images) && images.length > 0) return images[0]
+    }
+    return null
+  }
+
+  if (loading) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '400px',
+      }}>
+        <p style={{ color: '#71717a' }}>Loading order...</p>
+      </div>
+    )
+  }
+
+  if (!order) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '400px',
+      }}>
+        <p style={{ color: '#71717a' }}>Order not found</p>
+      </div>
+    )
+  }
+
+  const orderStatuses = ['PENDING', 'PROCESSING', 'PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED']
+  const paymentStatuses = ['PENDING', 'PROCESSING', 'SUCCEEDED', 'FAILED', 'REFUNDED']
+  const carriers = ['USPS', 'UPS', 'FedEx', 'DHL', 'Other']
+
+  return (
+    <div>
+      {/* Header */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: '24px',
+        flexWrap: 'wrap',
+        gap: '16px',
+      }}>
+        <div>
+          <Link
+            href="/admin/orders"
+            style={{
+              color: '#71717a',
+              textDecoration: 'none',
+              fontSize: '14px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              marginBottom: '8px',
+            }}
+          >
+            ← Back to Orders
+          </Link>
+          <h1 style={{
+            fontSize: isMobile ? '24px' : '32px',
+            fontWeight: 700,
+            margin: 0,
+          }}>Order {order.orderNumber}</h1>
+          <p style={{ color: '#71717a', margin: '8px 0 0 0' }}>
+            {formatDate(order.createdAt)}
+          </p>
+        </div>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <span style={{
+            display: 'inline-block',
+            padding: '6px 12px',
+            borderRadius: '8px',
+            fontSize: '14px',
+            fontWeight: 500,
+            background: `${getStatusColor(order.status)}20`,
+            color: getStatusColor(order.status),
+          }}>
+            {order.status}
+          </span>
+          <span style={{
+            display: 'inline-block',
+            padding: '6px 12px',
+            borderRadius: '8px',
+            fontSize: '14px',
+            fontWeight: 500,
+            background: `${getPaymentStatusColor(order.paymentStatus)}20`,
+            color: getPaymentStatusColor(order.paymentStatus),
+          }}>
+            {order.paymentStatus}
+          </span>
+        </div>
+      </div>
+
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr',
+        gap: '24px',
+      }}>
+        {/* Left Column */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {/* Order Items */}
+          <div style={{
+            background: '#18181b',
+            border: '1px solid #27272a',
+            borderRadius: '16px',
+            padding: '24px',
+          }}>
+            <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '16px', margin: '0 0 16px 0' }}>
+              Order Items ({order.items.length})
+            </h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {order.items.map((item) => (
+                <div
+                  key={item.id}
+                  style={{
+                    display: 'flex',
+                    gap: '16px',
+                    padding: '16px',
+                    background: '#09090b',
+                    borderRadius: '12px',
+                  }}
+                >
+                  {getProductImage(item) && (
+                    <img
+                      src={getProductImage(item)}
+                      alt={item.name}
+                      style={{
+                        width: '80px',
+                        height: '80px',
+                        objectFit: 'cover',
+                        borderRadius: '8px',
+                      }}
+                    />
+                  )}
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ fontSize: '16px', fontWeight: 600, margin: '0 0 4px 0' }}>
+                      {item.name}
+                    </h3>
+                    {item.sku && (
+                      <p style={{ fontSize: '14px', color: '#71717a', margin: '0 0 8px 0' }}>
+                        SKU: {item.sku}
+                      </p>
+                    )}
+                    <p style={{ fontSize: '14px', color: '#a1a1aa', margin: 0 }}>
+                      ${Number(item.price).toFixed(2)} × {item.quantity}
+                    </p>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <p style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>
+                      ${Number(item.total).toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Totals */}
+            <div style={{
+              borderTop: '1px solid #27272a',
+              marginTop: '16px',
+              paddingTop: '16px',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ color: '#a1a1aa' }}>Subtotal</span>
+                <span>${Number(order.subtotal).toFixed(2)}</span>
+              </div>
+              {Number(order.discount) > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <span style={{ color: '#a1a1aa' }}>
+                    Discount {order.discountCode && `(${order.discountCode})`}
+                  </span>
+                  <span style={{ color: '#10b981' }}>-${Number(order.discount).toFixed(2)}</span>
+                </div>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ color: '#a1a1aa' }}>Shipping</span>
+                <span>${Number(order.shipping).toFixed(2)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ color: '#a1a1aa' }}>Tax</span>
+                <span>${Number(order.tax).toFixed(2)}</span>
+              </div>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                paddingTop: '8px',
+                borderTop: '1px solid #27272a',
+                fontSize: '18px',
+                fontWeight: 600,
+              }}>
+                <span>Total</span>
+                <span>${Number(order.total).toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Customer Notes */}
+          {order.customerNotes && (
+            <div style={{
+              background: '#18181b',
+              border: '1px solid #27272a',
+              borderRadius: '16px',
+              padding: '24px',
+            }}>
+              <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '12px', margin: '0 0 12px 0' }}>
+                Customer Notes
+              </h2>
+              <p style={{ color: '#a1a1aa', margin: 0, whiteSpace: 'pre-wrap' }}>
+                {order.customerNotes}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Right Column */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {/* Customer Info */}
+          <div style={{
+            background: '#18181b',
+            border: '1px solid #27272a',
+            borderRadius: '16px',
+            padding: '24px',
+          }}>
+            <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '16px', margin: '0 0 16px 0' }}>
+              Customer
+            </h2>
+            <div style={{ marginBottom: '16px' }}>
+              <p style={{ fontWeight: 500, margin: '0 0 4px 0' }}>{order.customerName}</p>
+              <a href={`mailto:${order.customerEmail}`} style={{ color: '#3b82f6', textDecoration: 'none' }}>
+                {order.customerEmail}
+              </a>
+              {order.customerPhone && (
+                <p style={{ color: '#a1a1aa', margin: '4px 0 0 0' }}>
+                  {order.customerPhone}
+                </p>
+              )}
+            </div>
+
+            {order.shippingAddress && (
+              <>
+                <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#71717a', margin: '0 0 8px 0' }}>
+                  Shipping Address
+                </h3>
+                <div style={{ color: '#a1a1aa', fontSize: '14px' }}>
+                  <p style={{ margin: '0 0 2px 0' }}>{order.shippingAddress.fullName}</p>
+                  {order.shippingAddress.company && (
+                    <p style={{ margin: '0 0 2px 0' }}>{order.shippingAddress.company}</p>
+                  )}
+                  <p style={{ margin: '0 0 2px 0' }}>{order.shippingAddress.address1}</p>
+                  {order.shippingAddress.address2 && (
+                    <p style={{ margin: '0 0 2px 0' }}>{order.shippingAddress.address2}</p>
+                  )}
+                  <p style={{ margin: 0 }}>
+                    {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.zipCode}
+                  </p>
+                  <p style={{ margin: 0 }}>{order.shippingAddress.country}</p>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Update Order */}
+          <div style={{
+            background: '#18181b',
+            border: '1px solid #27272a',
+            borderRadius: '16px',
+            padding: '24px',
+          }}>
+            <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '16px', margin: '0 0 16px 0' }}>
+              Update Order
+            </h2>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '8px' }}>
+                Order Status
+              </label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  background: '#09090b',
+                  border: '1px solid #27272a',
+                  borderRadius: '8px',
+                  color: 'white',
+                  fontSize: '14px',
+                }}
+              >
+                {orderStatuses.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '8px' }}>
+                Payment Status
+              </label>
+              <select
+                value={paymentStatus}
+                onChange={(e) => setPaymentStatus(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  background: '#09090b',
+                  border: '1px solid #27272a',
+                  borderRadius: '8px',
+                  color: 'white',
+                  fontSize: '14px',
+                }}
+              >
+                {paymentStatuses.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '8px' }}>
+                Carrier
+              </label>
+              <select
+                value={carrier}
+                onChange={(e) => setCarrier(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  background: '#09090b',
+                  border: '1px solid #27272a',
+                  borderRadius: '8px',
+                  color: 'white',
+                  fontSize: '14px',
+                }}
+              >
+                <option value="">Select carrier...</option>
+                {carriers.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '8px' }}>
+                Tracking Number
+              </label>
+              <input
+                type="text"
+                value={trackingNumber}
+                onChange={(e) => setTrackingNumber(e.target.value)}
+                placeholder="Enter tracking number..."
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  background: '#09090b',
+                  border: '1px solid #27272a',
+                  borderRadius: '8px',
+                  color: 'white',
+                  fontSize: '14px',
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '8px' }}>
+                Admin Notes
+              </label>
+              <textarea
+                value={adminNotes}
+                onChange={(e) => setAdminNotes(e.target.value)}
+                placeholder="Internal notes about this order..."
+                rows={4}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  background: '#09090b',
+                  border: '1px solid #27272a',
+                  borderRadius: '8px',
+                  color: 'white',
+                  fontSize: '14px',
+                  resize: 'vertical',
+                }}
+              />
+            </div>
+
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              style={{
+                width: '100%',
+                padding: '12px',
+                background: '#3b82f6',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: 500,
+                cursor: saving ? 'not-allowed' : 'pointer',
+                opacity: saving ? 0.7 : 1,
+              }}
+            >
+              {saving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+
+          {/* Payment Info */}
+          {order.stripePaymentId && (
+            <div style={{
+              background: '#18181b',
+              border: '1px solid #27272a',
+              borderRadius: '16px',
+              padding: '24px',
+            }}>
+              <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '12px', margin: '0 0 12px 0' }}>
+                Payment Info
+              </h2>
+              <p style={{ fontSize: '14px', color: '#71717a', margin: '0 0 4px 0' }}>Stripe Payment ID</p>
+              <p style={{ fontSize: '14px', margin: 0, wordBreak: 'break-all' }}>{order.stripePaymentId}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
