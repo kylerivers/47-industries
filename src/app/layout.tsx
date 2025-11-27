@@ -13,11 +13,8 @@ export const metadata: Metadata = {
   description: "Leading provider of 3D printing services, custom manufacturing, and innovative web and app development solutions. Parent company to MotoRev.",
   keywords: ["3D printing", "custom manufacturing", "web development", "app development", "AI solutions"],
   icons: {
-    icon: [
-      { url: "/icon.svg", type: "image/svg+xml" },
-      { url: "/logo.svg", type: "image/svg+xml", sizes: "512x512" },
-    ],
-    apple: "/logo.svg",
+    icon: "/logo.png",
+    apple: "/logo.png",
   },
 };
 

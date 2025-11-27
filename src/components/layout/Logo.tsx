@@ -19,7 +19,7 @@ export default function Logo({ className = '', size = 'md', showText = true }: L
   return (
     <Link href="/" className={`flex items-center gap-2 ${className}`}>
       <Image
-        src="/logo.svg"
+        src="/logo.png"
         alt="47 Industries"
         width={width}
         height={height}

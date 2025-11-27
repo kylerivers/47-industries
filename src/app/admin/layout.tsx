@@ -97,7 +97,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             }}
           >
             <Image
-              src="/logo.svg"
+              src="/logo.png"
               alt="47 Industries"
               width={40}
               height={40}
