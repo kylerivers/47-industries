@@ -30,6 +30,14 @@ model User {
   role          Role      @default(CUSTOMER)
   emailVerified DateTime?
 
+  // Recovery/backup email for admins
+  backupEmail   String?
+
+  // Zoho Mail Integration
+  zohoAccessToken   String?   @db.Text
+  zohoRefreshToken  String?   @db.Text
+  zohoTokenExpiry   DateTime?
+
   // Relations
   accounts      Account[]
   sessions      Session[]

@@ -30,6 +30,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   const navItems = [
     { href: '/admin', label: 'Dashboard' },
+    { href: '/admin/email', label: 'Email' },
     { href: '/admin/products', label: 'Products' },
     { href: '/admin/orders', label: 'Orders' },
     { href: '/admin/custom-requests', label: '3D Print Requests' },
