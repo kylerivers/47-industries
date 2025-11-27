@@ -6,6 +6,34 @@ export async function middleware(request: NextRequest) {
   const hostname = request.headers.get('host') || ''
   const url = request.nextUrl.clone()
 
+  // Handle admin subdomain - rewrite to /admin path
+  // This must happen BEFORE auth check so the auth check sees the correct path
+  if (hostname.startsWith('admin.')) {
+    // Only rewrite if not already on an /admin path
+    if (!url.pathname.startsWith('/admin')) {
+      url.pathname = '/admin' + url.pathname
+
+      // Check authentication for admin routes (except login page)
+      if (!url.pathname.startsWith('/admin/login')) {
+        const token = await getToken({
+          req: request,
+          secret: process.env.NEXTAUTH_SECRET
+        })
+
+        if (!token || token.role !== 'ADMIN') {
+          // Redirect to login on the subdomain
+          const loginUrl = new URL('/login', request.url)
+          loginUrl.searchParams.set('callbackUrl', request.url)
+          return NextResponse.redirect(loginUrl)
+        }
+      }
+
+      const response = NextResponse.rewrite(url)
+      response.headers.set('x-pathname', url.pathname)
+      return response
+    }
+  }
+
   // Check authentication for admin routes (except login page)
   if (url.pathname.startsWith('/admin') && !url.pathname.startsWith('/admin/login')) {
     const token = await getToken({
@@ -20,27 +48,23 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Force HTTPS redirect in production
-  // Note: Railway handles HTTPS, so we don't need this redirect
-  // It was causing issues by including the internal port in the redirect
-
-  // Handle admin subdomain
-  if (hostname.startsWith('admin.')) {
-    // If on admin subdomain, redirect to /admin path
-    if (!url.pathname.startsWith('/admin')) {
-      url.pathname = '/admin' + url.pathname
-      const response = NextResponse.rewrite(url)
-      response.headers.set('x-pathname', url.pathname)
-      return response
-    }
-  }
-
-  // Redirect /admin to admin subdomain in production
-  // Disabled for now - causes issues with Railway's internal networking
-  // Users can access admin at either 47industries.com/admin or admin.47industries.com
-
   // Add pathname header for all requests
   const response = NextResponse.next()
   response.headers.set('x-pathname', url.pathname)
   return response
+}
+
+// Configure which paths the middleware runs on
+// This is critical - it excludes static files, images, etc. from middleware processing
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder files
+     */
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js)$).*)',
+  ],
 }
