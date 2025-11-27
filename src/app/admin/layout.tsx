@@ -46,8 +46,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
     <>
       <head>
-        <link rel="icon" href="/logo.png" />
-        <link rel="apple-touch-icon" href="/logo.png" />
+        <link rel="icon" href="https://47industries.com/logo.png" />
+        <link rel="apple-touch-icon" href="https://47industries.com/logo.png" />
       </head>
       <div style={{
         minHeight: '100vh',
@@ -102,7 +102,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             }}
           >
             <img
-              src="/logo.png"
+              src="https://47industries.com/logo.png"
               alt=""
               width={40}
               height={40}

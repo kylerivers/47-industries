@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { ServiceType, InquiryStatus } from '@prisma/client'
+import { sendContactConfirmation, sendAdminNotification } from '@/lib/email'
 
 // POST /api/contact - Submit a contact/service inquiry
 export async function POST(req: NextRequest) {
@@ -51,6 +52,22 @@ export async function POST(req: NextRequest) {
         description: `Subject: ${body.subject}\n\n${body.message}`,
         status: InquiryStatus.NEW,
       },
+    })
+
+    // Send confirmation email to customer
+    await sendContactConfirmation({
+      to: body.email,
+      name: body.name,
+      inquiryNumber: inquiry.inquiryNumber,
+      subject: body.subject,
+    })
+
+    // Send notification to admin
+    await sendAdminNotification({
+      type: 'contact',
+      title: `${body.name} - ${body.subject}`,
+      details: `Name: ${body.name}\nEmail: ${body.email}\nCompany: ${body.company || 'N/A'}\nPhone: ${body.phone || 'N/A'}\n\nMessage:\n${body.message}`,
+      link: `https://admin.47industries.com/admin/inquiries/${inquiry.id}`,
     })
 
     return NextResponse.json({
