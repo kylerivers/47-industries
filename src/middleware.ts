@@ -21,15 +21,8 @@ export async function middleware(request: NextRequest) {
   }
 
   // Force HTTPS redirect in production
-  if (
-    process.env.NODE_ENV === 'production' &&
-    request.headers.get('x-forwarded-proto') !== 'https'
-  ) {
-    return NextResponse.redirect(
-      `https://${hostname}${url.pathname}`,
-      301
-    )
-  }
+  // Note: Railway handles HTTPS, so we don't need this redirect
+  // It was causing issues by including the internal port in the redirect
 
   // Handle admin subdomain
   if (hostname.startsWith('admin.')) {
@@ -43,15 +36,8 @@ export async function middleware(request: NextRequest) {
   }
 
   // Redirect /admin to admin subdomain in production
-  if (
-    process.env.NODE_ENV === 'production' &&
-    url.pathname.startsWith('/admin') &&
-    !hostname.startsWith('admin.')
-  ) {
-    const adminUrl = new URL(request.url)
-    adminUrl.host = `admin.${hostname}`
-    return NextResponse.redirect(adminUrl, 301)
-  }
+  // Disabled for now - causes issues with Railway's internal networking
+  // Users can access admin at either 47industries.com/admin or admin.47industries.com
 
   // Add pathname header for all requests
   const response = NextResponse.next()
