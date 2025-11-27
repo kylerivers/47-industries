@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import Image from 'next/image'
 
 interface LogoProps {
   className?: string
@@ -9,22 +8,21 @@ interface LogoProps {
 
 export default function Logo({ className = '', size = 'md', showText = true }: LogoProps) {
   const sizes = {
-    sm: { width: 28, height: 28 },
-    md: { width: 36, height: 36 },
-    lg: { width: 48, height: 48 },
+    sm: 28,
+    md: 36,
+    lg: 48,
   }
 
-  const { width, height } = sizes[size]
+  const dimension = sizes[size]
 
   return (
     <Link href="/" className={`flex items-center gap-2 ${className}`}>
-      <Image
+      <img
         src="/logo.png"
         alt="47 Industries"
-        width={width}
-        height={height}
-        className="rounded-lg"
-        priority
+        width={dimension}
+        height={dimension}
+        style={{ borderRadius: '8px' }}
       />
       {showText && (
         <span className="text-xl font-bold">47 Industries</span>

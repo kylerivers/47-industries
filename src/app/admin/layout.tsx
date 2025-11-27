@@ -2,7 +2,7 @@
 
 import { ReactNode, useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+// Using regular img tag for logo
 import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 
@@ -96,7 +96,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               textDecoration: 'none'
             }}
           >
-            <Image
+            <img
               src="/logo.png"
               alt="47 Industries"
               width={40}
