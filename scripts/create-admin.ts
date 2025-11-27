@@ -4,9 +4,9 @@ import bcrypt from 'bcryptjs'
 const prisma = new PrismaClient()
 
 async function main() {
-  const username = '47industries'
-  const email = 'admin@47industries.com'
-  const password = '47Admin2024!'
+  const username = 'kylerivers'
+  const email = 'kyle@47industries.com'
+  const password = 'chelsea06'
   const name = 'Kyle Rivers'
 
   console.log('Creating admin user...')
