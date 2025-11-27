@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 
 interface Email {
@@ -32,7 +32,7 @@ const FOLDERS = [
   { id: 'trash', label: 'Trash', icon: '🗑️' },
 ]
 
-export default function AdminEmailPage() {
+function EmailPageContent() {
   const searchParams = useSearchParams()
   const [isConnected, setIsConnected] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -618,5 +618,17 @@ export default function AdminEmailPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function AdminEmailPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ padding: '40px', textAlign: 'center', color: '#71717a' }}>
+        Loading email...
+      </div>
+    }>
+      <EmailPageContent />
+    </Suspense>
   )
 }
