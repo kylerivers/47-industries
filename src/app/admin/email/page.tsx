@@ -684,7 +684,13 @@ function EmailPageContent() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
                   <div style={{ fontWeight: 500, marginBottom: '4px' }}>{selectedEmail.fromAddress}</div>
-                  <div style={{ fontSize: '13px', color: '#71717a' }}>To: {selectedEmail.toAddress}</div>
+                  <div style={{ fontSize: '13px', color: '#71717a' }}>
+                    To: {selectedEmail.toAddress
+                      ?.replace(/&lt;/g, '<')
+                      .replace(/&gt;/g, '>')
+                      .replace(/[<>]/g, '')
+                      .trim()}
+                  </div>
                 </div>
                 <div style={{ fontSize: '13px', color: '#71717a' }}>
                   {(() => {
