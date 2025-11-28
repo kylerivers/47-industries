@@ -185,8 +185,32 @@ export class ZohoMailClient {
   }
 
   // Get email content/body
-  async getEmailContent(messageId: string, accountId?: string): Promise<any> {
+  async getEmailContent(messageId: string, folderId?: string, accountId?: string): Promise<any> {
     const accId = accountId || await this.getAccountId()
+
+    // If no folderId provided, try to get it from inbox
+    let folderIdToUse = folderId
+    if (!folderIdToUse) {
+      try {
+        const folders = await this.getFolders(accId)
+        const inbox = folders.find((f: any) => f.folderName?.toLowerCase() === 'inbox')
+        folderIdToUse = inbox?.folderId
+      } catch (e) {
+        console.error('Error getting folders for content:', e)
+      }
+    }
+
+    // Try with folderId first, fall back to without
+    try {
+      if (folderIdToUse) {
+        const data = await this.request(`/accounts/${accId}/folders/${folderIdToUse}/messages/${messageId}/content`)
+        return data.data
+      }
+    } catch (e) {
+      console.error('Error with folder path, trying direct:', e)
+    }
+
+    // Fallback to direct message content endpoint
     const data = await this.request(`/accounts/${accId}/messages/${messageId}/content`)
     return data.data
   }

@@ -38,6 +38,8 @@ function EmailPageContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [emails, setEmails] = useState<Email[]>([])
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null)
+  const [emailContent, setEmailContent] = useState<string>('')
+  const [isLoadingContent, setIsLoadingContent] = useState(false)
   const [selectedMailbox, setSelectedMailbox] = useState('all')
   const [selectedFolder, setSelectedFolder] = useState('inbox')
   const [searchQuery, setSearchQuery] = useState('')
@@ -104,6 +106,29 @@ function EmailPageContent() {
     } catch (error) {
       console.error('Error connecting to Zoho:', error)
     }
+  }
+
+  async function fetchEmailContent(messageId: string) {
+    setIsLoadingContent(true)
+    setEmailContent('')
+    try {
+      const response = await fetch(`/api/admin/email/${messageId}`)
+      const data = await response.json()
+      if (data.content?.content) {
+        setEmailContent(data.content.content)
+      } else if (typeof data.content === 'string') {
+        setEmailContent(data.content)
+      }
+    } catch (error) {
+      console.error('Error fetching email content:', error)
+    } finally {
+      setIsLoadingContent(false)
+    }
+  }
+
+  function handleSelectEmail(email: Email) {
+    setSelectedEmail(email)
+    fetchEmailContent(email.messageId)
   }
 
   async function sendEmail() {
@@ -323,7 +348,7 @@ function EmailPageContent() {
             emails.map((email) => (
               <div
                 key={email.messageId}
-                onClick={() => setSelectedEmail(email)}
+                onClick={() => handleSelectEmail(email)}
                 style={{
                   padding: '16px',
                   borderBottom: '1px solid #27272a',
@@ -484,21 +509,133 @@ function EmailPageContent() {
                 />
               </div>
 
-              <textarea
-                value={composeData.content}
-                onChange={(e) => setComposeData({ ...composeData, content: e.target.value })}
-                placeholder="Write your message..."
+              {/* Rich Text Toolbar */}
+              <div style={{
+                display: 'flex',
+                gap: '4px',
+                padding: '8px',
+                background: '#27272a',
+                borderRadius: '8px 8px 0 0',
+                border: '1px solid #3f3f46',
+                borderBottom: 'none',
+              }}>
+                <button
+                  type="button"
+                  onClick={() => document.execCommand('bold')}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#fff',
+                    padding: '6px 10px',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                  }}
+                  title="Bold"
+                >
+                  B
+                </button>
+                <button
+                  type="button"
+                  onClick={() => document.execCommand('italic')}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#fff',
+                    padding: '6px 10px',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontStyle: 'italic',
+                  }}
+                  title="Italic"
+                >
+                  I
+                </button>
+                <button
+                  type="button"
+                  onClick={() => document.execCommand('underline')}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#fff',
+                    padding: '6px 10px',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    textDecoration: 'underline',
+                  }}
+                  title="Underline"
+                >
+                  U
+                </button>
+                <div style={{ width: '1px', background: '#3f3f46', margin: '0 8px' }} />
+                <button
+                  type="button"
+                  onClick={() => document.execCommand('insertUnorderedList')}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#fff',
+                    padding: '6px 10px',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                  }}
+                  title="Bullet List"
+                >
+                  * List
+                </button>
+                <button
+                  type="button"
+                  onClick={() => document.execCommand('insertOrderedList')}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#fff',
+                    padding: '6px 10px',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                  }}
+                  title="Numbered List"
+                >
+                  1. List
+                </button>
+                <div style={{ width: '1px', background: '#3f3f46', margin: '0 8px' }} />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const url = prompt('Enter link URL:')
+                    if (url) document.execCommand('createLink', false, url)
+                  }}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#fff',
+                    padding: '6px 10px',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                  }}
+                  title="Insert Link"
+                >
+                  Link
+                </button>
+              </div>
+              {/* Rich Text Editor */}
+              <div
+                id="email-editor"
+                contentEditable
+                onInput={(e) => setComposeData({ ...composeData, content: (e.target as HTMLDivElement).innerHTML })}
                 style={{
                   flex: 1,
-                  background: '#18181b',
-                  border: '1px solid #27272a',
-                  borderRadius: '8px',
+                  background: '#fff',
+                  border: '1px solid #3f3f46',
+                  borderRadius: '0 0 8px 8px',
                   padding: '14px',
-                  color: '#fff',
+                  color: '#000',
                   fontSize: '14px',
-                  resize: 'none',
                   minHeight: '200px',
+                  overflowY: 'auto',
+                  outline: 'none',
                 }}
+                dangerouslySetInnerHTML={{ __html: composeData.content }}
               />
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
@@ -561,9 +698,25 @@ function EmailPageContent() {
             </div>
 
             <div style={{ flex: 1, padding: '24px', overflowY: 'auto' }}>
-              <p style={{ color: '#d4d4d8', lineHeight: 1.6 }}>
-                {selectedEmail.summary}
-              </p>
+              {isLoadingContent ? (
+                <p style={{ color: '#71717a' }}>Loading email content...</p>
+              ) : emailContent ? (
+                <div
+                  className="email-content"
+                  style={{
+                    color: '#d4d4d8',
+                    lineHeight: 1.6,
+                    backgroundColor: '#fff',
+                    padding: '20px',
+                    borderRadius: '8px',
+                  }}
+                  dangerouslySetInnerHTML={{ __html: emailContent }}
+                />
+              ) : (
+                <p style={{ color: '#d4d4d8', lineHeight: 1.6 }}>
+                  {selectedEmail.summary}
+                </p>
+              )}
             </div>
 
             <div style={{
