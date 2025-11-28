@@ -65,7 +65,19 @@ function EmailPageContent() {
   async function checkConnectionAndFetchEmails() {
     setIsLoading(true)
     try {
-      const response = await fetch(`/api/admin/email/inbox?folder=${selectedFolder}`)
+      // Build query params
+      const params = new URLSearchParams()
+      params.append('folder', selectedFolder)
+
+      // Get mailbox email address if not "all"
+      if (selectedMailbox !== 'all') {
+        const mailboxConfig = EMAIL_ADDRESSES.find(m => m.id === selectedMailbox)
+        if (mailboxConfig?.email) {
+          params.append('mailbox', mailboxConfig.email)
+        }
+      }
+
+      const response = await fetch(`/api/admin/email/inbox?${params.toString()}`)
       const data = await response.json()
 
       if (data.needsAuth) {

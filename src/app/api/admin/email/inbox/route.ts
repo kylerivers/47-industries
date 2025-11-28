@@ -66,6 +66,7 @@ export async function GET(req: NextRequest) {
 
     const searchParams = req.nextUrl.searchParams
     const folderId = searchParams.get('folder') || 'inbox'
+    const mailbox = searchParams.get('mailbox') // email address to filter by
     const limit = parseInt(searchParams.get('limit') || '50')
     const start = parseInt(searchParams.get('start') || '0')
     const search = searchParams.get('search')
@@ -77,6 +78,14 @@ export async function GET(req: NextRequest) {
       emails = await client.searchEmails(search, { limit, start })
     } else {
       emails = await client.getEmails({ folderId, limit, start })
+    }
+
+    // Filter by mailbox (email address) if specified
+    if (mailbox && emails.length > 0) {
+      emails = emails.filter((email: any) =>
+        email.toAddress?.toLowerCase().includes(mailbox.toLowerCase()) ||
+        email.fromAddress?.toLowerCase().includes(mailbox.toLowerCase())
+      )
     }
 
     return NextResponse.json({
