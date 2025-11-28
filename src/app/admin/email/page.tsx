@@ -42,6 +42,16 @@ interface UploadedAttachment {
   fileSize: number
 }
 
+interface EmailLog {
+  id: string
+  userName: string
+  fromAddress: string
+  toAddress: string
+  subject: string
+  createdAt: string
+  status: string
+}
+
 const EMAIL_ADDRESSES = [
   { id: 'all', label: 'All Inboxes', email: null },
   { id: 'personal', label: 'Personal', email: 'kyle@47industries.com' },
@@ -87,6 +97,7 @@ function EmailPageContent() {
   const [isLoadingAttachments, setIsLoadingAttachments] = useState(false)
   const [uploadedAttachments, setUploadedAttachments] = useState<UploadedAttachment[]>([])
   const [isUploading, setIsUploading] = useState(false)
+  const [sentByAdmin, setSentByAdmin] = useState<string | null>(null)
 
   // Check for success message from OAuth callback
   useEffect(() => {
@@ -277,6 +288,26 @@ function EmailPageContent() {
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
   }
 
+  async function fetchSentByAdmin(email: Email) {
+    // For sent emails, look up who actually sent it from our logs
+    setSentByAdmin(null)
+    try {
+      const params = new URLSearchParams({
+        subject: email.subject,
+        to: email.toAddress?.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/[<>]/g, '').trim() || '',
+      })
+      const response = await fetch(`/api/admin/email/logs?${params.toString()}`)
+      const data = await response.json()
+      if (data.logs && data.logs.length > 0) {
+        // Find matching log entry
+        const log = data.logs[0]
+        setSentByAdmin(log.userName)
+      }
+    } catch (error) {
+      console.error('Error fetching sent by info:', error)
+    }
+  }
+
   function handleSelectEmail(email: Email) {
     setSelectedEmail(email)
     fetchEmailContent(email.messageId)
@@ -284,6 +315,12 @@ function EmailPageContent() {
       fetchAttachments(email.messageId)
     } else {
       setAttachments([])
+    }
+    // For sent folder, fetch who sent it
+    if (selectedFolder === 'sent') {
+      fetchSentByAdmin(email)
+    } else {
+      setSentByAdmin(null)
     }
   }
 
@@ -1016,6 +1053,20 @@ function EmailPageContent() {
                       .replace(/[<>]/g, '')
                       .trim()}
                   </div>
+                  {/* Show who sent this email (for sent folder) */}
+                  {sentByAdmin && (
+                    <div style={{
+                      fontSize: '12px',
+                      color: '#3b82f6',
+                      marginTop: '6px',
+                      padding: '4px 8px',
+                      background: '#3b82f620',
+                      borderRadius: '4px',
+                      display: 'inline-block',
+                    }}>
+                      Sent by {sentByAdmin}
+                    </div>
+                  )}
                 </div>
                 <div style={{ fontSize: '13px', color: '#71717a' }}>
                   {(() => {

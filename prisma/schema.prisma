@@ -47,6 +47,7 @@ model User {
   orders        Order[]
   cartItems     CartItem[]
   addresses     Address[]
+  emailLogs     EmailLog[]
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -571,4 +572,37 @@ model EmailSignature {
 
   @@index([userId])
   @@index([forAddress])
+}
+
+// ============================================
+// EMAIL AUDIT LOG
+// ============================================
+
+model EmailLog {
+  id          String   @id @default(cuid())
+
+  // Who sent it (admin user)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  userName    String   // Snapshot of user name at time of send
+
+  // Email details
+  fromAddress String   // e.g., support@47industries.com
+  toAddress   String
+  ccAddress   String?
+  bccAddress  String?
+  subject     String
+
+  // Optional: store message ID from Zoho for reference
+  zohoMessageId String?
+
+  // Status
+  status      String   @default("sent") // sent, failed
+  error       String?  @db.Text
+
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([fromAddress])
+  @@index([createdAt])
 }

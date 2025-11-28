@@ -74,27 +74,58 @@ export async function POST(req: NextRequest) {
 
     const client = new ZohoMailClient(accessToken)
 
-    // Use sendEmailWithAttachments if attachments are provided
-    const result = body.attachments && body.attachments.length > 0
-      ? await client.sendEmailWithAttachments({
-          fromAddress: body.from || 'noreply@47industries.com',
-          toAddress: body.to,
-          ccAddress: body.cc,
-          bccAddress: body.bcc,
-          subject: body.subject,
-          content: body.content,
-          isHtml: body.isHtml !== false,
-          attachments: body.attachments,
-        })
-      : await client.sendEmail({
-          fromAddress: body.from || 'noreply@47industries.com',
-          toAddress: body.to,
-          ccAddress: body.cc,
-          bccAddress: body.bcc,
-          subject: body.subject,
-          content: body.content,
-          isHtml: body.isHtml !== false,
-        })
+    const fromAddress = body.from || 'noreply@47industries.com'
+    let result
+    let sendError: string | null = null
+
+    try {
+      // Use sendEmailWithAttachments if attachments are provided
+      result = body.attachments && body.attachments.length > 0
+        ? await client.sendEmailWithAttachments({
+            fromAddress,
+            toAddress: body.to,
+            ccAddress: body.cc,
+            bccAddress: body.bcc,
+            subject: body.subject,
+            content: body.content,
+            isHtml: body.isHtml !== false,
+            attachments: body.attachments,
+          })
+        : await client.sendEmail({
+            fromAddress,
+            toAddress: body.to,
+            ccAddress: body.cc,
+            bccAddress: body.bcc,
+            subject: body.subject,
+            content: body.content,
+            isHtml: body.isHtml !== false,
+          })
+    } catch (err) {
+      sendError = err instanceof Error ? err.message : 'Unknown error'
+    }
+
+    // Log the email (whether successful or failed)
+    await prisma.emailLog.create({
+      data: {
+        userId: session.user.id,
+        userName: session.user.name || session.user.email || 'Unknown',
+        fromAddress,
+        toAddress: body.to,
+        ccAddress: body.cc || null,
+        bccAddress: body.bcc || null,
+        subject: body.subject,
+        zohoMessageId: result?.messageId || null,
+        status: sendError ? 'failed' : 'sent',
+        error: sendError,
+      },
+    })
+
+    if (sendError) {
+      return NextResponse.json(
+        { error: 'Failed to send email', details: sendError },
+        { status: 500 }
+      )
+    }
 
     return NextResponse.json({
       success: true,
