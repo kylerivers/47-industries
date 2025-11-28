@@ -111,6 +111,18 @@ function EmailPageContent() {
     checkConnectionAndFetchEmails()
   }, [selectedFolder, selectedMailbox])
 
+  // Auto-refresh emails every 30 seconds
+  useEffect(() => {
+    if (!isConnected) return
+
+    const interval = setInterval(() => {
+      // Silent refresh - don't show loading state
+      fetchEmailsSilent()
+    }, 30000) // 30 seconds
+
+    return () => clearInterval(interval)
+  }, [isConnected, selectedFolder, selectedMailbox])
+
   // Fetch signatures and labels on mount
   useEffect(() => {
     fetchSignatures()
@@ -145,6 +157,37 @@ function EmailPageContent() {
       console.error('Error fetching emails:', error)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  // Silent fetch for auto-refresh (no loading spinner)
+  async function fetchEmailsSilent() {
+    try {
+      const params = new URLSearchParams()
+      params.append('folder', selectedFolder)
+
+      if (selectedMailbox !== 'all') {
+        const mailboxConfig = EMAIL_ADDRESSES.find(m => m.id === selectedMailbox)
+        if (mailboxConfig?.email) {
+          params.append('mailbox', mailboxConfig.email)
+        }
+      }
+
+      const response = await fetch(`/api/admin/email/inbox?${params.toString()}`)
+      const data = await response.json()
+
+      if (data.emails) {
+        // Check if there are new emails
+        const currentIds = new Set(emails.map(e => e.messageId))
+        const newEmails = data.emails.filter((e: Email) => !currentIds.has(e.messageId))
+
+        if (newEmails.length > 0) {
+          // Update the list with new emails
+          setEmails(data.emails)
+        }
+      }
+    } catch (error) {
+      console.error('Error in silent fetch:', error)
     }
   }
 
