@@ -553,3 +553,22 @@ model PageView {
   @@index([path])
   @@index([createdAt])
 }
+
+// ============================================
+// EMAIL SIGNATURES
+// ============================================
+
+model EmailSignature {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  content     String   @db.Text
+  isDefault   Boolean  @default(false)
+  forAddress  String?  // Optional: specific email address this signature is for
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([forAddress])
+}

@@ -4,7 +4,6 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { ZohoMailClient, refreshAccessToken } from '@/lib/zoho'
 
-// Helper to get a valid access token
 async function getValidAccessToken(userId: string): Promise<string | null> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -26,7 +25,6 @@ async function getValidAccessToken(userId: string): Promise<string | null> {
   if (isExpired) {
     try {
       const tokens = await refreshAccessToken(user.zohoRefreshToken)
-
       await prisma.user.update({
         where: { id: userId },
         data: {
@@ -34,7 +32,6 @@ async function getValidAccessToken(userId: string): Promise<string | null> {
           zohoTokenExpiry: new Date(Date.now() + tokens.expires_in * 1000),
         },
       })
-
       return tokens.access_token
     } catch (error) {
       console.error('Failed to refresh Zoho token:', error)
@@ -45,66 +42,58 @@ async function getValidAccessToken(userId: string): Promise<string | null> {
   return user.zohoAccessToken
 }
 
-// POST /api/admin/email/send - Send an email
-export async function POST(req: NextRequest) {
+// PUT /api/admin/email/folders/[id] - Rename a folder
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const session = await getServerSession(authOptions)
-
     if (!session || session.user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const accessToken = await getValidAccessToken(session.user.id)
-
     if (!accessToken) {
-      return NextResponse.json(
-        { error: 'Zoho Mail not connected', needsAuth: true },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Zoho Mail not connected', needsAuth: true }, { status: 401 })
     }
 
-    const body = await req.json()
-
-    if (!body.to || !body.subject || !body.content) {
-      return NextResponse.json(
-        { error: 'To, subject, and content are required' },
-        { status: 400 }
-      )
-    }
+    const { id } = await params
+    const { name } = await req.json()
 
     const client = new ZohoMailClient(accessToken)
+    const folder = await client.renameFolder(id, name)
 
-    // Use sendEmailWithAttachments if attachments are provided
-    const result = body.attachments && body.attachments.length > 0
-      ? await client.sendEmailWithAttachments({
-          fromAddress: body.from || 'noreply@47industries.com',
-          toAddress: body.to,
-          ccAddress: body.cc,
-          bccAddress: body.bcc,
-          subject: body.subject,
-          content: body.content,
-          isHtml: body.isHtml !== false,
-          attachments: body.attachments,
-        })
-      : await client.sendEmail({
-          fromAddress: body.from || 'noreply@47industries.com',
-          toAddress: body.to,
-          ccAddress: body.cc,
-          bccAddress: body.bcc,
-          subject: body.subject,
-          content: body.content,
-          isHtml: body.isHtml !== false,
-        })
-
-    return NextResponse.json({
-      success: true,
-      messageId: result?.messageId,
-    })
+    return NextResponse.json({ folder, success: true })
   } catch (error) {
-    console.error('Error sending email:', error)
-    return NextResponse.json(
-      { error: 'Failed to send email' },
-      { status: 500 }
-    )
+    console.error('Error updating folder:', error)
+    return NextResponse.json({ error: 'Failed to update folder' }, { status: 500 })
+  }
+}
+
+// DELETE /api/admin/email/folders/[id] - Delete a folder
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session || session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const accessToken = await getValidAccessToken(session.user.id)
+    if (!accessToken) {
+      return NextResponse.json({ error: 'Zoho Mail not connected', needsAuth: true }, { status: 401 })
+    }
+
+    const { id } = await params
+    const client = new ZohoMailClient(accessToken)
+    await client.deleteFolder(id)
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Error deleting folder:', error)
+    return NextResponse.json({ error: 'Failed to delete folder' }, { status: 500 })
   }
 }

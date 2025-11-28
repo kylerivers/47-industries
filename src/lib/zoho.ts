@@ -8,10 +8,10 @@ export const ZOHO_CONFIG = {
   clientSecret: process.env.ZOHO_CLIENT_SECRET!,
   redirectUri: process.env.ZOHO_REDIRECT_URI || 'https://admin.47industries.com/api/auth/zoho/callback',
   scopes: [
-    'ZohoMail.messages.READ',
-    'ZohoMail.messages.CREATE',
-    'ZohoMail.folders.READ',
+    'ZohoMail.messages.ALL',
+    'ZohoMail.folders.ALL',
     'ZohoMail.accounts.READ',
+    'ZohoMail.organization.accounts.READ',
   ],
 }
 
@@ -320,6 +320,246 @@ export class ZohoMailClient {
     const accId = accountId || await this.getAccountId()
     await this.request(`/accounts/${accId}/messages/${messageId}/trash`, {
       method: 'PUT',
+    })
+  }
+
+  // ==================== ATTACHMENTS ====================
+
+  // Get attachments for an email
+  async getAttachments(messageId: string, folderId: string, accountId?: string): Promise<any[]> {
+    const accId = accountId || await this.getAccountId()
+    try {
+      const data = await this.request(`/accounts/${accId}/folders/${folderId}/messages/${messageId}/attachmentinfo`)
+      return data.data?.attachments || []
+    } catch (e) {
+      console.error('Error getting attachments:', e)
+      return []
+    }
+  }
+
+  // Download attachment - returns the download URL
+  getAttachmentDownloadUrl(messageId: string, attachmentId: string, attachmentName: string, folderId: string, accountId: string): string {
+    return `${ZOHO_MAIL_API_URL}/accounts/${accountId}/folders/${folderId}/messages/${messageId}/attachments/${attachmentId}?name=${encodeURIComponent(attachmentName)}`
+  }
+
+  // Upload attachment for sending
+  async uploadAttachment(file: Buffer, fileName: string, accountId?: string): Promise<{ storeName: string }> {
+    const accId = accountId || await this.getAccountId()
+
+    const formData = new FormData()
+    const blob = new Blob([new Uint8Array(file)])
+    formData.append('attach', blob, fileName)
+
+    const response = await fetch(`${ZOHO_MAIL_API_URL}/accounts/${accId}/messages/attachments?fileName=${encodeURIComponent(fileName)}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Zoho-oauthtoken ${this.accessToken}`,
+      },
+      body: formData,
+    })
+
+    if (!response.ok) {
+      const error = await response.text()
+      throw new Error(`Failed to upload attachment: ${error}`)
+    }
+
+    const data = await response.json()
+    return data.data
+  }
+
+  // Send email with attachments
+  async sendEmailWithAttachments(options: {
+    accountId?: string
+    fromAddress: string
+    toAddress: string
+    ccAddress?: string
+    bccAddress?: string
+    subject: string
+    content: string
+    isHtml?: boolean
+    attachments?: { storeName: string }[]
+  }): Promise<any> {
+    const accId = options.accountId || await this.getAccountId()
+
+    const body: any = {
+      fromAddress: options.fromAddress,
+      toAddress: options.toAddress,
+      subject: options.subject,
+      content: options.content,
+      mailFormat: options.isHtml ? 'html' : 'plaintext',
+    }
+
+    if (options.ccAddress) body.ccAddress = options.ccAddress
+    if (options.bccAddress) body.bccAddress = options.bccAddress
+    if (options.attachments && options.attachments.length > 0) {
+      body.attachments = options.attachments
+    }
+
+    const data = await this.request(`/accounts/${accId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    })
+
+    return data.data
+  }
+
+  // ==================== LABELS ====================
+
+  // Get all labels/tags
+  async getLabels(accountId?: string): Promise<any[]> {
+    const accId = accountId || await this.getAccountId()
+    try {
+      const data = await this.request(`/accounts/${accId}/tags`)
+      return data.data || []
+    } catch (e) {
+      console.error('Error getting labels:', e)
+      return []
+    }
+  }
+
+  // Create a new label
+  async createLabel(name: string, color?: string, accountId?: string): Promise<any> {
+    const accId = accountId || await this.getAccountId()
+    const body: any = { tagName: name }
+    if (color) body.color = color
+
+    const data = await this.request(`/accounts/${accId}/tags`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    })
+    return data.data
+  }
+
+  // Update a label
+  async updateLabel(labelId: string, name: string, color?: string, accountId?: string): Promise<any> {
+    const accId = accountId || await this.getAccountId()
+    const body: any = { tagName: name }
+    if (color) body.color = color
+
+    const data = await this.request(`/accounts/${accId}/tags/${labelId}`, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    })
+    return data.data
+  }
+
+  // Delete a label
+  async deleteLabel(labelId: string, accountId?: string): Promise<void> {
+    const accId = accountId || await this.getAccountId()
+    await this.request(`/accounts/${accId}/tags/${labelId}`, {
+      method: 'DELETE',
+    })
+  }
+
+  // Apply label to message
+  async applyLabel(messageId: string, labelId: string, accountId?: string): Promise<void> {
+    const accId = accountId || await this.getAccountId()
+    await this.request(`/accounts/${accId}/updatemessage`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        mode: 'addTag',
+        messageId: [messageId],
+        tagId: labelId,
+      }),
+    })
+  }
+
+  // Remove label from message
+  async removeLabel(messageId: string, labelId: string, accountId?: string): Promise<void> {
+    const accId = accountId || await this.getAccountId()
+    await this.request(`/accounts/${accId}/updatemessage`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        mode: 'removeTag',
+        messageId: [messageId],
+        tagId: labelId,
+      }),
+    })
+  }
+
+  // ==================== FOLDERS ====================
+
+  // Create a new folder
+  async createFolder(name: string, parentFolderId?: string, accountId?: string): Promise<any> {
+    const accId = accountId || await this.getAccountId()
+    const body: any = { folderName: name }
+    if (parentFolderId) body.parentFolderId = parentFolderId
+
+    const data = await this.request(`/accounts/${accId}/folders`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    })
+    return data.data
+  }
+
+  // Rename a folder
+  async renameFolder(folderId: string, name: string, accountId?: string): Promise<any> {
+    const accId = accountId || await this.getAccountId()
+    const data = await this.request(`/accounts/${accId}/folders/${folderId}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        mode: 'rename',
+        folderName: name,
+      }),
+    })
+    return data.data
+  }
+
+  // Delete a folder
+  async deleteFolder(folderId: string, accountId?: string): Promise<void> {
+    const accId = accountId || await this.getAccountId()
+    await this.request(`/accounts/${accId}/folders/${folderId}`, {
+      method: 'DELETE',
+    })
+  }
+
+  // ==================== EMAIL ACTIONS ====================
+
+  // Mark as spam
+  async markAsSpam(messageId: string, accountId?: string): Promise<void> {
+    const accId = accountId || await this.getAccountId()
+    await this.request(`/accounts/${accId}/updatemessage`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        mode: 'markSpam',
+        messageId: [messageId],
+      }),
+    })
+  }
+
+  // Mark as not spam
+  async markAsNotSpam(messageId: string, accountId?: string): Promise<void> {
+    const accId = accountId || await this.getAccountId()
+    await this.request(`/accounts/${accId}/updatemessage`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        mode: 'unmarkSpam',
+        messageId: [messageId],
+      }),
+    })
+  }
+
+  // Flag/star email
+  async flagEmail(messageId: string, flagged: boolean = true, accountId?: string): Promise<void> {
+    const accId = accountId || await this.getAccountId()
+    await this.request(`/accounts/${accId}/updatemessage`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        mode: flagged ? 'flagMail' : 'unflagMail',
+        messageId: [messageId],
+      }),
+    })
+  }
+
+  // Archive email
+  async archiveEmail(messageId: string, accountId?: string): Promise<void> {
+    const accId = accountId || await this.getAccountId()
+    await this.request(`/accounts/${accId}/updatemessage`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        mode: 'archive',
+        messageId: [messageId],
+      }),
     })
   }
 }

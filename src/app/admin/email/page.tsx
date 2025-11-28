@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 
 interface Email {
   messageId: string
@@ -12,6 +13,33 @@ interface Email {
   summary: string
   isRead: boolean
   hasAttachment: boolean
+}
+
+interface Signature {
+  id: string
+  name: string
+  content: string
+  isDefault: boolean
+  forAddress: string | null
+}
+
+interface Label {
+  tagId: string
+  tagName: string
+  color?: string
+}
+
+interface Attachment {
+  attachmentId: string
+  attachmentName: string
+  attachmentSize: number
+  downloadUrl: string
+}
+
+interface UploadedAttachment {
+  storeName: string
+  fileName: string
+  fileSize: number
 }
 
 const EMAIL_ADDRESSES = [
@@ -51,6 +79,14 @@ function EmailPageContent() {
     subject: '',
     content: '',
   })
+  const [signatures, setSignatures] = useState<Signature[]>([])
+  const [selectedSignature, setSelectedSignature] = useState<string>('')
+  const [labels, setLabels] = useState<Label[]>([])
+  const [isLoadingLabels, setIsLoadingLabels] = useState(false)
+  const [attachments, setAttachments] = useState<Attachment[]>([])
+  const [isLoadingAttachments, setIsLoadingAttachments] = useState(false)
+  const [uploadedAttachments, setUploadedAttachments] = useState<UploadedAttachment[]>([])
+  const [isUploading, setIsUploading] = useState(false)
 
   // Check for success message from OAuth callback
   useEffect(() => {
@@ -63,6 +99,12 @@ function EmailPageContent() {
   useEffect(() => {
     checkConnectionAndFetchEmails()
   }, [selectedFolder, selectedMailbox])
+
+  // Fetch signatures and labels on mount
+  useEffect(() => {
+    fetchSignatures()
+    fetchLabels()
+  }, [])
 
   async function checkConnectionAndFetchEmails() {
     setIsLoading(true)
@@ -108,6 +150,59 @@ function EmailPageContent() {
     }
   }
 
+  async function fetchSignatures() {
+    try {
+      const response = await fetch('/api/admin/email/signatures')
+      const data = await response.json()
+      if (data.signatures) {
+        setSignatures(data.signatures)
+        // Auto-select default signature
+        const defaultSig = data.signatures.find((s: Signature) => s.isDefault)
+        if (defaultSig) {
+          setSelectedSignature(defaultSig.id)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching signatures:', error)
+    }
+  }
+
+  async function fetchLabels() {
+    setIsLoadingLabels(true)
+    try {
+      const response = await fetch('/api/admin/email/labels')
+      const data = await response.json()
+      if (data.labels) {
+        setLabels(data.labels)
+      }
+    } catch (error) {
+      console.error('Error fetching labels:', error)
+    } finally {
+      setIsLoadingLabels(false)
+    }
+  }
+
+  function getSignatureForEmail(emailAddress: string): Signature | undefined {
+    // First try to find signature specific to this email address
+    const specificSig = signatures.find(s => s.forAddress === emailAddress)
+    if (specificSig) return specificSig
+    // Fall back to default signature
+    return signatures.find(s => s.isDefault)
+  }
+
+  function applySignature(signatureId: string) {
+    const sig = signatures.find(s => s.id === signatureId)
+    if (sig) {
+      setSelectedSignature(signatureId)
+      // Append signature to content with separator
+      const separator = '<br><br>--<br>'
+      setComposeData(prev => ({
+        ...prev,
+        content: prev.content.replace(/(<br><br>--<br>)[\s\S]*$/, '') + separator + sig.content
+      }))
+    }
+  }
+
   async function fetchEmailContent(messageId: string) {
     setIsLoadingContent(true)
     setEmailContent('')
@@ -126,9 +221,70 @@ function EmailPageContent() {
     }
   }
 
+  async function fetchAttachments(messageId: string) {
+    setIsLoadingAttachments(true)
+    setAttachments([])
+    try {
+      const response = await fetch(`/api/admin/email/${messageId}/attachments`)
+      const data = await response.json()
+      if (data.attachments) {
+        setAttachments(data.attachments)
+      }
+    } catch (error) {
+      console.error('Error fetching attachments:', error)
+    } finally {
+      setIsLoadingAttachments(false)
+    }
+  }
+
+  async function uploadAttachment(file: File) {
+    setIsUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await fetch('/api/admin/email/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        setUploadedAttachments(prev => [...prev, {
+          storeName: data.storeName,
+          fileName: data.fileName,
+          fileSize: data.fileSize,
+        }])
+      } else {
+        alert('Failed to upload attachment: ' + (data.error || 'Unknown error'))
+      }
+    } catch (error) {
+      console.error('Error uploading attachment:', error)
+      alert('Failed to upload attachment')
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  function removeUploadedAttachment(index: number) {
+    setUploadedAttachments(prev => prev.filter((_, i) => i !== index))
+  }
+
+  function formatFileSize(bytes: number): string {
+    if (bytes < 1024) return bytes + ' B'
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
+  }
+
   function handleSelectEmail(email: Email) {
     setSelectedEmail(email)
     fetchEmailContent(email.messageId)
+    if (email.hasAttachment) {
+      fetchAttachments(email.messageId)
+    } else {
+      setAttachments([])
+    }
   }
 
   async function sendEmail() {
@@ -143,6 +299,7 @@ function EmailPageContent() {
           subject: composeData.subject,
           content: composeData.content,
           isHtml: true,
+          attachments: uploadedAttachments.map(a => ({ storeName: a.storeName })),
         }),
       })
 
@@ -157,6 +314,7 @@ function EmailPageContent() {
           subject: '',
           content: '',
         })
+        setUploadedAttachments([])
         alert('Email sent successfully!')
       } else {
         alert('Failed to send email: ' + (data.error || 'Unknown error'))
@@ -280,7 +438,7 @@ function EmailPageContent() {
         </div>
 
         {/* Mailboxes */}
-        <div>
+        <div style={{ marginBottom: '24px' }}>
           <div style={{ fontSize: '12px', color: '#71717a', marginBottom: '8px', textTransform: 'uppercase' }}>
             Mailboxes
           </div>
@@ -304,6 +462,63 @@ function EmailPageContent() {
               {mailbox.label}
             </button>
           ))}
+        </div>
+
+        {/* Labels */}
+        {labels.length > 0 && (
+          <div style={{ marginBottom: '24px' }}>
+            <div style={{ fontSize: '12px', color: '#71717a', marginBottom: '8px', textTransform: 'uppercase' }}>
+              Labels
+            </div>
+            {labels.map((label) => (
+              <button
+                key={label.tagId}
+                style={{
+                  width: '100%',
+                  textAlign: 'left',
+                  background: 'transparent',
+                  color: '#a1a1aa',
+                  border: 'none',
+                  padding: '10px 12px',
+                  borderRadius: '8px',
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  marginBottom: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}
+              >
+                <span style={{
+                  width: '10px',
+                  height: '10px',
+                  borderRadius: '50%',
+                  background: label.color || '#3b82f6',
+                }} />
+                {label.tagName}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Settings Link */}
+        <div style={{ borderTop: '1px solid #27272a', paddingTop: '16px', marginTop: 'auto' }}>
+          <Link
+            href="/admin/email/settings"
+            style={{
+              display: 'block',
+              textAlign: 'left',
+              background: 'transparent',
+              color: '#a1a1aa',
+              border: 'none',
+              padding: '10px 12px',
+              borderRadius: '8px',
+              fontSize: '13px',
+              textDecoration: 'none',
+            }}
+          >
+            Settings
+          </Link>
         </div>
       </div>
 
@@ -509,6 +724,33 @@ function EmailPageContent() {
                 />
               </div>
 
+              {/* Signature Selector */}
+              {signatures.length > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <label style={{ width: '60px', color: '#a1a1aa', fontSize: '14px' }}>Signature:</label>
+                  <select
+                    value={selectedSignature}
+                    onChange={(e) => applySignature(e.target.value)}
+                    style={{
+                      flex: 1,
+                      background: '#18181b',
+                      border: '1px solid #27272a',
+                      borderRadius: '8px',
+                      padding: '10px 14px',
+                      color: '#fff',
+                      fontSize: '14px',
+                    }}
+                  >
+                    <option value="">No signature</option>
+                    {signatures.map((sig) => (
+                      <option key={sig.id} value={sig.id}>
+                        {sig.name} {sig.isDefault ? '(Default)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               {/* Rich Text Toolbar */}
               <div style={{
                 display: 'flex',
@@ -638,6 +880,89 @@ function EmailPageContent() {
                 dangerouslySetInnerHTML={{ __html: composeData.content }}
               />
 
+              {/* Attachments Section */}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                padding: '12px',
+                background: '#18181b',
+                borderRadius: '8px',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <label
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '8px 16px',
+                      background: '#27272a',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontSize: '13px',
+                      color: '#a1a1aa',
+                    }}
+                  >
+                    <input
+                      type="file"
+                      multiple
+                      onChange={(e) => {
+                        const files = e.target.files
+                        if (files) {
+                          Array.from(files).forEach(file => uploadAttachment(file))
+                        }
+                        e.target.value = ''
+                      }}
+                      style={{ display: 'none' }}
+                    />
+                    {isUploading ? 'Uploading...' : 'Attach Files'}
+                  </label>
+                  {uploadedAttachments.length > 0 && (
+                    <span style={{ fontSize: '12px', color: '#71717a' }}>
+                      {uploadedAttachments.length} file(s) attached
+                    </span>
+                  )}
+                </div>
+
+                {/* Uploaded Attachments List */}
+                {uploadedAttachments.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    {uploadedAttachments.map((att, index) => (
+                      <div
+                        key={index}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          padding: '6px 12px',
+                          background: '#27272a',
+                          borderRadius: '6px',
+                          fontSize: '13px',
+                        }}
+                      >
+                        <span>{att.fileName}</span>
+                        <span style={{ color: '#71717a', fontSize: '11px' }}>
+                          ({formatFileSize(att.fileSize)})
+                        </span>
+                        <button
+                          onClick={() => removeUploadedAttachment(index)}
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: '#ef4444',
+                            cursor: 'pointer',
+                            padding: '0 4px',
+                            fontSize: '16px',
+                          }}
+                        >
+                          x
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
                 <button
                   onClick={() => setIsComposing(false)}
@@ -729,6 +1054,49 @@ function EmailPageContent() {
                 <p style={{ color: '#d4d4d8', lineHeight: 1.6 }}>
                   {selectedEmail.summary}
                 </p>
+              )}
+
+              {/* Attachments Display */}
+              {(attachments.length > 0 || isLoadingAttachments) && (
+                <div style={{
+                  marginTop: '24px',
+                  padding: '16px',
+                  background: '#18181b',
+                  borderRadius: '8px',
+                }}>
+                  <div style={{ fontSize: '14px', fontWeight: 500, marginBottom: '12px' }}>
+                    Attachments
+                  </div>
+                  {isLoadingAttachments ? (
+                    <p style={{ color: '#71717a', fontSize: '13px' }}>Loading attachments...</p>
+                  ) : (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                      {attachments.map((att) => (
+                        <a
+                          key={att.attachmentId}
+                          href={att.downloadUrl}
+                          download={att.attachmentName}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '8px 12px',
+                            background: '#27272a',
+                            borderRadius: '6px',
+                            textDecoration: 'none',
+                            color: '#fff',
+                            fontSize: '13px',
+                          }}
+                        >
+                          <span>{att.attachmentName}</span>
+                          <span style={{ color: '#71717a', fontSize: '11px' }}>
+                            ({formatFileSize(att.attachmentSize)})
+                          </span>
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
 
