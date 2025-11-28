@@ -10,6 +10,9 @@ datasource db {
   relationMode = "prisma"
 }
 
+// Note: DATABASE_URL should be constructed from Railway's individual MySQL variables:
+// mysql://${MYSQLUSER}:${MYSQLPASSWORD}@${MYSQLHOST}:${MYSQLPORT}/${MYSQLDATABASE}
+
 // ============================================
 // AUTHENTICATION & USER MANAGEMENT
 // ============================================
