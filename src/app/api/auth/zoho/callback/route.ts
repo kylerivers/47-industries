@@ -4,13 +4,18 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { exchangeCodeForTokens } from '@/lib/zoho'
 
+// Base URL for redirects - use admin subdomain
+const BASE_URL = process.env.NODE_ENV === 'production'
+  ? 'https://admin.47industries.com'
+  : 'http://localhost:3000'
+
 // GET /api/auth/zoho/callback - Handle OAuth callback from Zoho
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
 
     if (!session || session.user.role !== 'ADMIN') {
-      return NextResponse.redirect(new URL('/admin/login', req.url))
+      return NextResponse.redirect(`${BASE_URL}/login`)
     }
 
     const searchParams = req.nextUrl.searchParams
@@ -19,15 +24,11 @@ export async function GET(req: NextRequest) {
 
     if (error) {
       console.error('Zoho OAuth error:', error)
-      return NextResponse.redirect(
-        new URL('/admin/settings?error=zoho_auth_failed', req.url)
-      )
+      return NextResponse.redirect(`${BASE_URL}/settings?error=zoho_auth_failed`)
     }
 
     if (!code) {
-      return NextResponse.redirect(
-        new URL('/admin/settings?error=no_code', req.url)
-      )
+      return NextResponse.redirect(`${BASE_URL}/settings?error=no_code`)
     }
 
     // Exchange code for tokens
@@ -43,13 +44,9 @@ export async function GET(req: NextRequest) {
       },
     })
 
-    return NextResponse.redirect(
-      new URL('/admin/email?success=connected', req.url)
-    )
+    return NextResponse.redirect(`${BASE_URL}/email?success=connected`)
   } catch (error) {
     console.error('Error in Zoho OAuth callback:', error)
-    return NextResponse.redirect(
-      new URL('/admin/settings?error=zoho_auth_failed', req.url)
-    )
+    return NextResponse.redirect(`${BASE_URL}/settings?error=zoho_auth_failed`)
   }
 }
