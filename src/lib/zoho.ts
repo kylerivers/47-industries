@@ -151,36 +151,28 @@ export class ZohoMailClient {
   } = {}): Promise<any[]> {
     const accId = options.accountId || await this.getAccountId()
 
-    // First get all folders to find the folder ID
-    const folders = await this.getFolders(accId)
-
-    // Find folder by name (inbox, sent, drafts, trash, etc)
-    let targetFolderId: string | null = null
-    if (options.folderId) {
-      const folder = folders.find((f: any) =>
-        f.folderName?.toLowerCase() === options.folderId?.toLowerCase() ||
-        f.path?.toLowerCase() === options.folderId?.toLowerCase()
-      )
-      targetFolderId = folder?.folderId
-    }
-
-    // If no folder found, use inbox by default
-    if (!targetFolderId) {
-      const inboxFolder = folders.find((f: any) =>
-        f.folderName?.toLowerCase() === 'inbox'
-      )
-      targetFolderId = inboxFolder?.folderId
-    }
-
-    if (!targetFolderId) {
-      return []
-    }
-
     const params = new URLSearchParams()
     if (options.limit) params.append('limit', options.limit.toString())
     if (options.start) params.append('start', options.start.toString())
 
-    const endpoint = `/accounts/${accId}/folders/${targetFolderId}/messages?${params.toString()}`
+    // If folder specified, get the folder ID first
+    if (options.folderId && options.folderId !== 'all') {
+      try {
+        const folders = await this.getFolders(accId)
+        const folder = folders.find((f: any) =>
+          f.folderName?.toLowerCase() === options.folderId?.toLowerCase() ||
+          f.path?.toLowerCase() === options.folderId?.toLowerCase()
+        )
+        if (folder?.folderId) {
+          params.append('folderId', folder.folderId)
+        }
+      } catch (e) {
+        console.error('Error getting folders:', e)
+        // Continue without folder filter
+      }
+    }
+
+    const endpoint = `/accounts/${accId}/messages/view?${params.toString()}`
     const data = await this.request(endpoint)
     return data.data || []
   }
