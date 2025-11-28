@@ -52,16 +52,11 @@ interface EmailLog {
   status: string
 }
 
-const EMAIL_ADDRESSES = [
-  { id: 'all', label: 'All Inboxes', email: null },
-  { id: 'personal', label: 'Personal', email: 'kyle@47industries.com' },
-  { id: 'support-47', label: '47 Support', email: 'support@47industries.com' },
-  { id: 'info-47', label: '47 Info', email: 'info@47industries.com' },
-  { id: 'contact-47', label: '47 Contact', email: 'contact@47industries.com' },
-  { id: 'press-47', label: '47 Press', email: 'press@47industries.com' },
-  { id: 'support-mr', label: 'MotoRev Support', email: 'support@motorevapp.com' },
-  { id: 'press-mr', label: 'MotoRev Press', email: 'press@motorevapp.com' },
-]
+interface Mailbox {
+  id: string
+  label: string
+  email: string | null
+}
 
 const FOLDERS = [
   { id: 'inbox', label: 'Inbox' },
@@ -98,6 +93,7 @@ function EmailPageContent() {
   const [uploadedAttachments, setUploadedAttachments] = useState<UploadedAttachment[]>([])
   const [isUploading, setIsUploading] = useState(false)
   const [sentByAdmin, setSentByAdmin] = useState<string | null>(null)
+  const [mailboxes, setMailboxes] = useState<Mailbox[]>([{ id: 'all', label: 'All Inboxes', email: null }])
 
   // Check for success message from OAuth callback
   useEffect(() => {
@@ -123,10 +119,11 @@ function EmailPageContent() {
     return () => clearInterval(interval)
   }, [isConnected, selectedFolder, selectedMailbox])
 
-  // Fetch signatures and labels on mount
+  // Fetch signatures, labels, and mailboxes on mount
   useEffect(() => {
     fetchSignatures()
     fetchLabels()
+    fetchMailboxes()
   }, [])
 
   async function checkConnectionAndFetchEmails() {
@@ -138,7 +135,7 @@ function EmailPageContent() {
 
       // Get mailbox email address if not "all"
       if (selectedMailbox !== 'all') {
-        const mailboxConfig = EMAIL_ADDRESSES.find(m => m.id === selectedMailbox)
+        const mailboxConfig = mailboxes.find(m => m.id === selectedMailbox)
         if (mailboxConfig?.email) {
           params.append('mailbox', mailboxConfig.email)
         }
@@ -167,7 +164,7 @@ function EmailPageContent() {
       params.append('folder', selectedFolder)
 
       if (selectedMailbox !== 'all') {
-        const mailboxConfig = EMAIL_ADDRESSES.find(m => m.id === selectedMailbox)
+        const mailboxConfig = mailboxes.find(m => m.id === selectedMailbox)
         if (mailboxConfig?.email) {
           params.append('mailbox', mailboxConfig.email)
         }
@@ -188,6 +185,26 @@ function EmailPageContent() {
       }
     } catch (error) {
       console.error('Error in silent fetch:', error)
+    }
+  }
+
+  async function fetchMailboxes() {
+    try {
+      const response = await fetch('/api/admin/email/accounts')
+      const data = await response.json()
+      if (data.mailboxes) {
+        // Add "All Inboxes" option at the start
+        setMailboxes([
+          { id: 'all', label: 'All Inboxes', email: null },
+          ...data.mailboxes,
+        ])
+        // Set default "from" address to first actual mailbox
+        if (data.mailboxes.length > 0 && data.mailboxes[0].email) {
+          setComposeData(prev => ({ ...prev, from: data.mailboxes[0].email }))
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching mailboxes:', error)
     }
   }
 
@@ -522,7 +539,7 @@ function EmailPageContent() {
           <div style={{ fontSize: '12px', color: '#71717a', marginBottom: '8px', textTransform: 'uppercase' }}>
             Mailboxes
           </div>
-          {EMAIL_ADDRESSES.map((mailbox) => (
+          {mailboxes.map((mailbox) => (
             <button
               key={mailbox.id}
               onClick={() => setSelectedMailbox(mailbox.id)}
@@ -741,8 +758,8 @@ function EmailPageContent() {
                     fontSize: '14px',
                   }}
                 >
-                  {EMAIL_ADDRESSES.filter(e => e.email).map((addr) => (
-                    <option key={addr.id} value={addr.email!}>{addr.email}</option>
+                  {mailboxes.filter(m => m.email).map((mailbox) => (
+                    <option key={mailbox.id} value={mailbox.email!}>{mailbox.label} ({mailbox.email})</option>
                   ))}
                 </select>
               </div>
