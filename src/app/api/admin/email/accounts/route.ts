@@ -57,29 +57,34 @@ export async function GET(req: NextRequest) {
 
     const client = new ZohoMailClient(accessToken)
 
-    // Get the main account first
+    // Get the main account which contains sendMailDetails
     const accounts = await client.getAccounts()
-    console.log('Zoho accounts:', JSON.stringify(accounts, null, 2))
 
-    // Get all "from" addresses (includes group emails like support@, info@, etc.)
-    const fromAddresses = await client.getFromAddresses()
-    console.log('Zoho fromAddresses:', JSON.stringify(fromAddresses, null, 2))
+    const mailboxes: { id: string; label: string; email: string }[] = []
 
-    // Format from addresses for the frontend
-    let mailboxes = fromAddresses.map((addr: any) => ({
-      id: addr.sendMailId || addr.fromAddress,
-      label: addr.displayName || addr.fromAddress?.split('@')[0] || 'Unknown',
-      email: addr.fromAddress,
-    }))
+    if (accounts.length > 0) {
+      const account = accounts[0]
 
-    // If no from addresses found, fall back to main account
-    if (mailboxes.length === 0 && accounts.length > 0) {
-      const acc = accounts[0]
+      // Add primary email first
       mailboxes.push({
-        id: acc.accountId,
-        label: acc.displayName || acc.emailAddress?.split('@')[0] || 'Unknown',
-        email: acc.emailAddress,
+        id: account.accountId,
+        label: account.displayName || 'Primary',
+        email: account.primaryEmailAddress || account.mailboxAddress,
       })
+
+      // Get sendMailDetails from the account (contains group emails)
+      const sendMailDetails = account.sendMailDetails || []
+
+      for (const detail of sendMailDetails) {
+        // Skip if it's the same as primary
+        if (detail.fromAddress === account.primaryEmailAddress) continue
+
+        mailboxes.push({
+          id: detail.sendMailId || detail.fromAddress,
+          label: detail.displayName || detail.fromAddress?.split('@')[0] || 'Unknown',
+          email: detail.fromAddress,
+        })
+      }
     }
 
     console.log('Final mailboxes:', JSON.stringify(mailboxes, null, 2))
