@@ -56,15 +56,29 @@ export async function GET(req: NextRequest) {
     }
 
     const client = new ZohoMailClient(accessToken)
+
+    // Get the main account first
     const accounts = await client.getAccounts()
 
-    // Format accounts for the frontend
-    const mailboxes = accounts.map((acc: any) => ({
-      id: acc.accountId,
-      label: acc.displayName || acc.emailAddress?.split('@')[0] || 'Unknown',
-      email: acc.emailAddress,
-      accountId: acc.accountId,
+    // Get all "from" addresses (includes group emails like support@, info@, etc.)
+    const fromAddresses = await client.getFromAddresses()
+
+    // Format from addresses for the frontend
+    const mailboxes = fromAddresses.map((addr: any) => ({
+      id: addr.sendMailId || addr.fromAddress,
+      label: addr.displayName || addr.fromAddress?.split('@')[0] || 'Unknown',
+      email: addr.fromAddress,
     }))
+
+    // If no from addresses found, fall back to main account
+    if (mailboxes.length === 0 && accounts.length > 0) {
+      const acc = accounts[0]
+      mailboxes.push({
+        id: acc.accountId,
+        label: acc.displayName || acc.emailAddress?.split('@')[0] || 'Unknown',
+        email: acc.emailAddress,
+      })
+    }
 
     return NextResponse.json({ mailboxes })
   } catch (error) {

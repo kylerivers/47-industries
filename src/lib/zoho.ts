@@ -122,6 +122,18 @@ export class ZohoMailClient {
     return data.data || []
   }
 
+  // Get all "from" addresses (includes group emails/aliases)
+  async getFromAddresses(accountId?: string): Promise<any[]> {
+    const accId = accountId || await this.getAccountId()
+    try {
+      const data = await this.request(`/accounts/${accId}/sendmaildetails`)
+      return data.data?.sendMailDetails || []
+    } catch (e) {
+      console.error('Error getting from addresses:', e)
+      return []
+    }
+  }
+
   // Get account ID (use first account by default)
   async getAccountId(): Promise<string> {
     if (this.accountId) return this.accountId
