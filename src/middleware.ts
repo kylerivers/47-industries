@@ -6,8 +6,12 @@ export async function middleware(request: NextRequest) {
   const hostname = request.headers.get('host') || ''
   const url = request.nextUrl.clone()
 
-  // Handle admin subdomain - rewrite to /admin path
-  // This must happen BEFORE auth check so the auth check sees the correct path
+  // Never rewrite API routes - they must stay at /api/*
+  if (url.pathname.startsWith('/api/')) {
+    return NextResponse.next()
+  }
+
+  // Handle admin subdomain - rewrite page routes to /admin path
   if (hostname.startsWith('admin.')) {
     // Only rewrite if not already on an /admin path
     if (!url.pathname.startsWith('/admin')) {
