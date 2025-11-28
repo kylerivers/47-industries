@@ -8,7 +8,7 @@ interface Email {
   subject: string
   fromAddress: string
   toAddress: string
-  receivedTime: number
+  receivedTime: number | string
   summary: string
   isRead: boolean
   hasAttachment: boolean
@@ -26,10 +26,10 @@ const EMAIL_ADDRESSES = [
 ]
 
 const FOLDERS = [
-  { id: 'inbox', label: 'Inbox', icon: '📥' },
-  { id: 'sent', label: 'Sent', icon: '📤' },
-  { id: 'drafts', label: 'Drafts', icon: '📝' },
-  { id: 'trash', label: 'Trash', icon: '🗑️' },
+  { id: 'inbox', label: 'Inbox' },
+  { id: 'sent', label: 'Sent' },
+  { id: 'drafts', label: 'Drafts' },
+  { id: 'trash', label: 'Trash' },
 ]
 
 function EmailPageContent() {
@@ -130,8 +130,14 @@ function EmailPageContent() {
     }
   }
 
-  function formatDate(timestamp: number) {
-    const date = new Date(timestamp)
+  function formatDate(timestamp: number | string) {
+    // Zoho returns timestamp as string in milliseconds
+    const ts = typeof timestamp === 'string' ? parseInt(timestamp, 10) : timestamp
+    if (!ts || isNaN(ts)) return ''
+
+    const date = new Date(ts)
+    if (isNaN(date.getTime())) return ''
+
     const now = new Date()
     const isToday = date.toDateString() === now.toDateString()
 
@@ -152,7 +158,6 @@ function EmailPageContent() {
           maxWidth: '500px',
           margin: '0 auto',
         }}>
-          <div style={{ fontSize: '48px', marginBottom: '20px' }}>📧</div>
           <h2 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '12px' }}>
             Connect Your Email
           </h2>
@@ -232,8 +237,7 @@ function EmailPageContent() {
                 gap: '8px',
               }}
             >
-              <span>{folder.icon}</span>
-              {folder.label}
+{folder.label}
             </button>
           ))}
         </div>
@@ -534,7 +538,12 @@ function EmailPageContent() {
                   <div style={{ fontSize: '13px', color: '#71717a' }}>To: {selectedEmail.toAddress}</div>
                 </div>
                 <div style={{ fontSize: '13px', color: '#71717a' }}>
-                  {new Date(selectedEmail.receivedTime).toLocaleString()}
+                  {(() => {
+                    const ts = typeof selectedEmail.receivedTime === 'string'
+                      ? parseInt(selectedEmail.receivedTime, 10)
+                      : selectedEmail.receivedTime
+                    return ts && !isNaN(ts) ? new Date(ts).toLocaleString() : ''
+                  })()}
                 </div>
               </div>
             </div>
@@ -610,10 +619,7 @@ function EmailPageContent() {
             justifyContent: 'center',
             color: '#71717a',
           }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '48px', marginBottom: '16px' }}>📬</div>
-              <p>Select an email to read</p>
-            </div>
+            <p>Select an email to read</p>
           </div>
         )}
       </div>

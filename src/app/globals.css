@@ -7,8 +7,12 @@
     @apply border-border;
   }
 
+  html {
+    @apply bg-background;
+  }
+
   body {
-    @apply bg-background text-text-primary;
+    @apply bg-background text-text-primary min-h-screen;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
