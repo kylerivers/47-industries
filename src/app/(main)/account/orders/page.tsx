@@ -5,6 +5,8 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faBox } from '@fortawesome/free-solid-svg-icons'
 
 interface OrderItem {
   name: string
@@ -84,7 +86,9 @@ export default function OrderHistoryPage() {
           </div>
         ) : orders.length === 0 ? (
           <div className="text-center py-20">
-            <div className="text-6xl mb-4">📦</div>
+            <div className="text-6xl mb-4 text-zinc-500">
+              <FontAwesomeIcon icon={faBox} />
+            </div>
             <h2 className="text-2xl font-bold mb-2">No orders yet</h2>
             <p className="text-text-secondary mb-8">
               When you place an order, it will appear here.

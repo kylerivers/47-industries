@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faFile } from '@fortawesome/free-solid-svg-icons'
 
 interface CustomRequest {
   id: string
@@ -367,7 +369,7 @@ export default function CustomRequestDetailPage() {
                 justifyContent: 'center',
                 fontSize: '20px',
               }}>
-                📄
+                <FontAwesomeIcon icon={faFile} style={{ color: 'white' }} />
               </div>
               <div style={{ flex: 1 }}>
                 <p style={{ margin: '0 0 4px 0', fontWeight: 500 }}>{request.fileName}</p>

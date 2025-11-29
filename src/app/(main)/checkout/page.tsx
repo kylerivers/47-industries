@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useCart } from '@/lib/cart-store'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faShoppingCart } from '@fortawesome/free-solid-svg-icons'
 
 interface ShippingInfo {
   email: string
@@ -267,7 +269,9 @@ export default function CheckoutPage() {
     return (
       <div className="min-h-screen py-20">
         <div className="container mx-auto px-6 text-center">
-          <div className="text-6xl mb-4">🛒</div>
+          <div className="text-6xl mb-4 text-zinc-500">
+            <FontAwesomeIcon icon={faShoppingCart} />
+          </div>
           <h1 className="text-3xl font-bold mb-4">Your cart is empty</h1>
           <p className="text-text-secondary mb-8">
             Add some products before checking out.

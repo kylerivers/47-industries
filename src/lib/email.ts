@@ -413,7 +413,7 @@ export async function sendShippingNotification(data: {
             </div>
             <div class="content">
               <div class="highlight">
-                <p style="margin: 0; font-size: 32px;">📦</p>
+                <p style="margin: 0; font-size: 24px; font-weight: bold;">SHIPPED</p>
                 <p style="margin: 10px 0 0 0; font-size: 18px; font-weight: bold;">Your Order is On Its Way!</p>
               </div>
 

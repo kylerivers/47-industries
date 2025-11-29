@@ -1,6 +1,8 @@
 "use client"
 
 import { useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faFolder } from '@fortawesome/free-solid-svg-icons'
 
 export default function Custom3DPrintingForm() {
   const [formData, setFormData] = useState({
@@ -78,7 +80,9 @@ export default function Custom3DPrintingForm() {
         <div className="border-2 border-dashed border-border rounded-lg p-12 text-center hover:border-accent transition-colors cursor-pointer">
           <input type="file" multiple accept=".stl,.obj,.step,.stp" className="hidden" id="file-upload" />
           <label htmlFor="file-upload" className="cursor-pointer">
-            <div className="text-4xl mb-4">📁</div>
+            <div className="text-4xl mb-4 text-zinc-400">
+              <FontAwesomeIcon icon={faFolder} />
+            </div>
             <p className="text-lg font-medium mb-2">Drop your files here or click to browse</p>
             <p className="text-sm text-text-secondary">Supports .STL, .OBJ, .STEP files (Max 50MB)</p>
           </label>

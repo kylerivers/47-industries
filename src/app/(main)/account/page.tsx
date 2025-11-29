@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faShoppingCart, faBox, faCog } from '@fortawesome/free-solid-svg-icons'
 
 interface Order {
   id: string
@@ -85,7 +87,9 @@ export default function AccountPage() {
             href="/account/orders"
             className="p-6 border border-border rounded-xl hover:border-accent transition-colors group"
           >
-            <div className="text-3xl mb-4">📦</div>
+            <div className="text-3xl mb-4 text-zinc-400">
+              <FontAwesomeIcon icon={faBox} />
+            </div>
             <h3 className="font-semibold mb-1 group-hover:text-accent transition-colors">
               Order History
             </h3>
@@ -98,7 +102,9 @@ export default function AccountPage() {
             href="/account/settings"
             className="p-6 border border-border rounded-xl hover:border-accent transition-colors group"
           >
-            <div className="text-3xl mb-4">⚙️</div>
+            <div className="text-3xl mb-4 text-zinc-400">
+              <FontAwesomeIcon icon={faCog} />
+            </div>
             <h3 className="font-semibold mb-1 group-hover:text-accent transition-colors">
               Account Settings
             </h3>
@@ -111,7 +117,9 @@ export default function AccountPage() {
             href="/shop"
             className="p-6 border border-border rounded-xl hover:border-accent transition-colors group"
           >
-            <div className="text-3xl mb-4">🛒</div>
+            <div className="text-3xl mb-4 text-zinc-400">
+              <FontAwesomeIcon icon={faShoppingCart} />
+            </div>
             <h3 className="font-semibold mb-1 group-hover:text-accent transition-colors">
               Continue Shopping
             </h3>
@@ -141,7 +149,9 @@ export default function AccountPage() {
             </div>
           ) : recentOrders.length === 0 ? (
             <div className="p-12 text-center">
-              <div className="text-4xl mb-4">📦</div>
+              <div className="text-4xl mb-4 text-zinc-500">
+                <FontAwesomeIcon icon={faBox} />
+              </div>
               <p className="text-text-secondary mb-4">No orders yet</p>
               <Link
                 href="/shop"

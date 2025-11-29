@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faShoppingCart } from '@fortawesome/free-solid-svg-icons'
 
 interface OrderItem {
   id: string
@@ -206,7 +208,9 @@ export default function AdminOrdersPage() {
           padding: '48px 24px',
           textAlign: 'center',
         }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🛒</div>
+          <div style={{ fontSize: '48px', marginBottom: '16px', color: '#71717a' }}>
+            <FontAwesomeIcon icon={faShoppingCart} />
+          </div>
           <h3 style={{
             fontSize: '24px',
             fontWeight: 700,

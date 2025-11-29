@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faComments } from '@fortawesome/free-solid-svg-icons'
 
 interface ServiceInquiry {
   id: string
@@ -229,7 +231,9 @@ export default function AdminInquiriesPage() {
           padding: '48px 24px',
           textAlign: 'center',
         }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>💬</div>
+          <div style={{ fontSize: '48px', marginBottom: '16px', color: '#71717a' }}>
+            <FontAwesomeIcon icon={faComments} />
+          </div>
           <h3 style={{
             fontSize: '24px',
             fontWeight: 700,

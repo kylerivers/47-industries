@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCube } from '@fortawesome/free-solid-svg-icons'
 
 interface CustomRequest {
   id: string
@@ -192,7 +194,9 @@ export default function AdminCustomRequestsPage() {
           padding: '48px 24px',
           textAlign: 'center',
         }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🖨️</div>
+          <div style={{ fontSize: '48px', marginBottom: '16px', color: '#71717a' }}>
+            <FontAwesomeIcon icon={faCube} />
+          </div>
           <h3 style={{
             fontSize: '24px',
             fontWeight: 700,

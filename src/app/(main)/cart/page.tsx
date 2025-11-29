@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useCart } from '@/lib/cart-store'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faShoppingCart } from '@fortawesome/free-solid-svg-icons'
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, getTotal, clearCart } = useCart()
@@ -47,7 +49,9 @@ export default function CartPage() {
 
         {isEmpty ? (
           <div className="max-w-2xl mx-auto text-center py-20">
-            <div className="text-6xl mb-6">🛒</div>
+            <div className="text-6xl mb-6 text-zinc-500">
+              <FontAwesomeIcon icon={faShoppingCart} />
+            </div>
             <h2 className="text-3xl font-bold mb-4">Your cart is empty</h2>
             <p className="text-text-secondary mb-8">
               Start shopping to add items to your cart

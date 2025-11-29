@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPaperclip } from '@fortawesome/free-solid-svg-icons'
 
 interface ServiceInquiry {
   id: string
@@ -390,7 +392,7 @@ export default function InquiryDetailPage() {
                       color: 'inherit',
                     }}
                   >
-                    <span style={{ fontSize: '20px' }}>📎</span>
+                    <FontAwesomeIcon icon={faPaperclip} style={{ fontSize: '16px', color: '#71717a' }} />
                     <span style={{ color: '#3b82f6' }}>{attachment.name || `Attachment ${index + 1}`}</span>
                   </a>
                 ))}
