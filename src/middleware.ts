@@ -38,17 +38,11 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Block direct access to /admin routes on main domain - redirect to admin subdomain
-  // This ensures admin is ONLY accessible via admin.47industries.com
+  // Block direct access to /admin routes on main domain - return 404
+  // Admin is ONLY accessible via admin.47industries.com
   if (url.pathname.startsWith('/admin') && !hostname.startsWith('admin.') && !hostname.startsWith('localhost')) {
-    // Redirect to admin subdomain
-    const adminUrl = new URL(request.url)
-    // Replace main domain with admin subdomain
-    const adminHost = hostname.replace(/^(www\.)?/, 'admin.')
-    adminUrl.host = adminHost
-    // Remove /admin prefix since subdomain will add it via rewrite
-    adminUrl.pathname = url.pathname.replace(/^\/admin/, '') || '/'
-    return NextResponse.redirect(adminUrl)
+    // Return 404 - admin routes should not be visible on main domain
+    return NextResponse.rewrite(new URL('/not-found', request.url))
   }
 
   // Check authentication for admin routes (except login page) - only for localhost dev
