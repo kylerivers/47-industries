@@ -1,30 +1,95 @@
 import Link from 'next/link'
+import Image from 'next/image'
+import { prisma } from '@/lib/prisma'
 
-export default function ShopPage() {
-  // TODO: Replace with actual products from database
-  const products = [
-    {
-      id: '1',
-      name: 'Custom Bracket Set',
-      price: 29.99,
-      image: '/products/placeholder.jpg',
-      category: '3D Printed Parts',
+interface SearchParams {
+  category?: string
+  search?: string
+  page?: string
+}
+
+async function getProducts(searchParams: SearchParams) {
+  const page = parseInt(searchParams.page || '1')
+  const limit = 12
+  const skip = (page - 1) * limit
+
+  const where: any = {
+    active: true,
+  }
+
+  if (searchParams.category) {
+    where.category = { slug: searchParams.category }
+  }
+
+  if (searchParams.search) {
+    where.OR = [
+      { name: { contains: searchParams.search } },
+      { description: { contains: searchParams.search } },
+    ]
+  }
+
+  const [products, total] = await Promise.all([
+    prisma.product.findMany({
+      where,
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+      },
+      orderBy: [
+        { featured: 'desc' },
+        { createdAt: 'desc' },
+      ],
+      skip,
+      take: limit,
+    }),
+    prisma.product.count({ where }),
+  ])
+
+  return {
+    products,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
     },
-    {
-      id: '2',
-      name: 'Mounting Plate',
-      price: 19.99,
-      image: '/products/placeholder.jpg',
-      category: '3D Printed Parts',
+  }
+}
+
+async function getCategories() {
+  return prisma.category.findMany({
+    where: { active: true },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      _count: {
+        select: {
+          products: { where: { active: true } },
+        },
+      },
     },
-    {
-      id: '3',
-      name: 'Cable Management Kit',
-      price: 34.99,
-      image: '/products/placeholder.jpg',
-      category: 'Accessories',
-    },
-  ]
+    orderBy: { name: 'asc' },
+  })
+}
+
+export default async function ShopPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>
+}) {
+  const params = await searchParams
+  const [{ products, pagination }, categories] = await Promise.all([
+    getProducts(params),
+    getCategories(),
+  ])
+
+  const activeCategory = params.category || null
 
   return (
     <div className="min-h-screen py-20">
@@ -37,60 +102,191 @@ export default function ShopPage() {
           </p>
         </div>
 
+        {/* Search Bar */}
+        <form className="mb-8">
+          <div className="relative max-w-md">
+            <input
+              type="text"
+              name="search"
+              defaultValue={params.search || ''}
+              placeholder="Search products..."
+              className="w-full px-4 py-3 pl-12 bg-surface border border-border rounded-lg focus:outline-none focus:border-accent"
+            />
+            <svg
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-secondary"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </form>
+
         {/* Filters */}
         <div className="flex flex-wrap gap-4 mb-12">
-          <button className="px-6 py-2 bg-text-primary text-background rounded-lg text-sm font-medium">
+          <Link
+            href="/shop"
+            className={`px-6 py-2 rounded-lg text-sm font-medium transition-colors ${
+              !activeCategory
+                ? 'bg-text-primary text-background'
+                : 'border border-border hover:bg-surface'
+            }`}
+          >
             All Products
-          </button>
-          <button className="px-6 py-2 border border-border rounded-lg text-sm hover:bg-surface transition-colors">
-            3D Printed Parts
-          </button>
-          <button className="px-6 py-2 border border-border rounded-lg text-sm hover:bg-surface transition-colors">
-            Accessories
-          </button>
-          <button className="px-6 py-2 border border-border rounded-lg text-sm hover:bg-surface transition-colors">
-            Featured
-          </button>
-        </div>
-
-        {/* Product Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {products.map((product) => (
+          </Link>
+          {categories.map((category) => (
             <Link
-              key={product.id}
-              href={`/shop/${product.id}`}
-              className="group border border-border rounded-2xl overflow-hidden hover:border-text-primary transition-all"
+              key={category.id}
+              href={`/shop?category=${category.slug}`}
+              className={`px-6 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeCategory === category.slug
+                  ? 'bg-text-primary text-background'
+                  : 'border border-border hover:bg-surface'
+              }`}
             >
-              <div className="aspect-square bg-surface flex items-center justify-center">
-                <div className="text-text-secondary text-sm">Product Image</div>
-              </div>
-              <div className="p-6">
-                <div className="text-xs text-text-secondary mb-2">{product.category}</div>
-                <h3 className="text-xl font-semibold mb-2 group-hover:text-accent transition-colors">
-                  {product.name}
-                </h3>
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold">${product.price}</span>
-                  <span className="text-sm text-text-secondary group-hover:text-text-primary transition-colors">
-                    View details →
-                  </span>
-                </div>
-              </div>
+              {category.name} ({category._count.products})
             </Link>
           ))}
         </div>
 
+        {/* Product Grid */}
+        {products.length === 0 ? (
+          <div className="text-center py-20">
+            <div className="text-6xl mb-4">📦</div>
+            <h3 className="text-2xl font-bold mb-2">No products found</h3>
+            <p className="text-text-secondary mb-8">
+              {params.search
+                ? `No products match "${params.search}"`
+                : activeCategory
+                ? 'No products in this category yet'
+                : 'Check back soon for new products!'}
+            </p>
+            {(params.search || activeCategory) && (
+              <Link
+                href="/shop"
+                className="inline-flex items-center px-6 py-3 bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors"
+              >
+                View all products
+              </Link>
+            )}
+          </div>
+        ) : (
+          <>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {products.map((product) => {
+                const images = product.images as string[]
+                const primaryImage = images?.[0] || null
+
+                return (
+                  <Link
+                    key={product.id}
+                    href={`/shop/${product.slug}`}
+                    className="group border border-border rounded-2xl overflow-hidden hover:border-text-primary transition-all"
+                  >
+                    <div className="aspect-square bg-surface relative flex items-center justify-center overflow-hidden">
+                      {primaryImage ? (
+                        <Image
+                          src={primaryImage}
+                          alt={product.name}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="text-text-secondary text-sm">No Image</div>
+                      )}
+                      {product.featured && (
+                        <div className="absolute top-4 left-4 px-3 py-1 bg-accent text-white text-xs font-medium rounded-full">
+                          Featured
+                        </div>
+                      )}
+                      {product.stock === 0 && (
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                          <span className="px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-lg">
+                            Out of Stock
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-6">
+                      <div className="text-xs text-text-secondary mb-2">
+                        {product.category.name}
+                      </div>
+                      <h3 className="text-xl font-semibold mb-2 group-hover:text-accent transition-colors">
+                        {product.name}
+                      </h3>
+                      {product.shortDesc && (
+                        <p className="text-text-secondary text-sm mb-4 line-clamp-2">
+                          {product.shortDesc}
+                        </p>
+                      )}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl font-bold">
+                            ${Number(product.price).toFixed(2)}
+                          </span>
+                          {product.comparePrice && Number(product.comparePrice) > Number(product.price) && (
+                            <span className="text-lg text-text-secondary line-through">
+                              ${Number(product.comparePrice).toFixed(2)}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-sm text-text-secondary group-hover:text-text-primary transition-colors">
+                          View details →
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+
+            {/* Pagination */}
+            {pagination.totalPages > 1 && (
+              <div className="flex justify-center gap-2 mt-12">
+                {pagination.page > 1 && (
+                  <Link
+                    href={`/shop?${new URLSearchParams({
+                      ...(activeCategory ? { category: activeCategory } : {}),
+                      ...(params.search ? { search: params.search } : {}),
+                      page: String(pagination.page - 1),
+                    }).toString()}`}
+                    className="px-4 py-2 border border-border rounded-lg hover:bg-surface transition-colors"
+                  >
+                    Previous
+                  </Link>
+                )}
+                <span className="px-4 py-2 text-text-secondary">
+                  Page {pagination.page} of {pagination.totalPages}
+                </span>
+                {pagination.page < pagination.totalPages && (
+                  <Link
+                    href={`/shop?${new URLSearchParams({
+                      ...(activeCategory ? { category: activeCategory } : {}),
+                      ...(params.search ? { search: params.search } : {}),
+                      page: String(pagination.page + 1),
+                    }).toString()}`}
+                    className="px-4 py-2 border border-border rounded-lg hover:bg-surface transition-colors"
+                  >
+                    Next
+                  </Link>
+                )}
+              </div>
+            )}
+          </>
+        )}
+
         {/* Coming Soon Message */}
         <div className="mt-16 text-center py-12 border-t border-border">
-          <h3 className="text-2xl font-bold mb-4">More Products Coming Soon</h3>
+          <h3 className="text-2xl font-bold mb-4">Need Something Custom?</h3>
           <p className="text-text-secondary mb-8">
-            We're constantly adding new products to our catalog. Check back soon!
+            We offer custom 3D printing services for unique projects
           </p>
           <Link
             href="/custom-3d-printing"
             className="inline-flex items-center px-8 py-4 bg-text-primary text-background rounded-lg hover:bg-text-secondary transition-all"
           >
-            Need something custom?
+            Request a custom quote
             <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
             </svg>
