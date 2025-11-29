@@ -95,6 +95,21 @@ function EmailPageContent() {
   const [sentByAdmin, setSentByAdmin] = useState<string | null>(null)
   const [mailboxes, setMailboxes] = useState<Mailbox[]>([{ id: 'all', label: 'All Inboxes', email: null }])
 
+  // Mobile state
+  const [isMobile, setIsMobile] = useState(false)
+  const [showSidebar, setShowSidebar] = useState(false)
+  const [mobileView, setMobileView] = useState<'list' | 'detail'>('list')
+
+  // Mobile detection
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
   // Check for success message from OAuth callback
   useEffect(() => {
     if (searchParams.get('success') === 'connected') {
@@ -382,6 +397,15 @@ function EmailPageContent() {
     } else {
       setSentByAdmin(null)
     }
+    // On mobile, switch to detail view
+    if (isMobile) {
+      setMobileView('detail')
+    }
+  }
+
+  function handleBackToList() {
+    setMobileView('list')
+    setSelectedEmail(null)
   }
 
   async function sendEmail() {
@@ -476,52 +500,111 @@ function EmailPageContent() {
     )
   }
 
-  return (
-    <div style={{ display: 'flex', height: 'calc(100vh - 120px)', gap: '0' }}>
-      {/* Sidebar */}
-      <div style={{
-        width: '240px',
-        background: '#0a0a0a',
-        borderRight: '1px solid #27272a',
-        padding: '16px',
-        flexShrink: 0,
-      }}>
-        <button
-          onClick={() => setIsComposing(true)}
-          style={{
-            width: '100%',
-            background: '#3b82f6',
-            color: '#fff',
-            border: 'none',
-            padding: '12px 20px',
-            borderRadius: '12px',
-            fontSize: '14px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            marginBottom: '24px',
-          }}
-        >
-          + Compose
-        </button>
+  // Sidebar content component to avoid repetition
+  const SidebarContent = () => (
+    <>
+      <button
+        onClick={() => {
+          setIsComposing(true)
+          if (isMobile) setShowSidebar(false)
+        }}
+        style={{
+          width: '100%',
+          background: '#3b82f6',
+          color: '#fff',
+          border: 'none',
+          padding: '12px 20px',
+          borderRadius: '12px',
+          fontSize: '14px',
+          fontWeight: 600,
+          cursor: 'pointer',
+          marginBottom: '24px',
+        }}
+      >
+        + Compose
+      </button>
 
-        {/* Folders */}
+      {/* Folders */}
+      <div style={{ marginBottom: '24px' }}>
+        <div style={{ fontSize: '12px', color: '#71717a', marginBottom: '8px', textTransform: 'uppercase' }}>
+          Folders
+        </div>
+        {FOLDERS.map((folder) => (
+          <button
+            key={folder.id}
+            onClick={() => {
+              setSelectedFolder(folder.id)
+              if (isMobile) setShowSidebar(false)
+            }}
+            style={{
+              width: '100%',
+              textAlign: 'left',
+              background: selectedFolder === folder.id ? '#27272a' : 'transparent',
+              color: selectedFolder === folder.id ? '#fff' : '#a1a1aa',
+              border: 'none',
+              padding: '10px 12px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              cursor: 'pointer',
+              marginBottom: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
+            {folder.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Mailboxes */}
+      <div style={{ marginBottom: '24px' }}>
+        <div style={{ fontSize: '12px', color: '#71717a', marginBottom: '8px', textTransform: 'uppercase' }}>
+          Mailboxes
+        </div>
+        {mailboxes.map((mailbox) => (
+          <button
+            key={mailbox.id}
+            onClick={() => {
+              setSelectedMailbox(mailbox.id)
+              if (isMobile) setShowSidebar(false)
+            }}
+            style={{
+              width: '100%',
+              textAlign: 'left',
+              background: selectedMailbox === mailbox.id ? '#27272a' : 'transparent',
+              color: selectedMailbox === mailbox.id ? '#fff' : '#a1a1aa',
+              border: 'none',
+              padding: '10px 12px',
+              borderRadius: '8px',
+              fontSize: '13px',
+              cursor: 'pointer',
+              marginBottom: '4px',
+            }}
+          >
+            {mailbox.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Labels */}
+      {labels.length > 0 && (
         <div style={{ marginBottom: '24px' }}>
           <div style={{ fontSize: '12px', color: '#71717a', marginBottom: '8px', textTransform: 'uppercase' }}>
-            Folders
+            Labels
           </div>
-          {FOLDERS.map((folder) => (
+          {labels.map((label) => (
             <button
-              key={folder.id}
-              onClick={() => setSelectedFolder(folder.id)}
+              key={label.tagId}
               style={{
                 width: '100%',
                 textAlign: 'left',
-                background: selectedFolder === folder.id ? '#27272a' : 'transparent',
-                color: selectedFolder === folder.id ? '#fff' : '#a1a1aa',
+                background: 'transparent',
+                color: '#a1a1aa',
                 border: 'none',
                 padding: '10px 12px',
                 borderRadius: '8px',
-                fontSize: '14px',
+                fontSize: '13px',
                 cursor: 'pointer',
                 marginBottom: '4px',
                 display: 'flex',
@@ -529,106 +612,166 @@ function EmailPageContent() {
                 gap: '8px',
               }}
             >
-{folder.label}
+              <span style={{
+                width: '10px',
+                height: '10px',
+                borderRadius: '50%',
+                background: label.color || '#3b82f6',
+              }} />
+              {label.tagName}
             </button>
           ))}
         </div>
+      )}
 
-        {/* Mailboxes */}
-        <div style={{ marginBottom: '24px' }}>
-          <div style={{ fontSize: '12px', color: '#71717a', marginBottom: '8px', textTransform: 'uppercase' }}>
-            Mailboxes
-          </div>
-          {mailboxes.map((mailbox) => (
-            <button
-              key={mailbox.id}
-              onClick={() => setSelectedMailbox(mailbox.id)}
-              style={{
-                width: '100%',
-                textAlign: 'left',
-                background: selectedMailbox === mailbox.id ? '#27272a' : 'transparent',
-                color: selectedMailbox === mailbox.id ? '#fff' : '#a1a1aa',
-                border: 'none',
-                padding: '10px 12px',
-                borderRadius: '8px',
-                fontSize: '13px',
-                cursor: 'pointer',
-                marginBottom: '4px',
-              }}
-            >
-              {mailbox.label}
-            </button>
-          ))}
-        </div>
+      {/* Settings Link */}
+      <div style={{ borderTop: '1px solid #27272a', paddingTop: '16px', marginTop: 'auto' }}>
+        <Link
+          href="/admin/email/settings"
+          onClick={() => isMobile && setShowSidebar(false)}
+          style={{
+            display: 'block',
+            textAlign: 'left',
+            background: 'transparent',
+            color: '#a1a1aa',
+            border: 'none',
+            padding: '10px 12px',
+            borderRadius: '8px',
+            fontSize: '13px',
+            textDecoration: 'none',
+          }}
+        >
+          Settings
+        </Link>
+      </div>
+    </>
+  )
 
-        {/* Labels */}
-        {labels.length > 0 && (
-          <div style={{ marginBottom: '24px' }}>
-            <div style={{ fontSize: '12px', color: '#71717a', marginBottom: '8px', textTransform: 'uppercase' }}>
-              Labels
-            </div>
-            {labels.map((label) => (
-              <button
-                key={label.tagId}
-                style={{
-                  width: '100%',
-                  textAlign: 'left',
-                  background: 'transparent',
-                  color: '#a1a1aa',
-                  border: 'none',
-                  padding: '10px 12px',
-                  borderRadius: '8px',
-                  fontSize: '13px',
-                  cursor: 'pointer',
-                  marginBottom: '4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                }}
-              >
-                <span style={{
-                  width: '10px',
-                  height: '10px',
-                  borderRadius: '50%',
-                  background: label.color || '#3b82f6',
-                }} />
-                {label.tagName}
-              </button>
-            ))}
-          </div>
-        )}
+  return (
+    <div style={{
+      display: 'flex',
+      height: isMobile ? 'calc(100vh - 80px)' : 'calc(100vh - 120px)',
+      gap: '0',
+      position: 'relative',
+      overflow: 'hidden',
+    }}>
+      {/* Mobile Sidebar Overlay */}
+      {isMobile && showSidebar && (
+        <div
+          onClick={() => setShowSidebar(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.5)',
+            zIndex: 40,
+          }}
+        />
+      )}
 
-        {/* Settings Link */}
-        <div style={{ borderTop: '1px solid #27272a', paddingTop: '16px', marginTop: 'auto' }}>
-          <Link
-            href="/admin/email/settings"
+      {/* Sidebar - Desktop: always visible, Mobile: slide-in drawer */}
+      <div style={{
+        width: isMobile ? '280px' : '240px',
+        background: '#0a0a0a',
+        borderRight: '1px solid #27272a',
+        padding: '16px',
+        flexShrink: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        ...(isMobile ? {
+          position: 'fixed',
+          top: 0,
+          left: showSidebar ? 0 : '-300px',
+          bottom: 0,
+          zIndex: 50,
+          transition: 'left 0.3s ease',
+          paddingTop: '60px',
+        } : {}),
+      }}>
+        {isMobile && (
+          <button
+            onClick={() => setShowSidebar(false)}
             style={{
-              display: 'block',
-              textAlign: 'left',
+              position: 'absolute',
+              top: '16px',
+              right: '16px',
               background: 'transparent',
-              color: '#a1a1aa',
               border: 'none',
-              padding: '10px 12px',
-              borderRadius: '8px',
-              fontSize: '13px',
-              textDecoration: 'none',
+              color: '#a1a1aa',
+              fontSize: '24px',
+              cursor: 'pointer',
+              padding: '4px',
             }}
           >
-            Settings
-          </Link>
-        </div>
+            x
+          </button>
+        )}
+        <SidebarContent />
       </div>
 
-      {/* Email List */}
+      {/* Email List - Full width on mobile when in list view */}
       <div style={{
-        width: '350px',
-        borderRight: '1px solid #27272a',
-        display: 'flex',
+        width: isMobile ? '100%' : '350px',
+        borderRight: isMobile ? 'none' : '1px solid #27272a',
+        display: isMobile && mobileView !== 'list' ? 'none' : 'flex',
         flexDirection: 'column',
         flexShrink: 0,
       }}>
+        {/* Mobile Header */}
+        {isMobile && (
+          <div style={{
+            padding: '12px 16px',
+            borderBottom: '1px solid #27272a',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: '#0a0a0a',
+          }}>
+            <button
+              onClick={() => setShowSidebar(true)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#fff',
+                fontSize: '20px',
+                cursor: 'pointer',
+                padding: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            </button>
+            <span style={{ fontWeight: 600, fontSize: '16px' }}>
+              {FOLDERS.find(f => f.id === selectedFolder)?.label || 'Email'}
+            </span>
+            <button
+              onClick={() => setIsComposing(true)}
+              style={{
+                background: '#3b82f6',
+                border: 'none',
+                color: '#fff',
+                fontSize: '14px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                padding: '8px 16px',
+                borderRadius: '8px',
+              }}
+            >
+              +
+            </button>
+          </div>
+        )}
+
         {/* Search */}
-        <div style={{ padding: '16px', borderBottom: '1px solid #27272a' }}>
+        <div style={{ padding: isMobile ? '12px' : '16px', borderBottom: '1px solid #27272a' }}>
           <input
             type="text"
             placeholder="Search emails..."
@@ -639,7 +782,7 @@ function EmailPageContent() {
               background: '#18181b',
               border: '1px solid #27272a',
               borderRadius: '8px',
-              padding: '10px 14px',
+              padding: isMobile ? '10px 12px' : '10px 14px',
               color: '#fff',
               fontSize: '14px',
             }}
@@ -716,35 +859,75 @@ function EmailPageContent() {
       </div>
 
       {/* Email Content / Compose */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <div style={{
+        flex: 1,
+        display: isMobile && mobileView === 'list' && !isComposing ? 'none' : 'flex',
+        flexDirection: 'column',
+        width: isMobile ? '100%' : 'auto',
+        position: isMobile ? 'absolute' : 'relative',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: '#09090b',
+        zIndex: isMobile ? 30 : 'auto',
+      }}>
         {isComposing ? (
           // Compose View
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <div style={{
-              padding: '16px 24px',
+              padding: isMobile ? '12px 16px' : '16px 24px',
               borderBottom: '1px solid #27272a',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
             }}>
-              <h2 style={{ fontSize: '18px', fontWeight: 600 }}>New Message</h2>
-              <button
-                onClick={() => setIsComposing(false)}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: '#a1a1aa',
-                  fontSize: '20px',
-                  cursor: 'pointer',
-                }}
-              >
-                ×
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                {isMobile && (
+                  <button
+                    onClick={() => setIsComposing(false)}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#a1a1aa',
+                      fontSize: '14px',
+                      cursor: 'pointer',
+                      padding: '4px',
+                    }}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M19 12H5M12 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                )}
+                <h2 style={{ fontSize: isMobile ? '16px' : '18px', fontWeight: 600, margin: 0 }}>New Message</h2>
+              </div>
+              {!isMobile && (
+                <button
+                  onClick={() => setIsComposing(false)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#a1a1aa',
+                    fontSize: '20px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  x
+                </button>
+              )}
             </div>
 
-            <div style={{ flex: 1, padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <label style={{ width: '60px', color: '#a1a1aa', fontSize: '14px' }}>From:</label>
+            <div style={{
+              flex: 1,
+              padding: isMobile ? '12px 16px' : '16px 24px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+              overflowY: 'auto',
+            }}>
+              <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center', gap: isMobile ? '4px' : '12px' }}>
+                <label style={{ width: isMobile ? 'auto' : '60px', color: '#a1a1aa', fontSize: '14px' }}>From:</label>
                 <select
                   value={composeData.from}
                   onChange={(e) => setComposeData({ ...composeData, from: e.target.value })}
@@ -764,8 +947,8 @@ function EmailPageContent() {
                 </select>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <label style={{ width: '60px', color: '#a1a1aa', fontSize: '14px' }}>To:</label>
+              <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center', gap: isMobile ? '4px' : '12px' }}>
+                <label style={{ width: isMobile ? 'auto' : '60px', color: '#a1a1aa', fontSize: '14px' }}>To:</label>
                 <input
                   type="email"
                   value={composeData.to}
@@ -783,8 +966,8 @@ function EmailPageContent() {
                 />
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <label style={{ width: '60px', color: '#a1a1aa', fontSize: '14px' }}>CC:</label>
+              <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center', gap: isMobile ? '4px' : '12px' }}>
+                <label style={{ width: isMobile ? 'auto' : '60px', color: '#a1a1aa', fontSize: '14px' }}>CC:</label>
                 <input
                   type="email"
                   value={composeData.cc}
@@ -802,8 +985,8 @@ function EmailPageContent() {
                 />
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <label style={{ width: '60px', color: '#a1a1aa', fontSize: '14px' }}>Subject:</label>
+              <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center', gap: isMobile ? '4px' : '12px' }}>
+                <label style={{ width: isMobile ? 'auto' : '60px', color: '#a1a1aa', fontSize: '14px' }}>Subject:</label>
                 <input
                   type="text"
                   value={composeData.subject}
@@ -823,8 +1006,8 @@ function EmailPageContent() {
 
               {/* Signature Selector */}
               {signatures.length > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <label style={{ width: '60px', color: '#a1a1aa', fontSize: '14px' }}>Signature:</label>
+                <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center', gap: isMobile ? '4px' : '12px' }}>
+                  <label style={{ width: isMobile ? 'auto' : '60px', color: '#a1a1aa', fontSize: '14px' }}>Signature:</label>
                   <select
                     value={selectedSignature}
                     onChange={(e) => applySignature(e.target.value)}
@@ -857,6 +1040,7 @@ function EmailPageContent() {
                 borderRadius: '8px 8px 0 0',
                 border: '1px solid #3f3f46',
                 borderBottom: 'none',
+                flexWrap: 'wrap',
               }}>
                 <button
                   type="button"
@@ -1099,18 +1283,47 @@ function EmailPageContent() {
           </div>
         ) : selectedEmail ? (
           // Email View
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            {/* Mobile back button header */}
+            {isMobile && (
+              <div style={{
+                padding: '12px 16px',
+                borderBottom: '1px solid #27272a',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                background: '#0a0a0a',
+              }}>
+                <button
+                  onClick={handleBackToList}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#a1a1aa',
+                    cursor: 'pointer',
+                    padding: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <span style={{ fontWeight: 600, fontSize: '16px' }}>Back</span>
+              </div>
+            )}
             <div style={{
-              padding: '24px',
+              padding: isMobile ? '16px' : '24px',
               borderBottom: '1px solid #27272a',
             }}>
-              <h2 style={{ fontSize: '20px', fontWeight: 600, marginBottom: '16px' }}>
+              <h2 style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: 600, marginBottom: '16px', wordBreak: 'break-word' }}>
                 {selectedEmail.subject || '(No Subject)'}
               </h2>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'flex-start', gap: isMobile ? '8px' : '0' }}>
                 <div>
-                  <div style={{ fontWeight: 500, marginBottom: '4px' }}>{selectedEmail.fromAddress}</div>
-                  <div style={{ fontSize: '13px', color: '#71717a' }}>
+                  <div style={{ fontWeight: 500, marginBottom: '4px', wordBreak: 'break-all' }}>{selectedEmail.fromAddress}</div>
+                  <div style={{ fontSize: '13px', color: '#71717a', wordBreak: 'break-all' }}>
                     To: {selectedEmail.toAddress
                       ?.replace(/&lt;/g, '<')
                       .replace(/&gt;/g, '>')
@@ -1132,7 +1345,7 @@ function EmailPageContent() {
                     </div>
                   )}
                 </div>
-                <div style={{ fontSize: '13px', color: '#71717a' }}>
+                <div style={{ fontSize: '13px', color: '#71717a', flexShrink: 0 }}>
                   {(() => {
                     const ts = typeof selectedEmail.receivedTime === 'string'
                       ? parseInt(selectedEmail.receivedTime, 10)
@@ -1143,7 +1356,7 @@ function EmailPageContent() {
               </div>
             </div>
 
-            <div style={{ flex: 1, padding: '24px', overflowY: 'auto' }}>
+            <div style={{ flex: 1, padding: isMobile ? '16px' : '24px', overflowY: 'auto' }}>
               {isLoadingContent ? (
                 <p style={{ color: '#71717a' }}>Loading email content...</p>
               ) : emailContent ? (
@@ -1216,10 +1429,11 @@ function EmailPageContent() {
             </div>
 
             <div style={{
-              padding: '16px 24px',
+              padding: isMobile ? '12px 16px' : '16px 24px',
               borderTop: '1px solid #27272a',
               display: 'flex',
-              gap: '12px',
+              gap: isMobile ? '8px' : '12px',
+              flexWrap: 'wrap',
             }}>
               <button
                 onClick={() => {
@@ -1234,11 +1448,12 @@ function EmailPageContent() {
                   background: '#3b82f6',
                   color: '#fff',
                   border: 'none',
-                  padding: '10px 20px',
+                  padding: isMobile ? '10px 16px' : '10px 20px',
                   borderRadius: '8px',
                   fontSize: '14px',
                   fontWeight: 500,
                   cursor: 'pointer',
+                  flex: isMobile ? 1 : 'none',
                 }}
               >
                 Reply
@@ -1248,10 +1463,11 @@ function EmailPageContent() {
                   background: '#27272a',
                   color: '#fff',
                   border: 'none',
-                  padding: '10px 20px',
+                  padding: isMobile ? '10px 16px' : '10px 20px',
                   borderRadius: '8px',
                   fontSize: '14px',
                   cursor: 'pointer',
+                  flex: isMobile ? 1 : 'none',
                 }}
               >
                 Forward
@@ -1261,10 +1477,11 @@ function EmailPageContent() {
                   background: '#27272a',
                   color: '#ef4444',
                   border: 'none',
-                  padding: '10px 20px',
+                  padding: isMobile ? '10px 16px' : '10px 20px',
                   borderRadius: '8px',
                   fontSize: '14px',
                   cursor: 'pointer',
+                  flex: isMobile ? 1 : 'none',
                 }}
               >
                 Delete
@@ -1272,16 +1489,18 @@ function EmailPageContent() {
             </div>
           </div>
         ) : (
-          // No email selected
-          <div style={{
-            flex: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#71717a',
-          }}>
-            <p>Select an email to read</p>
-          </div>
+          // No email selected - only show on desktop
+          !isMobile && (
+            <div style={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#71717a',
+            }}>
+              <p>Select an email to read</p>
+            </div>
+          )
         )}
       </div>
     </div>
