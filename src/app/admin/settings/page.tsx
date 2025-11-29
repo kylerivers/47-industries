@@ -1,6 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faTruck, faPercent, faCheckCircle, faTimesCircle, faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons'
 
 interface Settings {
   siteName: string
@@ -12,9 +15,14 @@ interface Settings {
   socialFacebook: string
   socialInstagram: string
   socialLinkedin: string
-  shippingFlatRate: number
-  shippingFreeThreshold: number
-  taxRate: number
+}
+
+interface ShippoStatus {
+  configured: boolean
+  testResult?: {
+    success: boolean
+    message: string
+  }
 }
 
 export default function AdminSettingsPage() {
@@ -28,14 +36,14 @@ export default function AdminSettingsPage() {
     socialFacebook: '',
     socialInstagram: '',
     socialLinkedin: '',
-    shippingFlatRate: 9.99,
-    shippingFreeThreshold: 100,
-    taxRate: 8.25,
   })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [activeTab, setActiveTab] = useState('general')
   const [isMobile, setIsMobile] = useState(false)
+  const [shippoStatus, setShippoStatus] = useState<ShippoStatus>({ configured: false })
+  const [taxRateCount, setTaxRateCount] = useState(0)
+  const [hasBusinessAddress, setHasBusinessAddress] = useState(false)
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768)
@@ -46,6 +54,9 @@ export default function AdminSettingsPage() {
 
   useEffect(() => {
     fetchSettings()
+    checkShippoStatus()
+    fetchTaxRates()
+    checkBusinessAddress()
   }, [])
 
   const fetchSettings = async () => {
@@ -59,6 +70,42 @@ export default function AdminSettingsPage() {
       console.error('Error fetching settings:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const checkShippoStatus = async () => {
+    try {
+      const res = await fetch('/api/admin/shipping/status')
+      if (res.ok) {
+        const data = await res.json()
+        setShippoStatus(data)
+      }
+    } catch (error) {
+      console.error('Error checking Shippo status:', error)
+    }
+  }
+
+  const fetchTaxRates = async () => {
+    try {
+      const res = await fetch('/api/admin/tax/rates')
+      if (res.ok) {
+        const data = await res.json()
+        setTaxRateCount(data.length)
+      }
+    } catch (error) {
+      console.error('Error fetching tax rates:', error)
+    }
+  }
+
+  const checkBusinessAddress = async () => {
+    try {
+      const res = await fetch('/api/admin/settings?keys=business_address')
+      if (res.ok) {
+        const data = await res.json()
+        setHasBusinessAddress(!!data.business_address)
+      }
+    } catch (error) {
+      console.error('Error checking business address:', error)
     }
   }
 
@@ -283,71 +330,184 @@ export default function AdminSettingsPage() {
 
         {activeTab === 'shipping' && (
           <div>
-            <h2 style={{ fontSize: '20px', fontWeight: 600, marginBottom: '24px', margin: '0 0 24px 0' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 600, marginBottom: '8px', margin: '0 0 8px 0' }}>
               Shipping & Tax Settings
             </h2>
+            <p style={{ color: '#71717a', marginBottom: '24px', margin: '0 0 24px 0', fontSize: '14px' }}>
+              Configure real-time shipping rates via Shippo and location-based tax calculation
+            </p>
+
+            {/* Shippo Integration Card */}
             <div style={{
-              display: 'grid',
-              gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
-              gap: '20px',
+              background: '#09090b',
+              border: '1px solid #27272a',
+              borderRadius: '12px',
+              padding: '20px',
+              marginBottom: '16px',
             }}>
-              <div style={fieldStyle}>
-                <label style={labelStyle}>Flat Rate Shipping ($)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={settings.shippingFlatRate}
-                  onChange={(e) => setSettings({ ...settings, shippingFlatRate: parseFloat(e.target.value) || 0 })}
-                  style={inputStyle}
-                />
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+                  <div style={{
+                    width: '48px',
+                    height: '48px',
+                    background: shippoStatus.configured ? '#10b98120' : '#f59e0b20',
+                    borderRadius: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}>
+                    <FontAwesomeIcon
+                      icon={faTruck}
+                      style={{ fontSize: '20px', color: shippoStatus.configured ? '#10b981' : '#f59e0b' }}
+                    />
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                      <h3 style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>Shippo Shipping</h3>
+                      <span style={{
+                        padding: '2px 8px',
+                        background: shippoStatus.configured ? '#10b98120' : '#f59e0b20',
+                        color: shippoStatus.configured ? '#10b981' : '#f59e0b',
+                        borderRadius: '4px',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                      }}>
+                        <FontAwesomeIcon icon={shippoStatus.configured ? faCheckCircle : faTimesCircle} style={{ fontSize: '10px' }} />
+                        {shippoStatus.configured ? 'Connected' : 'Not Configured'}
+                      </span>
+                    </div>
+                    <p style={{ color: '#71717a', margin: 0, fontSize: '14px' }}>
+                      {shippoStatus.configured
+                        ? 'Real-time rates from USPS, UPS, FedEx and more. Buy shipping labels directly from orders.'
+                        : 'Add your SHIPPO_API_KEY to environment variables to enable real-time shipping rates.'}
+                    </p>
+                    {hasBusinessAddress && (
+                      <p style={{ color: '#3b82f6', margin: '8px 0 0 0', fontSize: '13px' }}>
+                        Ship-from address configured
+                      </p>
+                    )}
+                    {!hasBusinessAddress && shippoStatus.configured && (
+                      <p style={{ color: '#f59e0b', margin: '8px 0 0 0', fontSize: '13px' }}>
+                        Set up your ship-from address to purchase labels
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <Link
+                  href="/admin/settings/shipping"
+                  style={{
+                    padding: '10px 20px',
+                    background: '#3b82f6',
+                    color: 'white',
+                    borderRadius: '8px',
+                    textDecoration: 'none',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  Configure Shipping
+                  <FontAwesomeIcon icon={faExternalLinkAlt} style={{ fontSize: '12px' }} />
+                </Link>
               </div>
-              <div style={fieldStyle}>
-                <label style={labelStyle}>Free Shipping Threshold ($)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={settings.shippingFreeThreshold}
-                  onChange={(e) => setSettings({ ...settings, shippingFreeThreshold: parseFloat(e.target.value) || 0 })}
-                  style={inputStyle}
-                />
-                <p style={{ fontSize: '12px', color: '#71717a', marginTop: '4px' }}>
-                  Orders over this amount get free shipping
-                </p>
-              </div>
-              <div style={fieldStyle}>
-                <label style={labelStyle}>Tax Rate (%)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={settings.taxRate}
-                  onChange={(e) => setSettings({ ...settings, taxRate: parseFloat(e.target.value) || 0 })}
-                  style={inputStyle}
-                />
+            </div>
+
+            {/* Tax Settings Card */}
+            <div style={{
+              background: '#09090b',
+              border: '1px solid #27272a',
+              borderRadius: '12px',
+              padding: '20px',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+                  <div style={{
+                    width: '48px',
+                    height: '48px',
+                    background: taxRateCount > 0 ? '#10b98120' : '#71717a20',
+                    borderRadius: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}>
+                    <FontAwesomeIcon
+                      icon={faPercent}
+                      style={{ fontSize: '20px', color: taxRateCount > 0 ? '#10b981' : '#71717a' }}
+                    />
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                      <h3 style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>Tax Rates</h3>
+                      <span style={{
+                        padding: '2px 8px',
+                        background: taxRateCount > 0 ? '#10b98120' : '#71717a20',
+                        color: taxRateCount > 0 ? '#10b981' : '#71717a',
+                        borderRadius: '4px',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                      }}>
+                        {taxRateCount} {taxRateCount === 1 ? 'rate' : 'rates'} configured
+                      </span>
+                    </div>
+                    <p style={{ color: '#71717a', margin: 0, fontSize: '14px' }}>
+                      Location-based tax calculation by country, state, city, or ZIP code. Supports compound taxes.
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  href="/admin/settings/tax"
+                  style={{
+                    padding: '10px 20px',
+                    background: '#3b82f6',
+                    color: 'white',
+                    borderRadius: '8px',
+                    textDecoration: 'none',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  Configure Tax
+                  <FontAwesomeIcon icon={faExternalLinkAlt} style={{ fontSize: '12px' }} />
+                </Link>
               </div>
             </div>
           </div>
         )}
 
-        {/* Save Button */}
-        <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid #27272a' }}>
-          <button
-            onClick={saveSettings}
-            disabled={saving}
-            style={{
-              padding: '12px 24px',
-              background: '#3b82f6',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: 500,
-              cursor: saving ? 'not-allowed' : 'pointer',
-              opacity: saving ? 0.7 : 1,
-            }}
-          >
-            {saving ? 'Saving...' : 'Save Changes'}
-          </button>
-        </div>
+        {/* Save Button - only show for non-shipping tabs */}
+        {activeTab !== 'shipping' && (
+          <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid #27272a' }}>
+            <button
+              onClick={saveSettings}
+              disabled={saving}
+              style={{
+                padding: '12px 24px',
+                background: '#3b82f6',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: 500,
+                cursor: saving ? 'not-allowed' : 'pointer',
+                opacity: saving ? 0.7 : 1,
+              }}
+            >
+              {saving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
