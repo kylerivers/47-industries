@@ -34,11 +34,19 @@ export async function GET(req: NextRequest) {
         startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
     }
 
-    // Get active users (sessions active in last 5 minutes) with location data
-    const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000)
+    // Clean up stale sessions (inactive for more than 1 minute)
+    // This runs on every analytics fetch to keep data accurate
+    const oneMinuteAgo = new Date(now.getTime() - 60 * 1000)
+    await prisma.activeSession.deleteMany({
+      where: {
+        lastActive: { lt: oneMinuteAgo }
+      }
+    })
+
+    // Get active users (sessions active in last 1 minute) with location data
     const activeSessions = await prisma.activeSession.findMany({
       where: {
-        lastActive: { gte: fiveMinutesAgo }
+        lastActive: { gte: oneMinuteAgo }
       },
       select: {
         id: true,
