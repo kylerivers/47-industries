@@ -95,40 +95,19 @@ function parseUserAgent(ua: string | null) {
   return { device, browser, os }
 }
 
-// POST /api/analytics/track - Track page view
+// POST /api/analytics/track - Track page view or heartbeat
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { path, visitorId, sessionId, referrer, duration } = body
+    const { path, visitorId, sessionId, referrer, duration, heartbeat } = body
 
     const userAgent = req.headers.get('user-agent')
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || req.headers.get('x-real-ip') || null
 
-    const { device, browser, os } = parseUserAgent(userAgent)
-
-    // Create or update visitor
-    const existingVisitor = await prisma.visitor.findUnique({
-      where: { visitorId }
-    })
-
-    if (existingVisitor) {
-      await prisma.visitor.update({
-        where: { visitorId },
-        data: {
-          lastVisit: new Date(),
-          totalVisits: { increment: 1 }
-        }
-      })
-    } else {
-      await prisma.visitor.create({
-        data: { visitorId }
-      })
-    }
-
     // Get geolocation from IP (async, won't block if slow)
     const geo = await getGeoFromIP(ip)
 
-    // Update or create active session with geo data
+    // Update or create active session with geo data (always do this)
     await prisma.activeSession.upsert({
       where: { sessionId },
       update: {
@@ -156,7 +135,33 @@ export async function POST(req: NextRequest) {
       }
     })
 
-    // Create page view
+    // If this is just a heartbeat, don't create a page view
+    if (heartbeat) {
+      return NextResponse.json({ success: true })
+    }
+
+    const { device, browser, os } = parseUserAgent(userAgent)
+
+    // Create or update visitor (only on actual page views)
+    const existingVisitor = await prisma.visitor.findUnique({
+      where: { visitorId }
+    })
+
+    if (existingVisitor) {
+      await prisma.visitor.update({
+        where: { visitorId },
+        data: {
+          lastVisit: new Date(),
+          totalVisits: { increment: 1 }
+        }
+      })
+    } else {
+      await prisma.visitor.create({
+        data: { visitorId }
+      })
+    }
+
+    // Create page view (only for actual page views, not heartbeats)
     await prisma.pageView.create({
       data: {
         path,
