@@ -2,6 +2,71 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { v4 as uuidv4 } from 'uuid'
 
+// Cache for IP geolocation to avoid excessive API calls
+const geoCache = new Map<string, { data: GeoData; timestamp: number }>()
+const GEO_CACHE_TTL = 60 * 60 * 1000 // 1 hour
+
+interface GeoData {
+  country: string | null
+  countryCode: string | null
+  region: string | null
+  city: string | null
+  latitude: number | null
+  longitude: number | null
+}
+
+// Get geolocation from IP using free ip-api.com service
+async function getGeoFromIP(ip: string | null): Promise<GeoData> {
+  const nullGeo: GeoData = {
+    country: null,
+    countryCode: null,
+    region: null,
+    city: null,
+    latitude: null,
+    longitude: null
+  }
+
+  if (!ip || ip === '127.0.0.1' || ip === '::1' || ip.startsWith('192.168.') || ip.startsWith('10.')) {
+    return nullGeo
+  }
+
+  // Check cache first
+  const cached = geoCache.get(ip)
+  if (cached && Date.now() - cached.timestamp < GEO_CACHE_TTL) {
+    return cached.data
+  }
+
+  try {
+    // Using ip-api.com (free, no API key needed, 45 requests/minute limit)
+    const response = await fetch(`http://ip-api.com/json/${ip}?fields=status,country,countryCode,regionName,city,lat,lon`, {
+      signal: AbortSignal.timeout(2000) // 2 second timeout
+    })
+
+    if (!response.ok) return nullGeo
+
+    const data = await response.json()
+
+    if (data.status !== 'success') return nullGeo
+
+    const geoData: GeoData = {
+      country: data.country || null,
+      countryCode: data.countryCode || null,
+      region: data.regionName || null,
+      city: data.city || null,
+      latitude: data.lat || null,
+      longitude: data.lon || null
+    }
+
+    // Cache the result
+    geoCache.set(ip, { data: geoData, timestamp: Date.now() })
+
+    return geoData
+  } catch (error) {
+    // Silently fail - geo is optional
+    return nullGeo
+  }
+}
+
 // Parse user agent for device/browser/os info
 function parseUserAgent(ua: string | null) {
   if (!ua) return { device: 'unknown', browser: 'unknown', os: 'unknown' }
@@ -60,17 +125,34 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    // Update or create active session
+    // Get geolocation from IP (async, won't block if slow)
+    const geo = await getGeoFromIP(ip)
+
+    // Update or create active session with geo data
     await prisma.activeSession.upsert({
       where: { sessionId },
       update: {
         lastActive: new Date(),
-        currentPage: path
+        currentPage: path,
+        ip,
+        country: geo.country,
+        countryCode: geo.countryCode,
+        region: geo.region,
+        city: geo.city,
+        latitude: geo.latitude,
+        longitude: geo.longitude
       },
       create: {
         sessionId,
         visitorId,
-        currentPage: path
+        currentPage: path,
+        ip,
+        country: geo.country,
+        countryCode: geo.countryCode,
+        region: geo.region,
+        city: geo.city,
+        latitude: geo.latitude,
+        longitude: geo.longitude
       }
     })
 

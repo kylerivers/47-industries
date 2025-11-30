@@ -596,6 +596,15 @@ model ActiveSession {
   currentPage String?
   startedAt   DateTime @default(now())
 
+  // Geolocation data
+  ip          String?
+  country     String?
+  countryCode String?
+  region      String?
+  city        String?
+  latitude    Float?
+  longitude   Float?
+
   @@index([lastActive])
   @@index([visitorId])
 }

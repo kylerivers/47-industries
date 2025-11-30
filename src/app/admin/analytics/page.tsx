@@ -1,9 +1,29 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
+import dynamic from 'next/dynamic'
+
+// Dynamically import map component to avoid SSR issues with Leaflet
+const ActiveUsersMap = dynamic(
+  () => import('@/components/analytics/ActiveUsersMap'),
+  { ssr: false, loading: () => <div style={{ height: '400px', background: '#1a1a1a', borderRadius: '12px' }} /> }
+)
+
+interface ActiveSession {
+  id: string
+  currentPage: string | null
+  lastActive: string
+  country: string | null
+  countryCode: string | null
+  region: string | null
+  city: string | null
+  latitude: number | null
+  longitude: number | null
+}
 
 interface AnalyticsData {
   activeUsers: number
+  activeSessions: ActiveSession[]
   totalPageViews: number
   uniqueVisitors: number
   uniqueSessions: number
@@ -136,6 +156,14 @@ export default function AnalyticsPage() {
               label="Sessions"
               value={data?.uniqueSessions || 0}
               color="#f59e0b"
+            />
+          </div>
+
+          {/* Live Visitors Map */}
+          <div style={{ marginBottom: '24px' }}>
+            <ActiveUsersMap
+              sessions={data?.activeSessions || []}
+              onRefresh={fetchAnalytics}
             />
           </div>
 

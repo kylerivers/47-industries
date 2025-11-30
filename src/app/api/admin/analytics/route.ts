@@ -34,13 +34,26 @@ export async function GET(req: NextRequest) {
         startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
     }
 
-    // Get active users (sessions active in last 5 minutes)
+    // Get active users (sessions active in last 5 minutes) with location data
     const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000)
-    const activeUsers = await prisma.activeSession.count({
+    const activeSessions = await prisma.activeSession.findMany({
       where: {
         lastActive: { gte: fiveMinutesAgo }
+      },
+      select: {
+        id: true,
+        sessionId: true,
+        currentPage: true,
+        lastActive: true,
+        country: true,
+        countryCode: true,
+        region: true,
+        city: true,
+        latitude: true,
+        longitude: true
       }
     })
+    const activeUsers = activeSessions.length
 
     // Get total page views in period
     const totalPageViews = await prisma.pageView.count({
@@ -134,6 +147,17 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       activeUsers,
+      activeSessions: activeSessions.map(s => ({
+        id: s.id,
+        currentPage: s.currentPage,
+        lastActive: s.lastActive,
+        country: s.country,
+        countryCode: s.countryCode,
+        region: s.region,
+        city: s.city,
+        latitude: s.latitude,
+        longitude: s.longitude
+      })),
       totalPageViews,
       uniqueVisitors: uniqueVisitors.length,
       uniqueSessions: uniqueSessions.length,
