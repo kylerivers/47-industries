@@ -10,6 +10,12 @@ interface Stats {
   serviceInquiriesCount: number
 }
 
+interface AnalyticsSnapshot {
+  activeUsers: number
+  totalPageViews: number
+  uniqueVisitors: number
+}
+
 interface ActivityItem {
   type: 'order' | 'request' | 'inquiry'
   id: string
@@ -23,6 +29,7 @@ interface ActivityItem {
 export default function AdminDashboard() {
   const [isMobile, setIsMobile] = useState(false)
   const [stats, setStats] = useState<Stats | null>(null)
+  const [analytics, setAnalytics] = useState<AnalyticsSnapshot | null>(null)
   const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -49,6 +56,28 @@ export default function AdminDashboard() {
       }
     }
     fetchStats()
+  }, [])
+
+  // Fetch analytics separately and refresh every 30 seconds
+  useEffect(() => {
+    async function fetchAnalytics() {
+      try {
+        const res = await fetch('/api/admin/analytics?period=24h')
+        if (res.ok) {
+          const data = await res.json()
+          setAnalytics({
+            activeUsers: data.activeUsers,
+            totalPageViews: data.totalPageViews,
+            uniqueVisitors: data.uniqueVisitors
+          })
+        }
+      } catch (error) {
+        console.error('Failed to fetch analytics:', error)
+      }
+    }
+    fetchAnalytics()
+    const interval = setInterval(fetchAnalytics, 30000)
+    return () => clearInterval(interval)
   }, [])
 
   const statsDisplay = [
@@ -154,6 +183,59 @@ export default function AdminDashboard() {
           fontSize: isMobile ? '14px' : '16px'
         }}>Welcome to 47 Industries Admin</p>
       </div>
+
+      {/* Live Analytics Bar */}
+      <Link
+        href="/admin/analytics"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          background: 'linear-gradient(90deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.1))',
+          border: '1px solid #27272a',
+          borderRadius: '12px',
+          padding: '16px 20px',
+          marginBottom: '24px',
+          textDecoration: 'none',
+          color: 'inherit',
+          transition: 'border-color 0.2s'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{
+              width: '10px',
+              height: '10px',
+              borderRadius: '50%',
+              background: '#10b981',
+              animation: 'pulse 2s infinite'
+            }} />
+            <span style={{ fontSize: '14px', color: '#a1a1aa' }}>Active Now:</span>
+            <span style={{ fontSize: '18px', fontWeight: '700', color: '#10b981' }}>
+              {analytics?.activeUsers ?? 0}
+            </span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '14px', color: '#a1a1aa' }}>Today's Views:</span>
+            <span style={{ fontSize: '18px', fontWeight: '700', color: '#3b82f6' }}>
+              {analytics?.totalPageViews?.toLocaleString() ?? 0}
+            </span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '14px', color: '#a1a1aa' }}>Unique Visitors:</span>
+            <span style={{ fontSize: '18px', fontWeight: '700', color: '#8b5cf6' }}>
+              {analytics?.uniqueVisitors?.toLocaleString() ?? 0}
+            </span>
+          </div>
+        </div>
+        <span style={{ color: '#71717a', fontSize: '14px' }}>View Analytics →</span>
+      </Link>
+      <style jsx>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.4; }
+        }
+      `}</style>
 
       {/* Stats Grid */}
       <div style={{

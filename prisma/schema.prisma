@@ -553,13 +553,67 @@ model Setting {
 model PageView {
   id          String   @id @default(cuid())
   path        String
+  visitorId   String   // Anonymous visitor identifier (stored in cookie)
+  sessionId   String   // Session identifier
   userAgent   String?  @db.Text
   ip          String?
   referrer    String?  @db.Text
+  country     String?
+  city        String?
+  device      String?  // desktop, mobile, tablet
+  browser     String?
+  os          String?
+  duration    Int?     // Time spent on page in seconds
 
   createdAt   DateTime @default(now())
 
   @@index([path])
+  @@index([visitorId])
+  @@index([sessionId])
+  @@index([createdAt])
+}
+
+model Visitor {
+  id          String   @id @default(cuid())
+  visitorId   String   @unique // Cookie-based identifier
+  firstVisit  DateTime @default(now())
+  lastVisit   DateTime @default(now())
+  totalVisits Int      @default(1)
+  userId      String?  // Link to User if logged in
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([visitorId])
+  @@index([lastVisit])
+}
+
+model ActiveSession {
+  id          String   @id @default(cuid())
+  sessionId   String   @unique
+  visitorId   String
+  lastActive  DateTime @default(now())
+  currentPage String?
+  startedAt   DateTime @default(now())
+
+  @@index([lastActive])
+  @@index([visitorId])
+}
+
+model AbandonedCart {
+  id          String   @id @default(cuid())
+  visitorId   String
+  sessionId   String?
+  email       String?  // If captured
+  items       Json     // Cart items snapshot
+  totalValue  Decimal  @db.Decimal(10, 2)
+  recoveredAt DateTime? // If cart was recovered
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([visitorId])
+  @@index([email])
   @@index([createdAt])
 }
 
