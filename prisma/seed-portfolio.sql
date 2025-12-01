@@ -22,8 +22,8 @@ VALUES (
   'We built MotoRev from the ground up as a native iOS application with a focus on performance and user experience. The app features real-time GPS tracking, social ride sharing, detailed garage management, and emergency safety features. A custom backend handles millions of data points while maintaining fast response times.',
   'MotoRev launched on the App Store with strong user engagement. The app processes thousands of ride logs monthly and has built an active community of motorcycle enthusiasts.',
   '["Swift", "SwiftUI", "MapKit", "CoreLocation", "Node.js", "PostgreSQL", "AWS", "Firebase"]',
-  'https://files.47industries.com/1764598429854-cvlxeqapuqb-moto_17.png',
-  '["https://files.47industries.com/1764598631106-4f6xn6laykr-motorev-garage.png", "https://files.47industries.com/1764598631535-i7jsprhrhd-motorev-profile.png", "https://files.47industries.com/1764598632332-vkv2a7mr2f-motorev-social.png", "https://files.47industries.com/1764598632738-8enyvvrsl28-motorev-navigate.png", "https://files.47industries.com/1764598595234-yvpp1o3omtf-Screenshot_2025-12-01_at_9.15.45_AM.png"]',
+  'https://pub-c892cc953a584679a819af5d326f6dca.r2.dev/1764598429854-cvlxeqapuqb-moto_17.png',
+  '["https://pub-c892cc953a584679a819af5d326f6dca.r2.dev/1764598631106-4f6xn6laykr-motorev-garage.png", "https://pub-c892cc953a584679a819af5d326f6dca.r2.dev/1764598631535-i7jsprhrhd-motorev-profile.png", "https://pub-c892cc953a584679a819af5d326f6dca.r2.dev/1764598632332-vkv2a7mr2f-motorev-social.png", "https://pub-c892cc953a584679a819af5d326f6dca.r2.dev/1764598632738-8enyvvrsl28-motorev-navigate.png", "https://pub-c892cc953a584679a819af5d326f6dca.r2.dev/1764598595234-yvpp1o3omtf-Screenshot_2025-12-01_at_9.15.45_AM.png"]',
   1, 1, 1,
   'https://motorevapp.com',
   NOW(), NOW()
@@ -62,7 +62,7 @@ VALUES (
   'Through Reflux Labs, we created production-ready templates and full-stack applications for diverse industries. Each project helped us refine our development process and build a library of reusable, battle-tested solutions.',
   'The work done under Reflux Labs directly informed the service offerings at 47 Industries and gave us hands-on experience across multiple industries.',
   '["React", "Next.js", "Node.js", "MongoDB", "PostgreSQL", "Tailwind CSS", "Stripe", "Bootstrap"]',
-  'https://files.47industries.com/1764606459630-pedpoblbrro-refluxlabs.png',
+  'https://pub-c892cc953a584679a819af5d326f6dca.r2.dev/1764606459630-pedpoblbrro-refluxlabs.png',
   1, 1, 3,
   NULL,
   NOW(), NOW()
