@@ -70,11 +70,11 @@ export default async function ProjectPage({ params }: Props) {
 
         {/* Hero Image */}
         {project.thumbnailUrl && (
-          <div className="mb-12 rounded-2xl overflow-hidden border border-border">
+          <div className="mb-12 rounded-2xl overflow-hidden border border-border bg-surface-elevated">
             <img
               src={project.thumbnailUrl}
               alt={project.title}
-              className="w-full h-auto"
+              className="w-full h-auto max-h-[600px] object-contain mx-auto"
             />
           </div>
         )}
@@ -118,10 +118,14 @@ export default async function ProjectPage({ params }: Props) {
             {images.length > 0 && (
               <div>
                 <h2 className="text-2xl font-bold mb-4">Gallery</h2>
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {images.map((img, i) => (
-                    <div key={i} className="rounded-xl overflow-hidden border border-border">
-                      <img src={img} alt={`${project.title} screenshot ${i + 1}`} className="w-full h-auto" />
+                    <div key={i} className="rounded-xl overflow-hidden border border-border bg-surface-elevated aspect-[9/16] md:aspect-auto md:max-h-[400px] flex items-center justify-center">
+                      <img
+                        src={img}
+                        alt={`${project.title} screenshot ${i + 1}`}
+                        className="w-full h-full object-contain"
+                      />
                     </div>
                   ))}
                 </div>
