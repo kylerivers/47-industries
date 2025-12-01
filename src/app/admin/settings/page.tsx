@@ -144,7 +144,16 @@ export default function AdminSettingsPage() {
       const res = await fetch('/api/admin/settings')
       if (res.ok) {
         const data = await res.json()
-        setSettings(prev => ({ ...prev, ...data }))
+        // Convert string booleans to actual booleans
+        // The API returns strings like "true"/"false" but we need actual booleans
+        const booleanKeys = ['shopEnabled', 'custom3DPrintingEnabled', 'webDevServicesEnabled', 'appDevServicesEnabled', 'motorevEnabled']
+        const converted = { ...data }
+        booleanKeys.forEach(key => {
+          if (key in converted) {
+            converted[key] = converted[key] === 'true' || converted[key] === true
+          }
+        })
+        setSettings(prev => ({ ...prev, ...converted }))
       }
     } catch (error) {
       console.error('Error fetching settings:', error)
