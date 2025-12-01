@@ -24,7 +24,7 @@ export default async function ServicesPage() {
     prisma.serviceProject.findMany({
       where: { isActive: true },
       orderBy: [{ isFeatured: 'desc' }, { sortOrder: 'asc' }],
-      take: 6,
+      take: 8,
     }),
   ])
 

@@ -197,12 +197,12 @@ export default function ServicesClient({ packages, projects }: ServicesClientPro
             <p className="text-center text-text-secondary mb-12 max-w-2xl mx-auto">
               Check out some of our recent projects
             </p>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {projects.map((project) => (
                 <Link
                   key={project.id}
                   href={`/projects/${project.slug}`}
-                  className="group border border-border rounded-2xl overflow-hidden hover:border-accent/50 transition-all"
+                  className="group border border-border rounded-xl overflow-hidden hover:border-accent/50 transition-all bg-surface"
                 >
                   <div className="aspect-video bg-surface-elevated flex items-center justify-center relative overflow-hidden">
                     {project.thumbnailUrl ? (
@@ -217,22 +217,34 @@ export default function ServicesClient({ packages, projects }: ServicesClientPro
                       </div>
                     )}
                     {project.isFeatured && (
-                      <div className="absolute top-3 right-3 px-2 py-1 bg-yellow-500/90 text-black text-xs font-semibold rounded">
+                      <div className="absolute top-2 right-2 px-2 py-1 bg-yellow-500/90 text-black text-xs font-semibold rounded">
                         Featured
                       </div>
                     )}
                   </div>
-                  <div className="p-6">
+                  <div className="p-4">
                     <div className="text-xs text-accent font-medium mb-2">
                       {CATEGORY_LABELS[project.category] || project.category}
                     </div>
-                    <h3 className="text-xl font-bold mb-2 group-hover:text-accent transition-colors">
+                    <h3 className="text-lg font-bold mb-1 group-hover:text-accent transition-colors line-clamp-1">
                       {project.title}
                     </h3>
                     <p className="text-text-secondary text-sm">{project.clientName}</p>
                   </div>
                 </Link>
               ))}
+            </div>
+            {/* View More Button */}
+            <div className="mt-10 text-center">
+              <Link
+                href="/portfolio"
+                className="inline-flex items-center px-6 py-3 border border-border rounded-lg text-sm font-medium hover:bg-surface hover:border-accent/50 transition-all"
+              >
+                View Full Portfolio
+                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </Link>
             </div>
           </div>
         )}
