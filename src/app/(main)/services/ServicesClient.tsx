@@ -84,44 +84,42 @@ export default function ServicesClient({ packages, projects }: ServicesClientPro
   // Get packages for selected type (3 tiers per category)
   const displayPackages = packages.filter(pkg => pkg.category === selectedType)
 
-  return (
-    <div className="min-h-screen py-20">
-      <div className="container mx-auto px-6">
-        {/* Header */}
-        <div className="max-w-4xl mx-auto mb-16 text-center">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6">Our Services</h1>
-          <p className="text-xl text-text-secondary">
-            From websites to mobile apps, we build modern digital solutions
-            tailored to your business needs.
-          </p>
-        </div>
+  const currentService = SERVICE_TYPES.find(t => t.id === selectedType)
 
-        {/* Service Type Tabs */}
-        <div className="max-w-4xl mx-auto mb-12">
-          <div className="flex flex-wrap justify-center gap-2">
-            {SERVICE_TYPES.map((type) => (
-              <button
-                key={type.id}
-                onClick={() => setSelectedType(type.id)}
-                className={`px-5 py-2.5 rounded-full font-medium transition-all ${
-                  selectedType === type.id
-                    ? 'bg-accent text-white'
-                    : 'bg-surface border border-border text-text-secondary hover:border-accent/50 hover:text-white'
-                }`}
-              >
-                {type.label}
-              </button>
-            ))}
+  return (
+    <div className="min-h-screen">
+      {/* Hero Section */}
+      <div className="pt-20 pb-8">
+        <div className="container mx-auto px-6">
+          <div className="max-w-3xl mx-auto text-center">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+              {currentService?.label || 'Our Services'}
+            </h1>
+            <p className="text-lg text-text-secondary mb-8">
+              {currentService?.description}
+            </p>
+
+            {/* Service Type Tabs - Inline with header */}
+            <div className="inline-flex flex-wrap justify-center gap-2 p-1.5 bg-surface/50 rounded-xl border border-border">
+              {SERVICE_TYPES.map((type) => (
+                <button
+                  key={type.id}
+                  onClick={() => setSelectedType(type.id)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    selectedType === type.id
+                      ? 'bg-accent text-white shadow-sm'
+                      : 'text-text-secondary hover:text-white hover:bg-surface-elevated'
+                  }`}
+                >
+                  {type.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Selected Service Description */}
-        <div className="max-w-2xl mx-auto text-center mb-12">
-          <p className="text-text-secondary text-lg">
-            {SERVICE_TYPES.find(t => t.id === selectedType)?.description}
-          </p>
-        </div>
-
+      <div className="container mx-auto px-6 py-12">
         {/* Pricing Cards */}
         {displayPackages.length > 0 ? (
           <div className="mb-20">
