@@ -39,33 +39,27 @@ const SERVICE_TYPES = [
   {
     id: 'WEB_DEVELOPMENT',
     label: 'Web Development',
-    description: 'Custom websites and web applications built with modern technologies.',
-    icon: (
-      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-      </svg>
-    )
+    description: 'Custom websites and web applications built with modern technologies. Fast, secure, and scalable solutions.',
   },
   {
-    id: 'MOBILE_APPS',
-    label: 'Mobile Apps',
-    description: 'Native and cross-platform mobile applications for iOS and Android.',
-    icon: (
-      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-      </svg>
-    ),
-    categories: ['IOS_APP', 'ANDROID_APP', 'CROSS_PLATFORM_APP']
+    id: 'IOS_APP',
+    label: 'iOS App',
+    description: 'Native iOS applications built with Swift for iPhone and iPad. Optimized for the Apple ecosystem.',
+  },
+  {
+    id: 'ANDROID_APP',
+    label: 'Android App',
+    description: 'Native Android applications using Kotlin. Designed for the full range of Android devices.',
+  },
+  {
+    id: 'CROSS_PLATFORM_APP',
+    label: 'Cross-Platform',
+    description: 'Build once, deploy everywhere. React Native apps for both iOS and Android from a single codebase.',
   },
   {
     id: 'DESKTOP_APP',
-    label: 'Desktop Apps',
-    description: 'Cross-platform desktop applications for Windows, macOS, and Linux.',
-    icon: (
-      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-      </svg>
-    )
+    label: 'Desktop App',
+    description: 'Cross-platform desktop applications for Windows, macOS, and Linux using modern frameworks.',
   },
 ]
 
@@ -87,27 +81,8 @@ const technologies = [
 export default function ServicesClient({ packages, projects }: ServicesClientProps) {
   const [selectedType, setSelectedType] = useState('WEB_DEVELOPMENT')
 
-  // Get packages for selected type
-  const getFilteredPackages = () => {
-    const serviceType = SERVICE_TYPES.find(t => t.id === selectedType)
-    if (serviceType?.categories) {
-      // Mobile apps - combine multiple categories
-      return packages.filter(pkg => serviceType.categories!.includes(pkg.category))
-    }
-    return packages.filter(pkg => pkg.category === selectedType)
-  }
-
-  const filteredPackages = getFilteredPackages()
-
-  // For mobile apps, group by platform and show the "Standard/Professional" tier
-  const displayPackages = selectedType === 'MOBILE_APPS'
-    ? [
-        // Show one package per platform type
-        packages.find(p => p.category === 'IOS_APP' && p.isPopular) || packages.find(p => p.category === 'IOS_APP'),
-        packages.find(p => p.category === 'ANDROID_APP' && p.isPopular) || packages.find(p => p.category === 'ANDROID_APP'),
-        packages.find(p => p.category === 'CROSS_PLATFORM_APP' && p.isPopular) || packages.find(p => p.category === 'CROSS_PLATFORM_APP'),
-      ].filter(Boolean) as Package[]
-    : filteredPackages.slice(0, 3)
+  // Get packages for selected type (3 tiers per category)
+  const displayPackages = packages.filter(pkg => pkg.category === selectedType)
 
   return (
     <div className="min-h-screen py-20">
@@ -121,25 +96,20 @@ export default function ServicesClient({ packages, projects }: ServicesClientPro
           </p>
         </div>
 
-        {/* Service Type Selector */}
-        <div className="max-w-3xl mx-auto mb-12">
-          <div className="grid grid-cols-3 gap-4">
+        {/* Service Type Tabs */}
+        <div className="max-w-4xl mx-auto mb-12">
+          <div className="flex flex-wrap justify-center gap-2">
             {SERVICE_TYPES.map((type) => (
               <button
                 key={type.id}
                 onClick={() => setSelectedType(type.id)}
-                className={`p-4 rounded-xl border transition-all text-left ${
+                className={`px-5 py-2.5 rounded-full font-medium transition-all ${
                   selectedType === type.id
-                    ? 'border-accent bg-accent/10'
-                    : 'border-border hover:border-accent/50'
+                    ? 'bg-accent text-white'
+                    : 'bg-surface border border-border text-text-secondary hover:border-accent/50 hover:text-white'
                 }`}
               >
-                <div className={`mb-2 ${selectedType === type.id ? 'text-accent' : 'text-text-secondary'}`}>
-                  {type.icon}
-                </div>
-                <div className={`font-semibold ${selectedType === type.id ? 'text-white' : ''}`}>
-                  {type.label}
-                </div>
+                {type.label}
               </button>
             ))}
           </div>
@@ -168,13 +138,6 @@ export default function ServicesClient({ packages, projects }: ServicesClientPro
                   {pkg.isPopular && (
                     <div className="inline-block px-3 py-1 bg-accent text-white text-xs font-semibold rounded-full mb-4">
                       {pkg.badge || 'MOST POPULAR'}
-                    </div>
-                  )}
-
-                  {/* Show platform for mobile apps */}
-                  {selectedType === 'MOBILE_APPS' && (
-                    <div className="text-accent text-sm font-medium mb-2">
-                      {CATEGORY_LABELS[pkg.category]}
                     </div>
                   )}
 
@@ -220,20 +183,6 @@ export default function ServicesClient({ packages, projects }: ServicesClientPro
               ))}
             </div>
 
-            {/* View All Link for Mobile Apps */}
-            {selectedType === 'MOBILE_APPS' && (
-              <div className="text-center mt-8">
-                <p className="text-text-secondary mb-4">
-                  Looking for different tiers? We offer Basic, Standard, and Enterprise packages for each platform.
-                </p>
-                <Link
-                  href="/contact"
-                  className="text-accent hover:underline font-medium"
-                >
-                  Contact us for custom pricing
-                </Link>
-              </div>
-            )}
           </div>
         ) : (
           <div className="mb-20 text-center py-12 border border-border rounded-2xl max-w-4xl mx-auto">
