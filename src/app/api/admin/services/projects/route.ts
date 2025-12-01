@@ -88,6 +88,7 @@ export async function POST(req: NextRequest) {
         testimonialAuthor: body.testimonialAuthor || null,
         testimonialRole: body.testimonialRole || null,
         isFeatured: body.isFeatured || false,
+        showInNavbar: body.showInNavbar || false,
         isActive: body.isActive !== false,
         sortOrder: body.sortOrder || 0,
       },

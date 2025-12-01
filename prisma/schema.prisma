@@ -672,6 +672,7 @@ model ServiceProject {
 
   // Display
   isFeatured    Boolean         @default(false)
+  showInNavbar  Boolean         @default(false)  // Show in site navigation header
   isActive      Boolean         @default(true)
   sortOrder     Int             @default(0)
 
@@ -680,6 +681,7 @@ model ServiceProject {
 
   @@index([category])
   @@index([isFeatured])
+  @@index([showInNavbar])
   @@index([slug])
 }
 

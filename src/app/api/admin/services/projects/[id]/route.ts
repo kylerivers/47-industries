@@ -102,6 +102,7 @@ export async function PATCH(
         ...(body.testimonialAuthor !== undefined && { testimonialAuthor: body.testimonialAuthor || null }),
         ...(body.testimonialRole !== undefined && { testimonialRole: body.testimonialRole || null }),
         ...(body.isFeatured !== undefined && { isFeatured: body.isFeatured }),
+        ...(body.showInNavbar !== undefined && { showInNavbar: body.showInNavbar }),
         ...(body.isActive !== undefined && { isActive: body.isActive }),
         ...(body.sortOrder !== undefined && { sortOrder: body.sortOrder }),
       },

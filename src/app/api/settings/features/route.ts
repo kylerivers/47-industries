@@ -30,7 +30,7 @@ export async function GET() {
       }),
       prisma.serviceProject.findMany({
         where: {
-          isFeatured: true,
+          showInNavbar: true,
           isActive: true,
         },
         select: {
