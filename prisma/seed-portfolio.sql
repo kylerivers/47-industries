@@ -1,20 +1,21 @@
 -- Portfolio Projects for 47 Industries
--- Real projects + sample projects across all service categories
+-- Real projects only - Built by Reflux Labs / 47 Industries
 
 -- Clear existing projects
 DELETE FROM ServiceProject;
 
 -- ============================================
--- REAL PROJECTS
+-- FLAGSHIP PRODUCTS
 -- ============================================
 
 -- MotoRev - iOS App (FEATURED - flagship product)
-INSERT INTO ServiceProject (id, title, slug, category, clientName, description, challenge, solution, results, technologies, isFeatured, isActive, sortOrder, liveUrl, createdAt, updatedAt)
+INSERT INTO ServiceProject (id, title, slug, category, categories, clientName, description, challenge, solution, results, technologies, isFeatured, isActive, sortOrder, liveUrl, createdAt, updatedAt)
 VALUES (
   UUID(),
   'MotoRev',
   'motorev',
   'IOS_APP',
+  '["IOS_APP", "CROSS_PLATFORM_APP"]',
   'MotoRev (47 Industries Subsidiary)',
   'MotoRev is a comprehensive motorcycle companion app designed for riders who want to track their rides, connect with other enthusiasts, and manage their garage. Built as a flagship product of 47 Industries, MotoRev combines GPS tracking, social features, and safety tools into one powerful platform.',
   'Motorcycle enthusiasts lacked a dedicated platform that combined ride tracking, social connectivity, and garage management. Existing solutions were fragmented, forcing riders to use multiple apps for different needs.',
@@ -26,266 +27,206 @@ VALUES (
   NOW(), NOW()
 );
 
--- Critter Captures - Web Development
-INSERT INTO ServiceProject (id, title, slug, category, clientName, description, challenge, solution, results, technologies, isFeatured, isActive, sortOrder, createdAt, updatedAt)
-VALUES (
-  UUID(),
-  'Critter Captures',
-  'critter-captures',
-  'WEB_DEVELOPMENT',
-  'Critter Captures Wildlife Control',
-  'A professional website for a local wildlife control and extermination company. The site showcases their services, service areas, and provides easy contact options for customers dealing with unwanted critters.',
-  'The client needed a professional online presence to compete with larger pest control companies. They wanted to highlight their humane capture methods and local expertise while making it easy for customers to request service.',
-  'We designed and developed a clean, professional website that emphasizes trust and expertise. The site features service area maps, detailed service descriptions, an emergency contact system, and lead capture forms optimized for conversion.',
-  'The new website significantly improved the client''s online visibility and lead generation, helping them compete effectively in their local market.',
-  '["Next.js", "React", "Tailwind CSS", "Vercel"]',
-  0, 1, 2,
-  NOW(), NOW()
-);
-
--- Lockline Bets - Web Development (In Progress)
-INSERT INTO ServiceProject (id, title, slug, category, clientName, description, challenge, solution, results, technologies, isFeatured, isActive, sortOrder, createdAt, updatedAt)
+-- Lockline Bets - Web Development
+INSERT INTO ServiceProject (id, title, slug, category, categories, clientName, description, challenge, solution, results, technologies, isFeatured, isActive, sortOrder, liveUrl, createdAt, updatedAt)
 VALUES (
   UUID(),
   'Lockline Bets',
   'lockline-bets',
   'WEB_DEVELOPMENT',
+  '["WEB_DEVELOPMENT"]',
   'Lockline Bets',
   'A comprehensive sports betting insights platform where subscribers can follow expert picks, track betting history, and access premium analysis. The platform includes a full admin backend for content management and a customer portal for subscribers.',
   'The client needed a platform to share betting picks and analysis with subscribers while managing subscriptions and tracking performance. The system needed to be scalable for future mobile app expansion.',
-  'We''re building a complete platform with a powerful admin dashboard for managing picks, users, and analytics. The customer-facing portal provides real-time pick notifications, historical performance tracking, and subscription management. The architecture is designed for future iOS and Android apps.',
-  'Currently in active development. The platform is being built with scalability in mind for future mobile expansion to iOS, Android, and cross-platform apps.',
+  'We built a complete platform with a powerful admin dashboard for managing picks, users, and analytics. The customer-facing portal provides real-time pick notifications, historical performance tracking, and subscription management. The architecture is designed for future iOS and Android apps.',
+  'The platform is live and actively serving subscribers with daily picks, comprehensive analytics, and a growing user base.',
   '["Next.js", "React", "TypeScript", "Node.js", "PostgreSQL", "Prisma", "Stripe", "Tailwind CSS"]',
-  1, 1, 3,
+  1, 1, 2,
+  NULL,
   NOW(), NOW()
 );
 
--- Reflux Labs - Web Development
-INSERT INTO ServiceProject (id, title, slug, category, clientName, description, challenge, solution, results, technologies, isFeatured, isActive, sortOrder, createdAt, updatedAt)
+-- Reflux Labs - Internal R&D
+INSERT INTO ServiceProject (id, title, slug, category, categories, clientName, description, challenge, solution, results, technologies, isFeatured, isActive, sortOrder, liveUrl, createdAt, updatedAt)
 VALUES (
   UUID(),
   'Reflux Labs',
   'reflux-labs',
   'WEB_DEVELOPMENT',
+  '["WEB_DEVELOPMENT", "IOS_APP", "ANDROID_APP"]',
   'Reflux Labs (Internal)',
-  'Reflux Labs served as our R&D playground before 47 Industries expanded into services. We built 10 different sample websites and applications spanning various industries including restaurants, retail stores, smoke shops, and more.',
+  'Reflux Labs served as our R&D playground before 47 Industries expanded into services. We built multiple production-ready demo applications spanning various industries including e-commerce, restaurants, real estate, healthcare, fitness, landscaping, and more.',
   'We needed to develop and refine our web development capabilities across different industries and use cases before offering services commercially.',
-  'Through Reflux Labs, we created production-ready templates and components for restaurants, e-commerce stores, smoke shops, service businesses, and more. Each project helped us refine our development process and build a library of reusable solutions.',
+  'Through Reflux Labs, we created production-ready templates and full-stack applications for diverse industries. Each project helped us refine our development process and build a library of reusable, battle-tested solutions.',
   'The work done under Reflux Labs directly informed the service offerings at 47 Industries and gave us hands-on experience across multiple industries.',
-  '["React", "Next.js", "Node.js", "MongoDB", "Tailwind CSS", "Stripe"]',
-  0, 1, 4,
+  '["React", "Next.js", "Node.js", "MongoDB", "PostgreSQL", "Tailwind CSS", "Stripe", "Bootstrap"]',
+  1, 1, 3,
+  NULL,
   NOW(), NOW()
 );
 
--- Smoke Shop E-Commerce - Web Development
-INSERT INTO ServiceProject (id, title, slug, category, clientName, description, challenge, solution, results, technologies, isFeatured, isActive, sortOrder, createdAt, updatedAt)
+-- ============================================
+-- DEMO PROJECTS (Built under Reflux Labs)
+-- ============================================
+
+-- E-commerce Demo - ShopTech
+INSERT INTO ServiceProject (id, title, slug, category, categories, clientName, description, challenge, solution, results, technologies, isFeatured, isActive, sortOrder, createdAt, updatedAt)
 VALUES (
   UUID(),
-  'Smoke Shop POS & E-Commerce',
-  'smoke-shop-ecommerce',
+  'ShopTech E-commerce Platform',
+  'shoptech-ecommerce',
   'WEB_DEVELOPMENT',
-  'Internal Development Project',
-  'A comprehensive e-commerce and point-of-sale system built specifically for smoke shops and vape stores. The platform combines online ordering with in-store POS functionality for seamless inventory management.',
-  'Smoke shops need specialized e-commerce solutions that handle age verification, complex inventory with multiple product variants, and integration between online and in-store sales.',
-  'We built a full-featured platform with age verification, detailed product management for items with multiple sizes and variants, integrated POS for in-store transactions, and unified inventory tracking across all sales channels.',
-  'The system was fully functional and ready for market deployment. It demonstrated our capability to build complex, industry-specific e-commerce solutions.',
-  '["Next.js", "React", "Node.js", "PostgreSQL", "Stripe", "Square POS API", "Tailwind CSS"]',
-  0, 1, 5,
-  NOW(), NOW()
-);
-
--- ============================================
--- SAMPLE PROJECTS - iOS App
--- ============================================
-
-INSERT INTO ServiceProject (id, title, slug, category, clientName, description, challenge, solution, results, technologies, isFeatured, isActive, sortOrder, createdAt, updatedAt)
-VALUES (
-  UUID(),
-  'FitTrack Pro',
-  'fittrack-pro',
-  'IOS_APP',
-  'FitTrack Health',
-  'A fitness tracking application that helps users monitor workouts, nutrition, and progress toward their health goals. Features include workout planning, calorie tracking, and integration with Apple Health.',
-  'Users wanted a single app that could track both workouts and nutrition without needing multiple subscriptions or complicated setups.',
-  'We developed a native iOS app with intuitive workout logging, a comprehensive food database, progress photos, and seamless Apple Health integration. The app uses on-device ML for exercise recognition.',
-  'The app achieved strong ratings on the App Store with users praising its simplicity and comprehensive feature set.',
-  '["Swift", "SwiftUI", "HealthKit", "CoreML", "CloudKit"]',
+  '["WEB_DEVELOPMENT"]',
+  'Reflux Labs Demo',
+  'A modern e-commerce solution featuring advanced product management, secure checkout, real-time inventory tracking, and a comprehensive admin panel. Built as a premium tech store template with categories for gaming, smart home, and audio products.',
+  'E-commerce businesses need a complete solution that handles everything from product catalogs and shopping carts to order management and analytics.',
+  'We built a full-featured e-commerce platform with product collections, advanced filtering, cart functionality, secure checkout, user accounts, wishlists, and a powerful admin dashboard for managing inventory, orders, and analytics.',
+  'A production-ready e-commerce template that demonstrates our capability to build scalable online stores for any industry.',
+  '["HTML5", "CSS3", "JavaScript", "Bootstrap 5", "PHP", "MySQL"]',
   0, 1, 10,
   NOW(), NOW()
 );
 
-INSERT INTO ServiceProject (id, title, slug, category, clientName, description, challenge, solution, results, technologies, isFeatured, isActive, sortOrder, createdAt, updatedAt)
+-- Restaurant Demo
+INSERT INTO ServiceProject (id, title, slug, category, categories, clientName, description, challenge, solution, results, technologies, isFeatured, isActive, sortOrder, createdAt, updatedAt)
 VALUES (
   UUID(),
-  'PropertySnap',
-  'propertysnap',
-  'IOS_APP',
-  'RealEstate Solutions Inc.',
-  'A real estate photography and listing app that helps agents capture, edit, and publish property photos directly from their iPhone with professional results.',
-  'Real estate agents needed a faster way to capture and publish property photos without expensive equipment or desktop editing software.',
-  'We built an app with guided photo capture using AR overlays, automatic image enhancement, virtual staging capabilities, and direct MLS integration for instant publishing.',
-  'Agents reported 60% time savings in their listing workflow, with photo quality matching professional photographers.',
-  '["Swift", "ARKit", "Core Image", "Vision", "Firebase"]',
+  'Restaurant Website & Management',
+  'restaurant-demo',
+  'WEB_DEVELOPMENT',
+  '["WEB_DEVELOPMENT"]',
+  'Reflux Labs Demo',
+  'A complete restaurant solution featuring an elegant customer-facing website with online ordering, table reservations, menu management, and a kitchen management system through the admin panel.',
+  'Restaurants need an online presence that showcases their atmosphere and cuisine while providing practical features like reservations and online ordering.',
+  'We developed a full restaurant website with beautiful menu displays, online reservation system, contact integration, and an admin panel for managing menus, reservations, orders, and viewing analytics.',
+  'A ready-to-deploy restaurant template that can be customized for any dining establishment from casual to fine dining.',
+  '["HTML5", "CSS3", "JavaScript", "Bootstrap", "PHP"]',
   0, 1, 11,
   NOW(), NOW()
 );
 
--- ============================================
--- SAMPLE PROJECTS - Android App
--- ============================================
-
-INSERT INTO ServiceProject (id, title, slug, category, clientName, description, challenge, solution, results, technologies, isFeatured, isActive, sortOrder, createdAt, updatedAt)
+-- Real Estate Demo
+INSERT INTO ServiceProject (id, title, slug, category, categories, clientName, description, challenge, solution, results, technologies, isFeatured, isActive, sortOrder, createdAt, updatedAt)
 VALUES (
   UUID(),
-  'FleetTracker',
-  'fleettracker',
-  'ANDROID_APP',
-  'Metro Logistics Co.',
-  'A fleet management application for delivery companies to track vehicles, optimize routes, and manage drivers in real-time. Built specifically for Android tablets mounted in delivery vehicles.',
-  'The logistics company needed real-time visibility into their fleet of 200+ vehicles with route optimization and driver communication.',
-  'We developed a robust Android app optimized for in-vehicle tablet use with offline capability, real-time GPS tracking, turn-by-turn navigation, proof-of-delivery capture, and driver messaging.',
-  'The company reduced fuel costs by 15% through optimized routing and improved on-time delivery rates significantly.',
-  '["Kotlin", "Jetpack Compose", "Google Maps SDK", "Room Database", "WorkManager"]',
-  0, 1, 20,
-  NOW(), NOW()
-);
-
-INSERT INTO ServiceProject (id, title, slug, category, clientName, description, challenge, solution, results, technologies, isFeatured, isActive, sortOrder, createdAt, updatedAt)
-VALUES (
-  UUID(),
-  'FieldService Pro',
-  'fieldservice-pro',
-  'ANDROID_APP',
-  'ServiceMaster HVAC',
-  'A field service management app for HVAC technicians to manage appointments, access equipment manuals, process payments, and capture customer signatures on Android devices.',
-  'Technicians were using paper forms and making trips back to the office to process paperwork, wasting hours each day.',
-  'We created an Android app with offline-first architecture, digital work orders, integrated payment processing, equipment databases with troubleshooting guides, and automated invoice generation.',
-  'Technicians saved an average of 2 hours per day on administrative tasks, and the company eliminated paper-based processes entirely.',
-  '["Kotlin", "Android SDK", "SQLite", "Stripe SDK", "CameraX"]',
-  0, 1, 21,
-  NOW(), NOW()
-);
-
--- ============================================
--- SAMPLE PROJECTS - Cross-Platform App
--- ============================================
-
-INSERT INTO ServiceProject (id, title, slug, category, clientName, description, challenge, solution, results, technologies, isFeatured, isActive, sortOrder, createdAt, updatedAt)
-VALUES (
-  UUID(),
-  'EventHub',
-  'eventhub',
-  'CROSS_PLATFORM_APP',
-  'EventHub Entertainment',
-  'A cross-platform event discovery and ticketing app that helps users find local events, purchase tickets, and connect with other attendees. Available on both iOS and Android from a single codebase.',
-  'The client needed to launch on both platforms simultaneously with a limited budget while maintaining native-like performance and user experience.',
-  'Using React Native, we built a performant cross-platform app with event discovery, secure ticket purchasing, QR code tickets, social features, and real-time event updates. A single team maintained both platforms.',
-  'The app launched on both platforms within 4 months, with users unable to distinguish it from native apps. Development costs were reduced by 40% compared to building two native apps.',
-  '["React Native", "TypeScript", "Node.js", "PostgreSQL", "Stripe", "Firebase"]',
-  1, 1, 30,
-  NOW(), NOW()
-);
-
-INSERT INTO ServiceProject (id, title, slug, category, clientName, description, challenge, solution, results, technologies, isFeatured, isActive, sortOrder, createdAt, updatedAt)
-VALUES (
-  UUID(),
-  'StudyBuddy',
-  'studybuddy',
-  'CROSS_PLATFORM_APP',
-  'EduTech Innovations',
-  'An educational platform connecting students for study groups, tutoring sessions, and collaborative learning. Features video chat, shared whiteboards, and scheduling tools.',
-  'Students needed a platform to find study partners and tutors that worked seamlessly across their various devices - phones, tablets, and computers.',
-  'We developed a React Native app with WebRTC video calling, real-time collaborative whiteboards, smart matching algorithms, integrated scheduling, and in-app payments for tutoring sessions.',
-  'The platform grew to thousands of active users within the first semester, with students reporting improved grades and study habits.',
-  '["React Native", "WebRTC", "Socket.io", "Node.js", "MongoDB", "Stripe"]',
-  0, 1, 31,
-  NOW(), NOW()
-);
-
--- ============================================
--- SAMPLE PROJECTS - Desktop App
--- ============================================
-
-INSERT INTO ServiceProject (id, title, slug, category, clientName, description, challenge, solution, results, technologies, isFeatured, isActive, sortOrder, createdAt, updatedAt)
-VALUES (
-  UUID(),
-  'InvoiceMaster',
-  'invoicemaster',
-  'DESKTOP_APP',
-  'AccountingPro Solutions',
-  'A cross-platform desktop invoicing application for small businesses. Features include invoice creation, expense tracking, client management, and financial reporting with cloud sync.',
-  'Small business owners needed affordable invoicing software that worked offline but could sync across multiple devices without expensive subscriptions.',
-  'We built an Electron-based desktop app with a one-time purchase model. Features include professional invoice templates, recurring billing, expense categorization, profit/loss reports, and optional cloud sync.',
-  'The app became a popular alternative to subscription-based solutions, with users praising the offline capability and one-time pricing.',
-  '["Electron", "React", "SQLite", "Node.js", "AWS S3"]',
-  0, 1, 40,
-  NOW(), NOW()
-);
-
-INSERT INTO ServiceProject (id, title, slug, category, clientName, description, challenge, solution, results, technologies, isFeatured, isActive, sortOrder, createdAt, updatedAt)
-VALUES (
-  UUID(),
-  'MediaConverter Pro',
-  'mediaconverter-pro',
-  'DESKTOP_APP',
-  'Creative Tools LLC',
-  'A powerful media conversion tool for Windows and macOS that handles video, audio, and image format conversions with batch processing capabilities.',
-  'Content creators needed a fast, reliable tool for converting media files without uploading to cloud services or dealing with file size limits.',
-  'We developed a native-feeling desktop app using Tauri (Rust + React) for maximum performance. Features include drag-and-drop batch conversion, format presets, quality optimization, and hardware acceleration.',
-  'The app processes files 3x faster than web-based alternatives and has become a favorite among video editors and podcasters.',
-  '["Tauri", "Rust", "React", "FFmpeg", "TypeScript"]',
-  0, 1, 41,
-  NOW(), NOW()
-);
-
--- ============================================
--- MORE WEB DEVELOPMENT SAMPLES
--- ============================================
-
-INSERT INTO ServiceProject (id, title, slug, category, clientName, description, challenge, solution, results, technologies, isFeatured, isActive, sortOrder, createdAt, updatedAt)
-VALUES (
-  UUID(),
-  'Bella Vista Restaurant',
-  'bella-vista-restaurant',
+  'Real Estate Portal',
+  'realestate-portal',
   'WEB_DEVELOPMENT',
-  'Bella Vista Italian Kitchen',
-  'A modern restaurant website with online reservations, menu management, and integration with popular delivery platforms. The site showcases the restaurant''s ambiance and cuisine.',
-  'The restaurant needed an online presence that captured their upscale atmosphere while making reservations and ordering seamless for customers.',
-  'We created an elegant website with high-quality imagery, an interactive menu with dietary filters, OpenTable integration for reservations, and a custom admin panel for daily specials and events.',
-  'Online reservations increased by 150%, and the website became the primary channel for private event inquiries.',
-  '["Next.js", "React", "Tailwind CSS", "Sanity CMS", "OpenTable API"]',
-  0, 1, 6,
+  '["WEB_DEVELOPMENT"]',
+  'Reflux Labs Demo',
+  'A property listing platform with virtual tours, advanced search functionality, agent portal, and lead management system. Designed for real estate agencies and independent agents.',
+  'Real estate professionals need a platform to showcase listings, capture leads, and manage client relationships effectively.',
+  'We built a comprehensive real estate portal with property listings, advanced search and filtering, agent profiles, lead capture forms, and an agent dashboard for managing listings, leads, and client communications.',
+  'A complete real estate solution that helps agents and agencies establish a professional online presence and generate leads.',
+  '["HTML5", "CSS3", "JavaScript", "Bootstrap", "PHP", "MySQL"]',
+  0, 1, 12,
   NOW(), NOW()
 );
 
-INSERT INTO ServiceProject (id, title, slug, category, clientName, description, challenge, solution, results, technologies, isFeatured, isActive, sortOrder, createdAt, updatedAt)
+-- Healthcare Demo
+INSERT INTO ServiceProject (id, title, slug, category, categories, clientName, description, challenge, solution, results, technologies, isFeatured, isActive, sortOrder, createdAt, updatedAt)
 VALUES (
   UUID(),
-  'Summit Legal Group',
-  'summit-legal',
+  'Healthcare Patient Portal',
+  'healthcare-portal',
   'WEB_DEVELOPMENT',
-  'Summit Legal Group LLP',
-  'A professional law firm website designed to establish credibility and generate leads. Features attorney profiles, practice area pages, and secure client intake forms.',
-  'The law firm needed a website that conveyed professionalism and expertise while making it easy for potential clients to understand their services and get in touch.',
-  'We designed a sophisticated, trust-building website with detailed attorney bios, comprehensive practice area content, client testimonials, and HIPAA-compliant intake forms with encrypted submission.',
-  'The new website contributed to a significant increase in qualified consultation requests within the first quarter.',
-  '["Next.js", "React", "Tailwind CSS", "Formspree", "Vercel"]',
-  0, 1, 7,
+  '["WEB_DEVELOPMENT"]',
+  'Reflux Labs Demo',
+  'A patient management system featuring appointment scheduling, medical records access, test results viewing, secure messaging with providers, and medication tracking. Includes a comprehensive staff dashboard.',
+  'Healthcare providers need secure, HIPAA-compliant solutions for patient engagement that streamline appointment booking and communication.',
+  'We developed a full patient portal with appointment scheduling, medical records viewing, test results, secure provider messaging, medication management, and a staff dashboard for managing patients and appointments.',
+  'A healthcare template demonstrating our ability to build secure, compliant applications for the medical industry.',
+  '["HTML5", "CSS3", "JavaScript", "Bootstrap", "PHP", "MySQL"]',
+  0, 1, 13,
   NOW(), NOW()
 );
 
-INSERT INTO ServiceProject (id, title, slug, category, clientName, description, challenge, solution, results, technologies, isFeatured, isActive, sortOrder, createdAt, updatedAt)
+-- Fitness Demo
+INSERT INTO ServiceProject (id, title, slug, category, categories, clientName, description, challenge, solution, results, technologies, isFeatured, isActive, sortOrder, createdAt, updatedAt)
 VALUES (
   UUID(),
-  'AutoCare Express',
-  'autocare-express',
+  'Fitness & Gym Management',
+  'fitness-management',
   'WEB_DEVELOPMENT',
-  'AutoCare Express',
-  'A multi-location auto service website with online appointment booking, service pricing, and customer account management. Supports multiple shop locations with individual scheduling.',
-  'The auto shop chain needed a unified online presence for all locations while allowing customers to book appointments at their preferred location.',
-  'We built a location-aware website that detects the user''s nearest shop, displays location-specific pricing and availability, and allows online booking with service advisor selection and appointment reminders.',
-  'Online bookings now account for 40% of all appointments, reducing phone call volume and improving customer convenience.',
-  '["Next.js", "React", "PostgreSQL", "Prisma", "Twilio", "Google Maps API"]',
-  0, 1, 8,
+  '["WEB_DEVELOPMENT"]',
+  'Reflux Labs Demo',
+  'A complete gym management system featuring class scheduling, member tracking, trainer profiles, workout logging, progress tracking, and a comprehensive admin panel for gym operations.',
+  'Fitness centers need an all-in-one solution for managing memberships, classes, trainers, and member progress.',
+  'We built a full fitness portal with class schedules, member registration, trainer profiles, workout and progress tracking, analytics dashboard, and admin tools for managing all aspects of gym operations.',
+  'A production-ready fitness management template suitable for gyms, yoga studios, CrossFit boxes, and personal training businesses.',
+  '["HTML5", "CSS3", "JavaScript", "Bootstrap", "PHP", "MySQL"]',
+  0, 1, 14,
+  NOW(), NOW()
+);
+
+-- Landscaping Demo - Wells Landscaping
+INSERT INTO ServiceProject (id, title, slug, category, categories, clientName, description, challenge, solution, results, technologies, isFeatured, isActive, sortOrder, createdAt, updatedAt)
+VALUES (
+  UUID(),
+  'Wells Landscaping Services',
+  'landscaping-services',
+  'WEB_DEVELOPMENT',
+  '["WEB_DEVELOPMENT"]',
+  'Reflux Labs Demo',
+  'A professional landscaping website featuring service showcase, project gallery, consultation booking, invoice generation, and a complete admin panel for managing projects, team, and client communications.',
+  'Landscaping businesses need a professional online presence that showcases their work and makes it easy for customers to request quotes.',
+  'We developed a complete landscaping website with service pages, project portfolio, pricing information, contact forms, and an admin panel with project management, invoicing, team management, and appointment scheduling.',
+  'A full-featured template for landscaping, lawn care, and outdoor service businesses.',
+  '["HTML5", "CSS3", "JavaScript", "Bootstrap", "Node.js"]',
+  0, 1, 15,
+  NOW(), NOW()
+);
+
+-- Vape Shop Demo - Sunshine Smoke & Stuff
+INSERT INTO ServiceProject (id, title, slug, category, categories, clientName, description, challenge, solution, results, technologies, isFeatured, isActive, sortOrder, createdAt, updatedAt)
+VALUES (
+  UUID(),
+  'Smoke Shop & Kava Bar',
+  'smoke-shop-demo',
+  'WEB_DEVELOPMENT',
+  '["WEB_DEVELOPMENT"]',
+  'Reflux Labs Demo',
+  'A complete smoke shop solution featuring product catalog, inventory management, order processing, customer management, and a unique kava bar section. Includes full admin panel with reporting and analytics.',
+  'Smoke shops and vape stores need specialized e-commerce with age verification, complex inventory for product variants, and point-of-sale integration.',
+  'We built Sunshine Smoke & Stuff with a modern storefront, product catalog with categories for vapes, cigars, and kava bar menu, inventory management, order processing, customer database, and comprehensive reporting.',
+  'A specialized retail template demonstrating our ability to build industry-specific e-commerce solutions.',
+  '["HTML5", "CSS3", "JavaScript", "Bootstrap", "Node.js", "PHP", "MySQL"]',
+  0, 1, 16,
+  NOW(), NOW()
+);
+
+-- Education Demo
+INSERT INTO ServiceProject (id, title, slug, category, categories, clientName, description, challenge, solution, results, technologies, isFeatured, isActive, sortOrder, createdAt, updatedAt)
+VALUES (
+  UUID(),
+  'Education & Learning Portal',
+  'education-portal',
+  'WEB_DEVELOPMENT',
+  '["WEB_DEVELOPMENT"]',
+  'Reflux Labs Demo',
+  'A comprehensive learning management system featuring course catalogs, virtual classrooms, assignment submissions, student progress tracking, instructor management, and discussion forums.',
+  'Educational institutions and online course creators need a platform to deliver content, track student progress, and facilitate learning.',
+  'We developed a full LMS with course management, virtual classroom integration, assignment submission and grading, student analytics, instructor dashboards, and discussion forums for collaborative learning.',
+  'A complete education platform template suitable for schools, training centers, and online course businesses.',
+  '["HTML5", "CSS3", "JavaScript", "Bootstrap", "PHP", "MySQL"]',
+  0, 1, 17,
+  NOW(), NOW()
+);
+
+-- Legal Demo
+INSERT INTO ServiceProject (id, title, slug, category, categories, clientName, description, challenge, solution, results, technologies, isFeatured, isActive, sortOrder, createdAt, updatedAt)
+VALUES (
+  UUID(),
+  'Legal Services Portal',
+  'legal-portal',
+  'WEB_DEVELOPMENT',
+  '["WEB_DEVELOPMENT"]',
+  'Reflux Labs Demo',
+  'A professional legal services website featuring attorney profiles, practice area pages, client intake forms, document management, and an admin portal with case tracking and analytics.',
+  'Law firms need a professional online presence that establishes credibility and generates qualified leads while managing client intake.',
+  'We built a legal services portal with attorney bios, practice area content, secure client intake forms, document upload capabilities, and an admin dashboard for managing inquiries and tracking analytics.',
+  'A professional template for law firms and legal service providers.',
+  '["HTML5", "CSS3", "JavaScript", "Bootstrap", "PHP"]',
+  0, 1, 18,
   NOW(), NOW()
 );
