@@ -4,6 +4,7 @@ import { ReactNode, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
+import NotificationBell from '@/components/admin/NotificationBell'
 
 interface NavItem {
   href: string
@@ -447,6 +448,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           {children}
         </main>
       </div>
+
+      {/* Floating Notification Bell */}
+      <NotificationBell />
     </div>
     </>
   )
