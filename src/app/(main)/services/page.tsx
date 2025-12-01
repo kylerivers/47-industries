@@ -3,6 +3,9 @@ import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { isFeatureEnabled } from '@/lib/features'
 
+// Force dynamic rendering - database not available at build time
+export const dynamic = 'force-dynamic'
+
 const CATEGORY_LABELS: Record<string, string> = {
   WEB_DEVELOPMENT: 'Web Development',
   IOS_APP: 'iOS App',
