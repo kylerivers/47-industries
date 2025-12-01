@@ -340,7 +340,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       {/* Main Content */}
       <div style={{
         marginLeft: isMobile ? 0 : '256px',
-        transition: 'margin-left 0.3s ease-in-out'
+        transition: 'margin-left 0.3s ease-in-out',
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column'
       }}>
         {/* Top Header */}
         <header style={{
@@ -443,7 +446,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
         {/* Page Content */}
         <main style={{
-          padding: isMobile ? '16px' : '32px'
+          padding: isMobile ? '16px' : '32px',
+          flex: 1,
+          overflow: 'auto'
         }}>
           {children}
         </main>

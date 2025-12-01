@@ -284,7 +284,9 @@ export default function ServicesAdminPage() {
         <div className="space-y-4">
           {filteredPackages.length === 0 ? (
             <div className="bg-surface border border-border rounded-xl p-12 text-center">
-              <div className="text-4xl mb-4">📦</div>
+              <div className="w-12 h-12 mx-auto mb-4 text-text-secondary">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+              </div>
               <h3 className="text-lg font-semibold mb-2">No service packages yet</h3>
               <p className="text-text-secondary mb-4">
                 Create your first service package to display pricing and offerings
@@ -359,7 +361,9 @@ export default function ServicesAdminPage() {
         <div className="space-y-4">
           {filteredProjects.length === 0 ? (
             <div className="bg-surface border border-border rounded-xl p-12 text-center">
-              <div className="text-4xl mb-4">🎨</div>
+              <div className="w-12 h-12 mx-auto mb-4 text-text-secondary">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+              </div>
               <h3 className="text-lg font-semibold mb-2">No portfolio projects yet</h3>
               <p className="text-text-secondary mb-4">
                 Showcase your work by adding portfolio projects
@@ -389,7 +393,9 @@ export default function ServicesAdminPage() {
                         className="object-cover"
                       />
                     ) : (
-                      <span className="text-4xl">🖼️</span>
+                      <div className="w-12 h-12 text-text-secondary">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                      </div>
                     )}
                     {!project.isActive && (
                       <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
@@ -455,7 +461,13 @@ export default function ServicesAdminPage() {
                         }`}
                         title={project.isActive ? 'Hide project' : 'Show project'}
                       >
-                        {project.isActive ? '👁️' : '👁️‍🗨️'}
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          {project.isActive ? (
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          ) : (
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                          )}
+                        </svg>
                       </button>
                       <button
                         onClick={() => deleteProject(project)}
@@ -463,7 +475,7 @@ export default function ServicesAdminPage() {
                         className="px-3 py-1.5 bg-surface-elevated border border-border rounded-lg text-sm text-red-400 hover:bg-red-500/10 hover:border-red-500/50 transition-colors disabled:opacity-50"
                         title="Delete project"
                       >
-                        🗑️
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>
                     </div>
                   </div>
