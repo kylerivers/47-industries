@@ -28,15 +28,20 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
-  // Simplified nav - only essential items, related things grouped under one page
   const navItems = [
     { href: '/admin', label: 'Dashboard' },
     { href: '/admin/orders', label: 'Orders' },
     { href: '/admin/products', label: 'Products' },
-    { href: '/admin/services', label: 'Services' },  // Packages + Portfolio all here
-    { href: '/admin/inquiries', label: 'Inquiries' }, // 3D print requests + service inquiries
+    { href: '/admin/categories', label: 'Categories' },
+    { href: '/admin/services', label: 'Services' },
+    { href: '/admin/custom-requests', label: '3D Print Requests' },
+    { href: '/admin/inquiries', label: 'Service Inquiries' },
     { href: '/admin/customers', label: 'Customers' },
+    { href: '/admin/inventory', label: 'Inventory' },
+    { href: '/admin/returns', label: 'Returns' },
     { href: '/admin/email', label: 'Email' },
+    { href: '/admin/blog', label: 'Blog' },
+    { href: '/admin/users', label: 'Users' },
     { href: '/admin/settings', label: 'Settings' },
   ]
 
