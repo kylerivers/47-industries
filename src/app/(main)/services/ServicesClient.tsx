@@ -13,7 +13,7 @@ interface Package {
   priceNote: string | null
   shortDesc: string
   description: string
-  features: string[]
+  features: unknown
   isPopular: boolean
   badge: string | null
   estimatedDays: number | null

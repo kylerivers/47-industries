@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { isFeatureEnabled } from '@/lib/features'
@@ -29,18 +28,32 @@ export default async function ServicesPage() {
     }),
   ])
 
-  // Serialize Decimal fields
+  // Serialize for client component
   const serializedPackages = packages.map(pkg => ({
-    ...pkg,
+    id: pkg.id,
+    name: pkg.name,
+    slug: pkg.slug,
+    category: pkg.category,
     price: pkg.price ? Number(pkg.price) : null,
-    createdAt: pkg.createdAt.toISOString(),
-    updatedAt: pkg.updatedAt.toISOString(),
+    priceDisplay: pkg.priceDisplay,
+    priceNote: pkg.priceNote,
+    shortDesc: pkg.shortDesc,
+    description: pkg.description,
+    features: pkg.features,
+    isPopular: pkg.isPopular,
+    badge: pkg.badge,
+    estimatedDays: pkg.estimatedDays,
+    estimatedWeeks: pkg.estimatedWeeks,
   }))
 
   const serializedProjects = projects.map(project => ({
-    ...project,
-    createdAt: project.createdAt.toISOString(),
-    updatedAt: project.updatedAt.toISOString(),
+    id: project.id,
+    title: project.title,
+    slug: project.slug,
+    category: project.category,
+    clientName: project.clientName,
+    thumbnailUrl: project.thumbnailUrl,
+    isFeatured: project.isFeatured,
   }))
 
   return <ServicesClient packages={serializedPackages} projects={serializedProjects} />
