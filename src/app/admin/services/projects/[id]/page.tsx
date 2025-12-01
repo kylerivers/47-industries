@@ -147,11 +147,19 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
     const files = e.target.files
     if (!files || files.length === 0) return
 
+    // Determine the correct folder based on field type
+    const folderMap: Record<string, string> = {
+      thumbnailUrl: 'projects',
+      clientLogo: 'logos',
+      images: 'projects',
+    }
+
     setUploading(true)
     try {
       for (const file of Array.from(files)) {
         const formDataUpload = new FormData()
         formDataUpload.append('file', file)
+        formDataUpload.append('folder', folderMap[field])
 
         const res = await fetch('/api/upload', {
           method: 'POST',

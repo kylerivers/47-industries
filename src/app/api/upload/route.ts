@@ -3,11 +3,21 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { uploadToR2, generateFileKey, isR2Configured } from '@/lib/r2'
 
+// Valid folder categories for file uploads
+const VALID_FOLDERS = [
+  'products',      // Shop product images
+  'projects',      // Portfolio/service project images
+  'avatars',       // User profile pictures
+  'blog',          // Blog post images
+  'logos',         // Client logos, brand assets
+  'misc',          // Miscellaneous uploads
+] as const
+
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
 
-    if (!session || session.user.role !== 'ADMIN') {
+    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -20,10 +30,14 @@ export async function POST(req: NextRequest) {
 
     const formData = await req.formData()
     const file = formData.get('file') as File
+    const folder = (formData.get('folder') as string) || 'misc'
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 })
     }
+
+    // Validate folder
+    const uploadFolder = VALID_FOLDERS.includes(folder as any) ? folder : 'misc'
 
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
@@ -47,8 +61,8 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
-    // Generate unique key
-    const key = generateFileKey(file.name, 'products')
+    // Generate unique key with folder prefix
+    const key = generateFileKey(file.name, uploadFolder)
 
     // Upload to R2
     const url = await uploadToR2(key, buffer, file.type)
@@ -56,6 +70,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       url,
       key,
+      folder: uploadFolder,
       size: file.size,
       type: file.type,
       name: file.name,
