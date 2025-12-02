@@ -425,6 +425,7 @@ function AdminsTab() {
 
   const [formData, setFormData] = useState({
     name: '',
+    username: '',
     email: '',
     password: '',
     role: 'ADMIN' as 'ADMIN' | 'SUPER_ADMIN',
@@ -458,6 +459,7 @@ function AdminsTab() {
     setEditingUser(null)
     setFormData({
       name: '',
+      username: '',
       email: '',
       password: '',
       role: 'ADMIN',
@@ -472,6 +474,7 @@ function AdminsTab() {
     setEditingUser(user)
     setFormData({
       name: user.name || '',
+      username: user.username || '',
       email: user.email || '',
       password: '',
       role: user.role === 'SUPER_ADMIN' ? 'SUPER_ADMIN' : 'ADMIN',
@@ -495,6 +498,7 @@ function AdminsTab() {
 
       const body: any = {
         name: formData.name,
+        username: formData.username || null,
         email: formData.email,
         role: formData.role,
         permissions: formData.permissions,
@@ -801,6 +805,31 @@ function AdminsTab() {
                     fontSize: '14px',
                   }}
                 />
+              </div>
+
+              {/* Username */}
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', color: '#a1a1aa' }}>
+                  Username (for login)
+                </label>
+                <input
+                  type="text"
+                  value={formData.username}
+                  onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '') }))}
+                  placeholder="e.g., johndoe"
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '6px',
+                    border: '1px solid #3f3f46',
+                    background: '#0a0a0a',
+                    color: '#fff',
+                    fontSize: '14px',
+                  }}
+                />
+                <p style={{ fontSize: '12px', color: '#71717a', marginTop: '4px' }}>
+                  Lowercase letters and numbers only. User can log in with this or their email.
+                </p>
               </div>
 
               {/* Email */}

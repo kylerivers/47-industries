@@ -70,16 +70,24 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { name, email, password, role, permissions, emailAccess } = body
+    const { name, username, email, password, role, permissions, emailAccess } = body
 
     if (!email) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 })
     }
 
-    // Check if user already exists
-    const existing = await prisma.user.findUnique({ where: { email } })
-    if (existing) {
+    // Check if user already exists by email
+    const existingEmail = await prisma.user.findUnique({ where: { email } })
+    if (existingEmail) {
       return NextResponse.json({ error: 'User with this email already exists' }, { status: 400 })
+    }
+
+    // Check if username is taken (if provided)
+    if (username) {
+      const existingUsername = await prisma.user.findUnique({ where: { username } })
+      if (existingUsername) {
+        return NextResponse.json({ error: 'Username is already taken' }, { status: 400 })
+      }
     }
 
     // Hash password if provided
@@ -88,6 +96,7 @@ export async function POST(req: NextRequest) {
     const user = await prisma.user.create({
       data: {
         name,
+        username: username || null,
         email,
         password: hashedPassword,
         role: role || 'CUSTOMER',
