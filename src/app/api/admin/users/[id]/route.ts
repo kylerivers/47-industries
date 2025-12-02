@@ -62,12 +62,20 @@ export async function PATCH(
 
     const { id } = await params
     const body = await req.json()
-    const { name, email, password, role, permissions, emailAccess, backupEmail } = body
+    const { name, username, email, password, role, permissions, emailAccess, backupEmail } = body
 
     // Check if user exists
     const existing = await prisma.user.findUnique({ where: { id } })
     if (!existing) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
+    // Check if username is taken by another user
+    if (username && username !== existing.username) {
+      const existingUsername = await prisma.user.findUnique({ where: { username } })
+      if (existingUsername && existingUsername.id !== id) {
+        return NextResponse.json({ error: 'Username is already taken' }, { status: 400 })
+      }
     }
 
     // Don't allow non-super-admins to create super admins
@@ -78,6 +86,7 @@ export async function PATCH(
     // Build update data
     const updateData: any = {}
     if (name !== undefined) updateData.name = name
+    if (username !== undefined) updateData.username = username || null
     if (email !== undefined) updateData.email = email
     if (role !== undefined) updateData.role = role
     if (permissions !== undefined) updateData.permissions = permissions
