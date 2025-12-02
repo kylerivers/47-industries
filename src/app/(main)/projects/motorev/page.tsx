@@ -488,6 +488,11 @@ export default async function MotoRevProjectPage() {
               Start a Similar Project
             </Link>
           </div>
+
+          {/* Dedication */}
+          <p className="mt-12 text-text-muted text-sm">
+            Dedicated to the memory of Bryce Raiford. Ride safe.
+          </p>
         </div>
       </div>
     </div>

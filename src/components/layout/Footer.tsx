@@ -95,6 +95,7 @@ export default function Footer() {
 
         <div className="border-t border-border mt-8 pt-8 text-center text-sm text-text-secondary">
           <p>&copy; {currentYear} 47 Industries. All rights reserved.</p>
+          <p className="mt-2 text-text-muted text-xs">In loving memory of Bryce Raiford</p>
         </div>
       </div>
     </footer>
