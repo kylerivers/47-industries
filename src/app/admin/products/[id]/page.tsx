@@ -77,6 +77,8 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   const [creatingLinked, setCreatingLinked] = useState(false)
   const [linkedPricePercentage, setLinkedPricePercentage] = useState(25)
   const [customLinkedPrice, setCustomLinkedPrice] = useState('')
+  const [showLinkExisting, setShowLinkExisting] = useState(false)
+  const [unlinking, setUnlinking] = useState(false)
 
   const [formData, setFormData] = useState({
     name: '',
@@ -644,53 +646,110 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                     </span>
                     ${Number(product.linkedProduct.price).toFixed(2)}
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => router.push(`/admin/products/${product.linkedProduct!.id}`)}
-                    style={{
-                      padding: '8px 16px',
-                      background: '#3b82f6',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '8px',
-                      fontSize: '13px',
-                      fontWeight: 500,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    View {product.linkedProduct.productType === 'DIGITAL' ? 'Digital' : 'Physical'} Version
-                  </button>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      onClick={() => router.push(`/admin/products/${product.linkedProduct!.id}`)}
+                      style={{
+                        padding: '8px 16px',
+                        background: '#3b82f6',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontSize: '13px',
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      View {product.linkedProduct.productType === 'DIGITAL' ? 'Digital' : 'Physical'} Version
+                    </button>
+                    <button
+                      type="button"
+                      disabled={unlinking}
+                      onClick={async () => {
+                        if (!confirm('Are you sure you want to unlink these products?')) return
+                        setUnlinking(true)
+                        try {
+                          const res = await fetch(`/api/admin/products/${id}/link`, {
+                            method: 'DELETE',
+                          })
+                          if (res.ok) {
+                            fetchProduct()
+                          } else {
+                            const data = await res.json()
+                            alert(data.error || 'Failed to unlink products')
+                          }
+                        } catch (error) {
+                          console.error('Error unlinking:', error)
+                          alert('Failed to unlink products')
+                        } finally {
+                          setUnlinking(false)
+                        }
+                      }}
+                      style={{
+                        padding: '8px 16px',
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        color: '#ef4444',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontSize: '13px',
+                        fontWeight: 500,
+                        cursor: unlinking ? 'not-allowed' : 'pointer',
+                        opacity: unlinking ? 0.5 : 1,
+                      }}
+                    >
+                      {unlinking ? 'Unlinking...' : 'Unlink'}
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div>
                   <p style={{ fontSize: '13px', color: '#71717a', marginBottom: '12px' }}>
                     No {product?.productType === 'DIGITAL' ? 'physical' : 'digital'} version linked.
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      // Calculate suggested price (25% for digital)
-                      const currentPrice = parseFloat(formData.price) || 0
-                      if (product?.productType === 'PHYSICAL') {
-                        setCustomLinkedPrice((currentPrice * 0.25).toFixed(2))
-                      } else {
-                        setCustomLinkedPrice((currentPrice / 0.25).toFixed(2))
-                      }
-                      setShowCreateLinked(true)
-                    }}
-                    style={{
-                      padding: '10px 20px',
-                      background: product?.productType === 'DIGITAL' ? '#3b82f6' : '#7c3aed',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      fontWeight: 500,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    + Create {product?.productType === 'DIGITAL' ? 'Physical' : 'Digital'} Version
-                  </button>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      onClick={() => setShowLinkExisting(true)}
+                      style={{
+                        padding: '10px 20px',
+                        background: '#27272a',
+                        color: '#fff',
+                        border: '1px solid #3f3f46',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Link Existing Product
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // Calculate suggested price (25% for digital)
+                        const currentPrice = parseFloat(formData.price) || 0
+                        if (product?.productType === 'PHYSICAL') {
+                          setCustomLinkedPrice((currentPrice * 0.25).toFixed(2))
+                        } else {
+                          setCustomLinkedPrice((currentPrice / 0.25).toFixed(2))
+                        }
+                        setShowCreateLinked(true)
+                      }}
+                      style={{
+                        padding: '10px 20px',
+                        background: product?.productType === 'DIGITAL' ? '#3b82f6' : '#7c3aed',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      + Create New {product?.productType === 'DIGITAL' ? 'Physical' : 'Digital'} Version
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -1247,6 +1306,18 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           </div>
         </div>
       )}
+
+      {/* Link Existing Product Modal */}
+      {showLinkExisting && product && (
+        <LinkExistingProductModal
+          product={product}
+          onClose={() => setShowLinkExisting(false)}
+          onLinked={() => {
+            setShowLinkExisting(false)
+            fetchProduct()
+          }}
+        />
+      )}
     </div>
   )
 }
@@ -1502,6 +1573,283 @@ function AddVariantModal({
             }}
           >
             {saving ? 'Creating...' : 'Create Variant'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+interface LinkableProduct {
+  id: string
+  name: string
+  slug: string
+  price: number
+  productType: 'PHYSICAL' | 'DIGITAL'
+  sku: string | null
+  images: string[]
+}
+
+function LinkExistingProductModal({
+  product,
+  onClose,
+  onLinked
+}: {
+  product: Product
+  onClose: () => void
+  onLinked: () => void
+}) {
+  const [search, setSearch] = useState('')
+  const [products, setProducts] = useState<LinkableProduct[]>([])
+  const [loading, setLoading] = useState(true)
+  const [linking, setLinking] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState<LinkableProduct | null>(null)
+
+  useEffect(() => {
+    fetchLinkableProducts()
+  }, [])
+
+  const fetchLinkableProducts = async (searchTerm = '') => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams({
+        productType: product.productType || 'PHYSICAL',
+        ...(searchTerm && { search: searchTerm })
+      })
+      const res = await fetch(`/api/admin/products/linkable?${params}`)
+      if (res.ok) {
+        const data = await res.json()
+        setProducts(data.products || [])
+      }
+    } catch (error) {
+      console.error('Error fetching linkable products:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setSearch(value)
+    // Debounce search
+    const timeoutId = setTimeout(() => {
+      fetchLinkableProducts(value)
+    }, 300)
+    return () => clearTimeout(timeoutId)
+  }
+
+  const handleLink = async () => {
+    if (!selectedProduct) return
+    setLinking(true)
+    try {
+      const res = await fetch(`/api/admin/products/${product.id}/link`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ linkedProductId: selectedProduct.id })
+      })
+
+      if (res.ok) {
+        onLinked()
+      } else {
+        const data = await res.json()
+        alert(data.error || 'Failed to link products')
+      }
+    } catch (error) {
+      console.error('Error linking products:', error)
+      alert('Failed to link products')
+    } finally {
+      setLinking(false)
+    }
+  }
+
+  const targetType = product.productType === 'PHYSICAL' ? 'Digital' : 'Physical'
+
+  return (
+    <div style={{
+      position: 'fixed',
+      inset: 0,
+      background: 'rgba(0, 0, 0, 0.8)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 100,
+      padding: '16px'
+    }}>
+      <div style={{
+        background: '#18181b',
+        border: '1px solid #27272a',
+        borderRadius: '16px',
+        width: '100%',
+        maxWidth: '560px',
+        maxHeight: '80vh',
+        display: 'flex',
+        flexDirection: 'column',
+      }}>
+        {/* Header */}
+        <div style={{ padding: '24px', borderBottom: '1px solid #27272a' }}>
+          <h3 style={{ fontSize: '20px', fontWeight: 600, marginBottom: '8px' }}>
+            Link to {targetType} Product
+          </h3>
+          <p style={{ color: '#a1a1aa', fontSize: '14px', margin: 0 }}>
+            Select an existing {targetType.toLowerCase()} product to link with "{product.name}"
+          </p>
+        </div>
+
+        {/* Search */}
+        <div style={{ padding: '16px 24px', borderBottom: '1px solid #27272a' }}>
+          <input
+            type="text"
+            placeholder="Search by name or SKU..."
+            value={search}
+            onChange={handleSearch}
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              background: '#27272a',
+              border: '1px solid #3f3f46',
+              borderRadius: '8px',
+              color: '#fff',
+              fontSize: '14px',
+              outline: 'none',
+            }}
+          />
+        </div>
+
+        {/* Products List */}
+        <div style={{ flex: 1, overflow: 'auto', padding: '16px 24px' }}>
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#71717a' }}>
+              Loading products...
+            </div>
+          ) : products.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#71717a' }}>
+              <p style={{ marginBottom: '8px' }}>No available {targetType.toLowerCase()} products found.</p>
+              <p style={{ fontSize: '13px' }}>Products must not already be linked to another product.</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {products.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setSelectedProduct(p)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '12px',
+                    background: selectedProduct?.id === p.id ? 'rgba(59, 130, 246, 0.2)' : '#27272a',
+                    border: selectedProduct?.id === p.id ? '2px solid #3b82f6' : '1px solid #3f3f46',
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    width: '100%',
+                  }}
+                >
+                  {p.images?.[0] ? (
+                    <img
+                      src={p.images[0]}
+                      alt={p.name}
+                      style={{
+                        width: '48px',
+                        height: '48px',
+                        objectFit: 'cover',
+                        borderRadius: '6px',
+                        background: '#18181b'
+                      }}
+                    />
+                  ) : (
+                    <div style={{
+                      width: '48px',
+                      height: '48px',
+                      background: '#18181b',
+                      borderRadius: '6px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#71717a'
+                    }}>
+                      {p.productType === 'DIGITAL' ? (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                      ) : (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
+                      )}
+                    </div>
+                  )}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '14px', fontWeight: 500, marginBottom: '2px', color: '#fff' }}>
+                      {p.name}
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#71717a' }}>
+                      {p.sku && <span style={{ marginRight: '8px' }}>SKU: {p.sku}</span>}
+                      <span style={{ color: '#10b981', fontWeight: 500 }}>${Number(p.price).toFixed(2)}</span>
+                    </div>
+                  </div>
+                  {selectedProduct?.id === p.id && (
+                    <div style={{
+                      width: '24px',
+                      height: '24px',
+                      borderRadius: '50%',
+                      background: '#3b82f6',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
+                        <path d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div style={{
+          padding: '16px 24px',
+          borderTop: '1px solid #27272a',
+          display: 'flex',
+          gap: '12px'
+        }}>
+          <button
+            onClick={onClose}
+            disabled={linking}
+            style={{
+              flex: 1,
+              padding: '12px',
+              background: '#27272a',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '14px',
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleLink}
+            disabled={linking || !selectedProduct}
+            style={{
+              flex: 1,
+              padding: '12px',
+              background: product.productType === 'PHYSICAL' ? '#7c3aed' : '#3b82f6',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: linking || !selectedProduct ? 'not-allowed' : 'pointer',
+              fontSize: '14px',
+              fontWeight: 500,
+              opacity: linking || !selectedProduct ? 0.5 : 1,
+            }}
+          >
+            {linking ? 'Linking...' : 'Link Products'}
           </button>
         </div>
       </div>
