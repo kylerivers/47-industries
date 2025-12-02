@@ -9,20 +9,24 @@ const prisma = new PrismaClient({
 });
 
 async function main() {
-  // List all media
-  console.log('=== MEDIA FILES ===');
-  const media = await prisma.media.findMany({
-    take: 50,
-    orderBy: { createdAt: 'desc' }
+  // List all categories
+  console.log('=== CATEGORIES ===');
+  const categories = await prisma.category.findMany({
+    include: {
+      _count: { select: { products: true } },
+      parent: true
+    },
+    orderBy: { name: 'asc' }
   });
-  media.forEach(m => console.log(`${m.name}: ${m.url}`));
+  categories.forEach(c => console.log(`ID: ${c.id} | Name: ${c.name} | Slug: ${c.slug} | Products: ${c._count.products} | Parent: ${c.parent?.name || 'None'}`));
 
-  // List all service projects
-  console.log('\n=== SERVICE PROJECTS ===');
-  const projects = await prisma.serviceProject.findMany({
-    orderBy: { sortOrder: 'asc' }
+  // List all products with their categories
+  console.log('\n=== PRODUCTS ===');
+  const products = await prisma.product.findMany({
+    include: { category: true },
+    orderBy: { name: 'asc' }
   });
-  projects.forEach(p => console.log(`${p.title} | thumbnail: ${p.thumbnailUrl} | images: ${JSON.stringify(p.images)}`));
+  products.forEach(p => console.log(`ID: ${p.id} | Name: ${p.name} | Category: ${p.category.name} | CategoryID: ${p.categoryId}`));
 }
 
 main()
