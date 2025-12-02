@@ -2,7 +2,7 @@
 
 import { ReactNode, useState, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import NotificationBell from '@/components/admin/NotificationBell'
 
@@ -14,10 +14,81 @@ interface NavItem {
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname()
-  const { data: session } = useSession()
+  const router = useRouter()
+  const { data: session, status } = useSession()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [expandedItems, setExpandedItems] = useState<string[]>([])
+
+  // SECURITY: Redirect to login if not authenticated or not an admin
+  useEffect(() => {
+    // Skip check for login page
+    if (pathname === '/admin/login') return
+
+    // Wait for session to load
+    if (status === 'loading') return
+
+    // If not authenticated, redirect to login
+    if (status === 'unauthenticated' || !session) {
+      router.replace('/admin/login')
+      return
+    }
+
+    // If authenticated but not an admin, redirect to login
+    if (session?.user?.role !== 'ADMIN' && session?.user?.role !== 'SUPER_ADMIN') {
+      router.replace('/admin/login')
+      return
+    }
+  }, [session, status, pathname, router])
+
+  // SECURITY: Don't render anything until we verify authentication
+  // This prevents any flash of admin content for unauthenticated users
+  if (pathname !== '/admin/login') {
+    if (status === 'loading') {
+      return (
+        <div style={{
+          minHeight: '100vh',
+          background: '#000000',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: '#ffffff'
+        }}>
+          <div>Loading...</div>
+        </div>
+      )
+    }
+
+    if (status === 'unauthenticated' || !session) {
+      return (
+        <div style={{
+          minHeight: '100vh',
+          background: '#000000',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: '#ffffff'
+        }}>
+          <div>Redirecting to login...</div>
+        </div>
+      )
+    }
+
+    if (session?.user?.role !== 'ADMIN' && session?.user?.role !== 'SUPER_ADMIN') {
+      return (
+        <div style={{
+          minHeight: '100vh',
+          background: '#000000',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: '#ffffff'
+        }}>
+          <div>Access denied. Redirecting...</div>
+        </div>
+      )
+    }
+  }
 
   // Check if a path is active (exact match or starts with for nested routes)
   const isActive = (path: string) => pathname === path
@@ -406,20 +477,20 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               gap: isMobile ? '8px' : '16px',
               flexShrink: 0
             }}>
-              {!isMobile && (
+              {!isMobile && session?.user && (
                 <div style={{ textAlign: 'right' }}>
                   <p style={{
                     fontSize: '14px',
                     fontWeight: 500,
                     margin: 0,
                     whiteSpace: 'nowrap'
-                  }}>{session?.user?.name || 'Admin User'}</p>
+                  }}>{session.user.name}</p>
                   <p style={{
                     fontSize: '12px',
                     color: '#71717a',
                     margin: 0,
                     whiteSpace: 'nowrap'
-                  }}>{session?.user?.email || 'admin@47industries.com'}</p>
+                  }}>{session.user.email}</p>
                 </div>
               )}
               <button

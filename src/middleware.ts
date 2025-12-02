@@ -16,26 +16,27 @@ export async function middleware(request: NextRequest) {
     // Only rewrite if not already on an /admin path
     if (!url.pathname.startsWith('/admin')) {
       url.pathname = '/admin' + url.pathname
-
-      // Check authentication for admin routes (except login page)
-      if (!url.pathname.startsWith('/admin/login')) {
-        const token = await getToken({
-          req: request,
-          secret: process.env.NEXTAUTH_SECRET
-        })
-
-        if (!token || token.role !== 'ADMIN') {
-          // Redirect to login on the subdomain
-          const loginUrl = new URL('/login', request.url)
-          loginUrl.searchParams.set('callbackUrl', request.url)
-          return NextResponse.redirect(loginUrl)
-        }
-      }
-
-      const response = NextResponse.rewrite(url)
-      response.headers.set('x-pathname', url.pathname)
-      return response
     }
+
+    // SECURITY: Check authentication for ALL admin routes except login page
+    if (!url.pathname.startsWith('/admin/login')) {
+      const token = await getToken({
+        req: request,
+        secret: process.env.NEXTAUTH_SECRET
+      })
+
+      // Must have a valid token AND be an admin
+      if (!token || (token.role !== 'ADMIN' && token.role !== 'SUPER_ADMIN')) {
+        // Redirect to login on the subdomain
+        const loginUrl = new URL('/login', request.url)
+        loginUrl.searchParams.set('callbackUrl', request.url)
+        return NextResponse.redirect(loginUrl)
+      }
+    }
+
+    const response = NextResponse.rewrite(url)
+    response.headers.set('x-pathname', url.pathname)
+    return response
   }
 
   // Block direct access to /admin routes on main domain - return 404
@@ -45,14 +46,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.rewrite(new URL('/not-found', request.url))
   }
 
-  // Check authentication for admin routes (except login page) - only for localhost dev
+  // SECURITY: Check authentication for admin routes on localhost (development)
   if (url.pathname.startsWith('/admin') && !url.pathname.startsWith('/admin/login') && hostname.startsWith('localhost')) {
     const token = await getToken({
       req: request,
       secret: process.env.NEXTAUTH_SECRET
     })
 
-    if (!token || token.role !== 'ADMIN') {
+    // Must have a valid token AND be an admin
+    if (!token || (token.role !== 'ADMIN' && token.role !== 'SUPER_ADMIN')) {
       const loginUrl = new URL('/admin/login', request.url)
       loginUrl.searchParams.set('callbackUrl', request.url)
       return NextResponse.redirect(loginUrl)
