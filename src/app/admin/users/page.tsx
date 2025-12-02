@@ -440,7 +440,8 @@ function AdminsTab() {
     setLoading(true)
     try {
       const params = new URLSearchParams()
-      params.set('role', 'ADMIN') // Only fetch admins
+      // Fetch both ADMIN and SUPER_ADMIN roles
+      params.set('adminRoles', 'true')
       if (search) params.set('search', search)
 
       const res = await fetch(`/api/admin/users?${params}`)

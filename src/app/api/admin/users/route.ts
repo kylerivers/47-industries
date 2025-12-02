@@ -14,11 +14,15 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url)
     const role = searchParams.get('role') // CUSTOMER, ADMIN, SUPER_ADMIN, or null for all
+    const adminRoles = searchParams.get('adminRoles') // If true, fetch both ADMIN and SUPER_ADMIN
     const search = searchParams.get('search')
 
     const where: any = {}
 
-    if (role) {
+    if (adminRoles === 'true') {
+      // Fetch both ADMIN and SUPER_ADMIN
+      where.role = { in: ['ADMIN', 'SUPER_ADMIN'] }
+    } else if (role) {
       where.role = role
     }
 
