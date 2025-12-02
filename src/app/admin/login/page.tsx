@@ -10,9 +10,12 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
 
+  // Prevent hydration mismatch by only checking mobile after mount
   useEffect(() => {
+    setMounted(true)
     const checkMobile = () => setIsMobile(window.innerWidth < 768)
     checkMobile()
     window.addEventListener('resize', checkMobile)
@@ -54,6 +57,9 @@ export default function AdminLoginPage() {
     }
   }
 
+  // Use consistent values for SSR/client to prevent hydration mismatch
+  const mobileStyles = mounted && isMobile
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -72,10 +78,10 @@ export default function AdminLoginPage() {
         {/* Logo/Title */}
         <div style={{
           textAlign: 'center',
-          marginBottom: isMobile ? '32px' : '48px'
+          marginBottom: mobileStyles ? '32px' : '48px'
         }}>
           <h1 style={{
-            fontSize: isMobile ? '28px' : '36px',
+            fontSize: mobileStyles ? '28px' : '36px',
             fontWeight: 700,
             marginBottom: '8px',
             margin: 0
@@ -93,7 +99,7 @@ export default function AdminLoginPage() {
             background: '#18181b',
             border: '1px solid #27272a',
             borderRadius: '16px',
-            padding: isMobile ? '24px' : '32px'
+            padding: mobileStyles ? '24px' : '32px'
           }}>
             {error && (
               <div style={{
@@ -124,6 +130,7 @@ export default function AdminLoginPage() {
                 value={usernameOrEmail}
                 onChange={(e) => setUsernameOrEmail(e.target.value)}
                 required
+                autoComplete="username"
                 style={{
                   width: '100%',
                   padding: '12px',
@@ -154,6 +161,7 @@ export default function AdminLoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                autoComplete="current-password"
                 style={{
                   width: '100%',
                   padding: '12px',
