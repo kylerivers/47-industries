@@ -42,7 +42,26 @@ export async function GET(
       )
     }
 
-    return NextResponse.json({ product })
+    // Fetch linked product if exists
+    let linkedProduct = null
+    if (product.linkedProductId) {
+      linkedProduct = await prisma.product.findUnique({
+        where: {
+          id: product.linkedProductId,
+          active: true,
+        },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          price: true,
+          productType: true,
+          images: true,
+        },
+      })
+    }
+
+    return NextResponse.json({ product: { ...product, linkedProduct } })
   } catch (error) {
     console.error('Error fetching product:', error)
     return NextResponse.json(

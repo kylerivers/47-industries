@@ -11,7 +11,7 @@ export async function GET(
   try {
     const session = await getServerSession(authOptions)
 
-    if (!session || session.user.role !== 'ADMIN') {
+    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -24,8 +24,10 @@ export async function GET(
             id: true,
             name: true,
             slug: true,
+            productType: true,
           },
         },
+        variants: true,
       },
     })
 
@@ -33,7 +35,25 @@ export async function GET(
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
 
-    return NextResponse.json(product)
+    // If product has a linked product, fetch its basic info
+    let linkedProduct = null
+    if (product.linkedProductId) {
+      linkedProduct = await prisma.product.findUnique({
+        where: { id: product.linkedProductId },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          price: true,
+          productType: true,
+        },
+      })
+    }
+
+    return NextResponse.json({
+      ...product,
+      linkedProduct,
+    })
   } catch (error) {
     console.error('Error fetching product:', error)
     return NextResponse.json(
@@ -51,7 +71,7 @@ export async function PUT(
   try {
     const session = await getServerSession(authOptions)
 
-    if (!session || session.user.role !== 'ADMIN') {
+    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -144,7 +164,7 @@ export async function DELETE(
   try {
     const session = await getServerSession(authOptions)
 
-    if (!session || session.user.role !== 'ADMIN') {
+    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

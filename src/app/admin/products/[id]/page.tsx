@@ -48,6 +48,15 @@ interface Product {
   layerHeight: number | null
   infill: number | null
   variants?: ProductVariant[]
+  productType?: 'PHYSICAL' | 'DIGITAL'
+  linkedProductId?: string | null
+  linkedProduct?: {
+    id: string
+    name: string
+    slug: string
+    price: number
+    productType: 'PHYSICAL' | 'DIGITAL'
+  } | null
 }
 
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
@@ -64,6 +73,10 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   const [optionTypes, setOptionTypes] = useState<OptionType[]>([])
   const [showAddVariant, setShowAddVariant] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showCreateLinked, setShowCreateLinked] = useState(false)
+  const [creatingLinked, setCreatingLinked] = useState(false)
+  const [linkedPricePercentage, setLinkedPricePercentage] = useState(25)
+  const [customLinkedPrice, setCustomLinkedPrice] = useState('')
 
   const [formData, setFormData] = useState({
     name: '',
@@ -579,6 +592,109 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
               </div>
             </div>
 
+            {/* Linked Product (Physical/Digital) */}
+            <div style={{
+              background: '#18181b',
+              border: '1px solid #27272a',
+              borderRadius: '16px',
+              padding: isMobile ? '20px' : '24px',
+            }}>
+              <h2 style={{
+                fontSize: '18px',
+                fontWeight: 600,
+                marginBottom: '16px',
+                margin: 0,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}>
+                <span style={{
+                  padding: '2px 8px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  borderRadius: '4px',
+                  background: product?.productType === 'DIGITAL' ? '#7c3aed' : '#3b82f6',
+                  color: '#fff',
+                }}>
+                  {product?.productType || 'PHYSICAL'}
+                </span>
+                Linked Product
+              </h2>
+
+              {product?.linkedProduct ? (
+                <div style={{
+                  background: '#27272a',
+                  borderRadius: '12px',
+                  padding: '16px',
+                }}>
+                  <div style={{ fontSize: '14px', fontWeight: 500, marginBottom: '4px' }}>
+                    {product.linkedProduct.name}
+                  </div>
+                  <div style={{ fontSize: '13px', color: '#a1a1aa', marginBottom: '12px' }}>
+                    <span style={{
+                      padding: '2px 6px',
+                      fontSize: '10px',
+                      fontWeight: 600,
+                      borderRadius: '4px',
+                      background: product.linkedProduct.productType === 'DIGITAL' ? '#7c3aed' : '#3b82f6',
+                      color: '#fff',
+                      marginRight: '8px',
+                    }}>
+                      {product.linkedProduct.productType}
+                    </span>
+                    ${Number(product.linkedProduct.price).toFixed(2)}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/admin/products/${product.linkedProduct!.id}`)}
+                    style={{
+                      padding: '8px 16px',
+                      background: '#3b82f6',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '13px',
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    View {product.linkedProduct.productType === 'DIGITAL' ? 'Digital' : 'Physical'} Version
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <p style={{ fontSize: '13px', color: '#71717a', marginBottom: '12px' }}>
+                    No {product?.productType === 'DIGITAL' ? 'physical' : 'digital'} version linked.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Calculate suggested price (25% for digital)
+                      const currentPrice = parseFloat(formData.price) || 0
+                      if (product?.productType === 'PHYSICAL') {
+                        setCustomLinkedPrice((currentPrice * 0.25).toFixed(2))
+                      } else {
+                        setCustomLinkedPrice((currentPrice / 0.25).toFixed(2))
+                      }
+                      setShowCreateLinked(true)
+                    }}
+                    style={{
+                      padding: '10px 20px',
+                      background: product?.productType === 'DIGITAL' ? '#3b82f6' : '#7c3aed',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    + Create {product?.productType === 'DIGITAL' ? 'Physical' : 'Digital'} Version
+                  </button>
+                </div>
+              )}
+            </div>
+
             {/* Organization */}
             <div style={{
               background: '#18181b',
@@ -977,6 +1093,159 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
             setShowAddVariant(false)
           }}
         />
+      )}
+
+      {/* Create Linked Product Modal */}
+      {showCreateLinked && product && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0, 0, 0, 0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 100,
+          padding: '16px'
+        }}>
+          <div style={{
+            background: '#18181b',
+            border: '1px solid #27272a',
+            borderRadius: '16px',
+            padding: '24px',
+            width: '100%',
+            maxWidth: '480px',
+          }}>
+            <h3 style={{ fontSize: '20px', fontWeight: 600, marginBottom: '8px' }}>
+              Create {product.productType === 'PHYSICAL' ? 'Digital' : 'Physical'} Version
+            </h3>
+            <p style={{ color: '#a1a1aa', fontSize: '14px', marginBottom: '24px' }}>
+              This will create a new {product.productType === 'PHYSICAL' ? 'digital download' : 'physical'} version of "{product.name}" and link them together.
+            </p>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '8px', color: '#a1a1aa' }}>
+                {product.productType === 'PHYSICAL' ? 'Digital' : 'Physical'} Price
+              </label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ position: 'relative', flex: 1 }}>
+                  <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#71717a' }}>$</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={customLinkedPrice}
+                    onChange={(e) => setCustomLinkedPrice(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '12px 12px 12px 28px',
+                      background: '#27272a',
+                      border: '1px solid #3f3f46',
+                      borderRadius: '8px',
+                      color: '#fff',
+                      fontSize: '16px',
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+              </div>
+              <p style={{ fontSize: '12px', color: '#71717a', marginTop: '8px' }}>
+                {product.productType === 'PHYSICAL'
+                  ? `Suggested: $${(parseFloat(formData.price) * 0.25).toFixed(2)} (25% of physical price)`
+                  : `Suggested: $${(parseFloat(formData.price) / 0.25).toFixed(2)} (4x digital price)`
+                }
+              </p>
+            </div>
+
+            <div style={{
+              background: '#27272a',
+              borderRadius: '8px',
+              padding: '16px',
+              marginBottom: '24px',
+            }}>
+              <div style={{ fontSize: '13px', color: '#a1a1aa', marginBottom: '8px' }}>Preview</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontSize: '14px', fontWeight: 500 }}>
+                    {product.productType === 'PHYSICAL'
+                      ? `${product.name} STL File`
+                      : product.name.replace(' STL File', '').replace(' - STL', '')
+                    }
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#71717a' }}>
+                    {product.productType === 'PHYSICAL' ? 'Digital Download' : 'Physical Product'}
+                  </div>
+                </div>
+                <div style={{ fontSize: '18px', fontWeight: 600 }}>
+                  ${parseFloat(customLinkedPrice || '0').toFixed(2)}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                onClick={() => setShowCreateLinked(false)}
+                disabled={creatingLinked}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  background: '#27272a',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  setCreatingLinked(true)
+                  try {
+                    const res = await fetch(`/api/admin/products/${id}/convert`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        targetType: product.productType === 'PHYSICAL' ? 'DIGITAL' : 'PHYSICAL',
+                        customPrice: parseFloat(customLinkedPrice),
+                      }),
+                    })
+
+                    const data = await res.json()
+
+                    if (res.ok) {
+                      // Navigate to the new product to let them review/edit it
+                      router.push(`/admin/products/${data.product.id}`)
+                    } else {
+                      alert(data.error || 'Failed to create linked product')
+                    }
+                  } catch (error) {
+                    console.error('Error creating linked product:', error)
+                    alert('Failed to create linked product')
+                  } finally {
+                    setCreatingLinked(false)
+                    setShowCreateLinked(false)
+                  }
+                }}
+                disabled={creatingLinked || !customLinkedPrice}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  background: product.productType === 'PHYSICAL' ? '#7c3aed' : '#3b82f6',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: creatingLinked ? 'not-allowed' : 'pointer',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  opacity: creatingLinked || !customLinkedPrice ? 0.5 : 1,
+                }}
+              >
+                {creatingLinked ? 'Creating...' : 'Create & Edit'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

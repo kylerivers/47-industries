@@ -154,6 +154,9 @@ model Product {
   // Product Type
   productType   ProductType  @default(PHYSICAL)
 
+  // Link to alternate version (physical <-> digital)
+  linkedProductId  String?   // ID of the physical or digital counterpart
+
   // Physical Product Fields
   weight        Decimal?     @db.Decimal(10, 2)
   dimensions    String?

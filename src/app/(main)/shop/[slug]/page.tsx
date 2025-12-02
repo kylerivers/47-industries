@@ -6,6 +6,15 @@ import Image from 'next/image'
 import { useParams, notFound } from 'next/navigation'
 import { useCart } from '@/lib/cart-store'
 
+interface LinkedProduct {
+  id: string
+  name: string
+  slug: string
+  price: string
+  productType: 'PHYSICAL' | 'DIGITAL'
+  images: string[]
+}
+
 interface Product {
   id: string
   name: string
@@ -28,6 +37,7 @@ interface Product {
     name: string
     slug: string
   }
+  linkedProduct?: LinkedProduct | null
 }
 
 export default function ProductDetailPage() {
@@ -293,6 +303,59 @@ export default function ProductDetailPage() {
                       ? 'Add to Cart - Instant Download'
                       : 'Add to Cart'}
                 </button>
+              </div>
+            )}
+
+            {/* Linked Product Option */}
+            {product.linkedProduct && (
+              <div className="mb-8 p-4 bg-surface rounded-xl border border-border">
+                <div className="flex items-center gap-4">
+                  {product.linkedProduct.images?.[0] && (
+                    <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-surface-elevated">
+                      <Image
+                        src={product.linkedProduct.images[0]}
+                        alt={product.linkedProduct.name}
+                        width={64}
+                        height={64}
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      {product.linkedProduct.productType === 'DIGITAL' ? (
+                        <svg className="w-4 h-4 text-violet-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                      ) : (
+                        <svg className="w-4 h-4 text-accent flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
+                      )}
+                      <span className="text-sm text-text-secondary">
+                        {product.linkedProduct.productType === 'DIGITAL'
+                          ? 'Also available as digital download'
+                          : 'Also available as physical product'}
+                      </span>
+                    </div>
+                    <div className="text-sm font-medium truncate">
+                      {product.linkedProduct.name}
+                    </div>
+                    <div className="text-lg font-bold mt-1">
+                      ${Number(product.linkedProduct.price).toFixed(2)}
+                    </div>
+                  </div>
+                  <Link
+                    href={`/shop/${product.linkedProduct.slug}`}
+                    className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors flex-shrink-0 ${
+                      product.linkedProduct.productType === 'DIGITAL'
+                        ? 'bg-violet-500 text-white hover:bg-violet-600'
+                        : 'bg-accent text-white hover:bg-accent/90'
+                    }`}
+                  >
+                    View
+                  </Link>
+                </div>
               </div>
             )}
 
