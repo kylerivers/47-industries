@@ -118,54 +118,57 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     })
   }, [pathname])
 
+  // Login page gets NO admin layout - just render children directly
+  if (pathname === '/admin/login') {
+    return <>{children}</>
+  }
+
   // SECURITY: Don't render anything until we verify authentication
   // This prevents any flash of admin content for unauthenticated users
-  if (pathname !== '/admin/login') {
-    // Wait for client-side mount to prevent hydration issues
-    if (!mounted || status === 'loading') {
-      return (
-        <div style={{
-          minHeight: '100vh',
-          background: '#000000',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#ffffff'
-        }}>
-          <div>Loading...</div>
-        </div>
-      )
-    }
+  // Wait for client-side mount to prevent hydration issues
+  if (!mounted || status === 'loading') {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: '#000000',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#ffffff'
+      }}>
+        <div>Loading...</div>
+      </div>
+    )
+  }
 
-    if (status === 'unauthenticated' || !session) {
-      return (
-        <div style={{
-          minHeight: '100vh',
-          background: '#000000',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#ffffff'
-        }}>
-          <div>Redirecting to login...</div>
-        </div>
-      )
-    }
+  if (status === 'unauthenticated' || !session) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: '#000000',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#ffffff'
+      }}>
+        <div>Redirecting to login...</div>
+      </div>
+    )
+  }
 
-    if (session?.user?.role !== 'ADMIN' && session?.user?.role !== 'SUPER_ADMIN') {
-      return (
-        <div style={{
-          minHeight: '100vh',
-          background: '#000000',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#ffffff'
-        }}>
-          <div>Access denied. Redirecting...</div>
-        </div>
-      )
-    }
+  if (session?.user?.role !== 'ADMIN' && session?.user?.role !== 'SUPER_ADMIN') {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: '#000000',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#ffffff'
+      }}>
+        <div>Access denied. Redirecting...</div>
+      </div>
+    )
   }
 
   const toggleExpanded = (href: string) => {
