@@ -16,6 +16,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const { data: session, status } = useSession()
+  const [mounted, setMounted] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [expandedItems, setExpandedItems] = useState<string[]>([])
@@ -90,8 +91,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     }
   }, [session, status, pathname, router])
 
-  // Detect mobile screen size
+  // Detect mobile screen size and set mounted
   useEffect(() => {
+    setMounted(true)
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024)
       if (window.innerWidth >= 1024) {
@@ -119,7 +121,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   // SECURITY: Don't render anything until we verify authentication
   // This prevents any flash of admin content for unauthenticated users
   if (pathname !== '/admin/login') {
-    if (status === 'loading') {
+    // Wait for client-side mount to prevent hydration issues
+    if (!mounted || status === 'loading') {
       return (
         <div style={{
           minHeight: '100vh',
@@ -179,6 +182,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     }
   }
 
+  // Use consistent values for SSR to prevent hydration mismatch
+  // Only apply mobile styles after component has mounted on client
+  const showMobile = mounted && isMobile
+
   return (
     <>
       <head>
@@ -194,7 +201,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         padding: 0
       }}>
       {/* Mobile Overlay */}
-      {isMobile && isMobileMenuOpen && (
+      {showMobile && isMobileMenuOpen && (
         <div
           onClick={() => setIsMobileMenuOpen(false)}
           style={{
@@ -210,7 +217,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       {/* Sidebar */}
       <aside style={{
         position: 'fixed',
-        left: isMobile && !isMobileMenuOpen ? '-256px' : 0,
+        left: showMobile && !isMobileMenuOpen ? '-256px' : 0,
         top: 0,
         width: '256px',
         height: '100vh',
@@ -261,7 +268,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               }}>Industries Dashboard</div>
             </div>
           </Link>
-          {isMobile && (
+          {showMobile && (
             <button
               onClick={() => setIsMobileMenuOpen(false)}
               style={{
@@ -411,7 +418,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
       {/* Main Content */}
       <div style={{
-        marginLeft: isMobile ? 0 : '256px',
+        marginLeft: showMobile ? 0 : '256px',
         transition: 'margin-left 0.3s ease-in-out',
         minHeight: '100vh',
         display: 'flex',
@@ -427,14 +434,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           borderBottom: '1px solid #27272a'
         }}>
           <div style={{
-            padding: isMobile ? '12px 16px' : '16px 32px',
+            padding: showMobile ? '12px 16px' : '16px 32px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             gap: '16px'
           }}>
             {/* Hamburger Menu Button (Mobile Only) */}
-            {isMobile && (
+            {showMobile && (
               <button
                 onClick={() => setIsMobileMenuOpen(true)}
                 style={{
@@ -455,14 +462,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
             <div style={{ flex: 1, minWidth: 0 }}>
               <h1 style={{
-                fontSize: isMobile ? '18px' : '24px',
+                fontSize: showMobile ? '18px' : '24px',
                 fontWeight: 700,
                 margin: 0,
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis'
               }}>Admin Panel</h1>
-              {!isMobile && (
+              {!showMobile && (
                 <p style={{
                   fontSize: '14px',
                   color: '#71717a',
@@ -475,10 +482,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              gap: isMobile ? '8px' : '16px',
+              gap: showMobile ? '8px' : '16px',
               flexShrink: 0
             }}>
-              {!isMobile && session?.user && (
+              {!showMobile && session?.user && (
                 <div style={{ textAlign: 'right' }}>
                   <p style={{
                     fontSize: '14px',
@@ -500,7 +507,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                   signOut({ callbackUrl: '/admin/login' })
                 }}
                 style={{
-                  padding: isMobile ? '8px 16px' : '10px 24px',
+                  padding: showMobile ? '8px 16px' : '10px 24px',
                   fontSize: '14px',
                   fontWeight: 500,
                   background: '#18181b',
@@ -511,14 +518,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                   transition: 'all 0.2s',
                   whiteSpace: 'nowrap'
                 }}
-              >{isMobile ? '↗' : 'Logout'}</button>
+              >{showMobile ? '↗' : 'Logout'}</button>
             </div>
           </div>
         </header>
 
         {/* Page Content */}
         <main style={{
-          padding: isMobile ? '16px' : '32px',
+          padding: showMobile ? '16px' : '32px',
           flex: 1,
           overflow: 'auto'
         }}>

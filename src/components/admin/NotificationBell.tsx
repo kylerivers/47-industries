@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useSession } from 'next-auth/react'
 
 interface Notification {
   id: string
@@ -39,18 +40,28 @@ const TYPE_LABELS: Record<string, string> = {
 }
 
 export default function NotificationBell() {
+  const { data: session, status } = useSession()
   const [isOpen, setIsOpen] = useState(false)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
 
+  // Only fetch notifications when authenticated
   useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    // Only fetch if authenticated
+    if (status !== 'authenticated' || !session) return
+
     fetchNotifications()
     // Poll for new notifications every 30 seconds
     const interval = setInterval(fetchNotifications, 30000)
     return () => clearInterval(interval)
-  }, [])
+  }, [status, session])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -122,6 +133,11 @@ export default function NotificationBell() {
     if (notification.link) {
       window.location.href = notification.link
     }
+  }
+
+  // Don't render until mounted and authenticated to prevent hydration issues
+  if (!mounted || status !== 'authenticated') {
+    return null
   }
 
   return (
