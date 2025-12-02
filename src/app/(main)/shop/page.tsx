@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { isFeatureEnabled } from '@/lib/features'
+import ShopClient from './ShopClient'
 
 interface SearchParams {
   category?: string
@@ -11,9 +12,11 @@ interface SearchParams {
   type?: 'physical' | 'digital'
 }
 
+const PRODUCTS_PER_PAGE = 20
+
 async function getProducts(searchParams: SearchParams) {
   const page = parseInt(searchParams.page || '1')
-  const limit = 12
+  const limit = PRODUCTS_PER_PAGE
   const skip = (page - 1) * limit
   const productType = searchParams.type === 'digital' ? 'DIGITAL' : 'PHYSICAL'
 
@@ -264,131 +267,19 @@ export default async function ShopPage({
             )}
           </div>
         ) : (
-          <>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {products.map((product) => {
-                const images = product.images as string[]
-                const primaryImage = images?.[0] || null
-
-                return (
-                  <Link
-                    key={product.id}
-                    href={`/shop/${product.slug}`}
-                    className="group border border-border rounded-2xl overflow-hidden hover:border-text-primary transition-all"
-                  >
-                    <div className="aspect-square bg-surface relative flex items-center justify-center overflow-hidden">
-                      {primaryImage ? (
-                        <Image
-                          src={primaryImage}
-                          alt={product.name}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      ) : (
-                        <div className="text-text-secondary text-sm">No Image</div>
-                      )}
-
-                      {/* Badges */}
-                      <div className="absolute top-4 left-4 flex flex-col gap-2">
-                        {product.featured && (
-                          <div className="px-3 py-1 bg-accent text-white text-xs font-medium rounded-full">
-                            Featured
-                          </div>
-                        )}
-                        {isDigital && (
-                          <div className="px-3 py-1 bg-violet-500 text-white text-xs font-medium rounded-full flex items-center gap-1">
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
-                            Digital
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Out of stock - only for physical products */}
-                      {!isDigital && product.stock === 0 && (
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                          <span className="px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-lg">
-                            Out of Stock
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="p-6">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xs text-text-secondary">
-                          {product.category.name}
-                        </span>
-                        {isDigital && (product as any).digitalFileName && (
-                          <span className="text-xs text-violet-400">
-                            {getFileExtension((product as any).digitalFileName)}
-                          </span>
-                        )}
-                      </div>
-                      <h3 className="text-xl font-semibold mb-2 group-hover:text-accent transition-colors">
-                        {product.name}
-                      </h3>
-                      {product.shortDesc && (
-                        <p className="text-text-secondary text-sm mb-4 line-clamp-2">
-                          {product.shortDesc}
-                        </p>
-                      )}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="text-2xl font-bold">
-                            ${Number(product.price).toFixed(2)}
-                          </span>
-                          {product.comparePrice && Number(product.comparePrice) > Number(product.price) && (
-                            <span className="text-lg text-text-secondary line-through">
-                              ${Number(product.comparePrice).toFixed(2)}
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-sm text-text-secondary group-hover:text-text-primary transition-colors">
-                          {isDigital ? 'Download →' : 'View details →'}
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                )
-              })}
-            </div>
-
-            {/* Pagination */}
-            {pagination.totalPages > 1 && (
-              <div className="flex justify-center gap-2 mt-12">
-                {pagination.page > 1 && (
-                  <Link
-                    href={`/shop?${new URLSearchParams({
-                      type: isDigital ? 'digital' : 'physical',
-                      ...(activeCategory ? { category: activeCategory } : {}),
-                      ...(params.search ? { search: params.search } : {}),
-                      page: String(pagination.page - 1),
-                    }).toString()}`}
-                    className="px-4 py-2 border border-border rounded-lg hover:bg-surface transition-colors"
-                  >
-                    Previous
-                  </Link>
-                )}
-                <span className="px-4 py-2 text-text-secondary">
-                  Page {pagination.page} of {pagination.totalPages}
-                </span>
-                {pagination.page < pagination.totalPages && (
-                  <Link
-                    href={`/shop?${new URLSearchParams({
-                      type: isDigital ? 'digital' : 'physical',
-                      ...(activeCategory ? { category: activeCategory } : {}),
-                      ...(params.search ? { search: params.search } : {}),
-                      page: String(pagination.page + 1),
-                    }).toString()}`}
-                    className="px-4 py-2 border border-border rounded-lg hover:bg-surface transition-colors"
-                  >
-                    Next
-                  </Link>
-                )}
-              </div>
-            )}
-          </>
+          <ShopClient
+            initialProducts={products.map(p => ({
+              ...p,
+              price: Number(p.price),
+              comparePrice: p.comparePrice ? Number(p.comparePrice) : null,
+              images: p.images as string[],
+              category: p.category,
+            }))}
+            pagination={pagination}
+            isDigital={isDigital}
+            activeCategory={activeCategory}
+            searchQuery={params.search || null}
+          />
         )}
 
         {/* CTA Section */}
@@ -443,11 +334,6 @@ export default async function ShopPage({
       </div>
     </div>
   )
-}
-
-function getFileExtension(filename: string): string {
-  const ext = filename.split('.').pop()?.toUpperCase()
-  return ext ? `.${ext}` : ''
 }
 
 export const metadata = {
