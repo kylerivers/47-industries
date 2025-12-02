@@ -21,6 +21,7 @@ interface Product {
     name: string
   }
   sku?: string
+  productType: 'PHYSICAL' | 'DIGITAL'
 }
 
 interface Category {
@@ -157,6 +158,7 @@ export default function AdminProductsPage() {
 function ProductsTab({ isMobile }: { isMobile: boolean }) {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
+  const [productTypeFilter, setProductTypeFilter] = useState<'PHYSICAL' | 'DIGITAL'>('PHYSICAL')
 
   useEffect(() => {
     fetchProducts()
@@ -215,6 +217,11 @@ function ProductsTab({ isMobile }: { isMobile: boolean }) {
     }
   }
 
+  // Filter products by type
+  const filteredProducts = products.filter(p => p.productType === productTypeFilter)
+  const physicalCount = products.filter(p => p.productType === 'PHYSICAL').length
+  const digitalCount = products.filter(p => p.productType === 'DIGITAL').length
+
   if (loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '400px' }}>
@@ -225,6 +232,80 @@ function ProductsTab({ isMobile }: { isMobile: boolean }) {
 
   return (
     <div>
+      {/* Product Type Tabs */}
+      <div style={{
+        display: 'flex',
+        gap: '8px',
+        marginBottom: '20px',
+        background: '#18181b',
+        padding: '4px',
+        borderRadius: '12px',
+        width: 'fit-content'
+      }}>
+        <button
+          onClick={() => setProductTypeFilter('PHYSICAL')}
+          style={{
+            padding: '10px 20px',
+            borderRadius: '8px',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: 500,
+            background: productTypeFilter === 'PHYSICAL' ? '#3b82f6' : 'transparent',
+            color: productTypeFilter === 'PHYSICAL' ? '#fff' : '#a1a1aa',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            transition: 'all 0.2s'
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+          Physical Products
+          <span style={{
+            padding: '2px 8px',
+            borderRadius: '10px',
+            fontSize: '12px',
+            background: productTypeFilter === 'PHYSICAL' ? 'rgba(255,255,255,0.2)' : '#27272a',
+            color: productTypeFilter === 'PHYSICAL' ? '#fff' : '#71717a'
+          }}>
+            {physicalCount}
+          </span>
+        </button>
+        <button
+          onClick={() => setProductTypeFilter('DIGITAL')}
+          style={{
+            padding: '10px 20px',
+            borderRadius: '8px',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: 500,
+            background: productTypeFilter === 'DIGITAL' ? '#7c3aed' : 'transparent',
+            color: productTypeFilter === 'DIGITAL' ? '#fff' : '#a1a1aa',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            transition: 'all 0.2s'
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Digital Downloads
+          <span style={{
+            padding: '2px 8px',
+            borderRadius: '10px',
+            fontSize: '12px',
+            background: productTypeFilter === 'DIGITAL' ? 'rgba(255,255,255,0.2)' : '#27272a',
+            color: productTypeFilter === 'DIGITAL' ? '#fff' : '#71717a'
+          }}>
+            {digitalCount}
+          </span>
+        </button>
+      </div>
+
       {/* Action Bar */}
       <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
         <Link
@@ -233,7 +314,7 @@ function ProductsTab({ isMobile }: { isMobile: boolean }) {
             display: 'inline-flex',
             alignItems: 'center',
             padding: '10px 20px',
-            background: '#3b82f6',
+            background: productTypeFilter === 'DIGITAL' ? '#7c3aed' : '#3b82f6',
             color: '#ffffff',
             borderRadius: '12px',
             textDecoration: 'none',
@@ -241,11 +322,11 @@ function ProductsTab({ isMobile }: { isMobile: boolean }) {
             fontWeight: 500,
           }}
         >
-          + Add Product
+          + Add {productTypeFilter === 'DIGITAL' ? 'Digital' : 'Physical'} Product
         </Link>
       </div>
 
-      {products.length === 0 ? (
+      {filteredProducts.length === 0 ? (
         <div style={{
           background: '#18181b',
           border: '1px solid #27272a',
@@ -257,18 +338,31 @@ function ProductsTab({ isMobile }: { isMobile: boolean }) {
             width: '48px',
             height: '48px',
             borderRadius: '12px',
-            background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+            background: productTypeFilter === 'DIGITAL' ? 'linear-gradient(135deg, #7c3aed, #a855f7)' : 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
             margin: '0 auto 16px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            opacity: 0.2
+            opacity: 0.3
           }}>
-            📦
+            {productTypeFilter === 'DIGITAL' ? (
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+            ) : (
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+            )}
           </div>
-          <h3 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '8px' }}>No products yet</h3>
+          <h3 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '8px' }}>
+            No {productTypeFilter === 'DIGITAL' ? 'digital downloads' : 'physical products'} yet
+          </h3>
           <p style={{ color: '#71717a', margin: '0 0 24px 0' }}>
-            Start by adding your first product to the catalog
+            {productTypeFilter === 'DIGITAL'
+              ? 'Start by adding your first digital download (STL files, etc.)'
+              : 'Start by adding your first physical product to the catalog'
+            }
           </p>
           <Link
             href="/admin/products/new"
@@ -276,7 +370,7 @@ function ProductsTab({ isMobile }: { isMobile: boolean }) {
               display: 'inline-flex',
               alignItems: 'center',
               padding: '12px 24px',
-              background: '#3b82f6',
+              background: productTypeFilter === 'DIGITAL' ? '#7c3aed' : '#3b82f6',
               color: '#ffffff',
               borderRadius: '12px',
               textDecoration: 'none',
@@ -284,13 +378,13 @@ function ProductsTab({ isMobile }: { isMobile: boolean }) {
               fontWeight: 500,
             }}
           >
-            + Add Your First Product
+            + Add Your First {productTypeFilter === 'DIGITAL' ? 'Digital Download' : 'Product'}
           </Link>
         </div>
       ) : isMobile ? (
         // Mobile: Card View
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {products.map((product) => (
+          {filteredProducts.map((product) => (
             <div
               key={product.id}
               style={{
@@ -322,10 +416,17 @@ function ProductsTab({ isMobile }: { isMobile: boolean }) {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: '#71717a',
-                    fontSize: '24px'
+                    color: '#71717a'
                   }}>
-                    📦
+                    {product.productType === 'DIGITAL' ? (
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                    ) : (
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                      </svg>
+                    )}
                   </div>
                 )}
                 <div style={{ flex: 1 }}>
@@ -342,7 +443,7 @@ function ProductsTab({ isMobile }: { isMobile: boolean }) {
                 borderTop: '1px solid #27272a'
               }}>
                 <div style={{ display: 'flex', gap: '12px', fontSize: '12px', color: '#a1a1aa' }}>
-                  <span>Stock: {product.stock}</span>
+                  <span>{product.productType === 'DIGITAL' ? 'Unlimited' : `Stock: ${product.stock}`}</span>
                   <span style={{
                     padding: '2px 8px',
                     borderRadius: '6px',
@@ -392,14 +493,24 @@ function ProductsTab({ isMobile }: { isMobile: boolean }) {
               </tr>
             </thead>
             <tbody>
-              {products.map((product) => (
+              {filteredProducts.map((product) => (
                 <tr key={product.id} style={{ borderBottom: '1px solid #27272a' }}>
                   <td style={{ padding: '16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       {product.images && product.images[0] ? (
                         <img src={product.images[0]} alt={product.name} style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '8px', background: '#27272a' }} />
                       ) : (
-                        <div style={{ width: '48px', height: '48px', background: '#27272a', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#71717a' }}>📦</div>
+                        <div style={{ width: '48px', height: '48px', background: '#27272a', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#71717a' }}>
+                          {product.productType === 'DIGITAL' ? (
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                          ) : (
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                            </svg>
+                          )}
+                        </div>
                       )}
                       <div>
                         <div style={{ fontSize: '14px', fontWeight: 500, marginBottom: '2px' }}>{product.name}</div>
@@ -409,7 +520,9 @@ function ProductsTab({ isMobile }: { isMobile: boolean }) {
                   </td>
                   <td style={{ padding: '16px', fontSize: '14px', color: '#a1a1aa' }}>{product.category.name}</td>
                   <td style={{ padding: '16px', fontSize: '14px', fontWeight: 500, color: '#10b981' }}>${Number(product.price).toFixed(2)}</td>
-                  <td style={{ padding: '16px', fontSize: '14px', color: product.stock > 0 ? '#ffffff' : '#ef4444' }}>{product.stock}</td>
+                  <td style={{ padding: '16px', fontSize: '14px', color: product.productType === 'DIGITAL' ? '#a1a1aa' : product.stock > 0 ? '#ffffff' : '#ef4444' }}>
+                    {product.productType === 'DIGITAL' ? 'Unlimited' : product.stock}
+                  </td>
                   <td style={{ padding: '16px' }}>
                     <button
                       onClick={() => toggleActive(product.id, product.active)}
