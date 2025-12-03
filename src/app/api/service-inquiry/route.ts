@@ -40,22 +40,64 @@ export async function POST(req: NextRequest) {
     // Build detailed description from form fields
     let fullDescription = body.description
 
-    // Add project details if provided
+    // Add project details if provided (new format)
     const projectDetails: string[] = []
+    const pd = body.projectDetails || {}
 
+    if (pd.projectName) {
+      projectDetails.push(`Project Name: ${pd.projectName}`)
+    }
+    if (pd.services && pd.services.length > 0) {
+      projectDetails.push(`Services Requested: ${pd.services.join(', ')}`)
+    }
+    if (pd.package) {
+      projectDetails.push(`Selected Package: ${pd.package}`)
+    }
+    if (pd.targetAudience) {
+      projectDetails.push(`Target Audience: ${pd.targetAudience}`)
+    }
+    if (pd.pages) {
+      projectDetails.push(`Estimated Pages: ${pd.pages}`)
+    }
+    if (pd.screens) {
+      projectDetails.push(`Estimated Screens: ${pd.screens}`)
+    }
+    if (pd.features && pd.features.length > 0) {
+      projectDetails.push(`Features Needed: ${pd.features.join(', ')}`)
+    }
+    if (pd.hasDesign) {
+      projectDetails.push(`Design Status: ${pd.hasDesign}`)
+    }
+    if (pd.designNotes) {
+      projectDetails.push(`Design Notes: ${pd.designNotes}`)
+    }
+    if (pd.referenceUrls) {
+      projectDetails.push(`Reference URLs: ${pd.referenceUrls}`)
+    }
+    if (pd.integrations) {
+      projectDetails.push(`Integrations: ${pd.integrations}`)
+    }
+    if (pd.existingSystem) {
+      projectDetails.push(`Existing System: ${pd.existingSystem}`)
+    }
+    if (pd.startDate) {
+      projectDetails.push(`Preferred Start Date: ${pd.startDate}`)
+    }
+
+    // Legacy format support
     if (body.projectType) {
       projectDetails.push(`Project Type: ${body.projectType}`)
     }
-    if (body.pages) {
+    if (body.pages && !pd.pages) {
       projectDetails.push(`Estimated Pages/Screens: ${body.pages}`)
     }
-    if (body.features && body.features.length > 0) {
+    if (body.features && body.features.length > 0 && !pd.features) {
       projectDetails.push(`Desired Features: ${body.features.join(', ')}`)
     }
     if (body.platforms && body.platforms.length > 0) {
       projectDetails.push(`Target Platforms: ${body.platforms.join(', ')}`)
     }
-    if (body.hasDesign !== undefined) {
+    if (body.hasDesign !== undefined && typeof body.hasDesign === 'boolean') {
       projectDetails.push(`Has Existing Design: ${body.hasDesign ? 'Yes' : 'No'}`)
     }
     if (body.designDetails) {
@@ -75,6 +117,14 @@ export async function POST(req: NextRequest) {
       fullDescription = `${body.description}\n\n--- Project Details ---\n${projectDetails.join('\n')}`
     }
 
+    // Store structured project details as JSON in attachments field
+    const structuredData = body.projectDetails ? {
+      formVersion: 2,
+      projectDetails: body.projectDetails,
+      selectedServices: body.selectedServices || [],
+      selectedPackage: body.selectedPackage || null,
+    } : null
+
     const inquiry = await prisma.serviceInquiry.create({
       data: {
         inquiryNumber,
@@ -87,6 +137,7 @@ export async function POST(req: NextRequest) {
         budget: body.budget || null,
         timeline: body.timeline || null,
         description: fullDescription,
+        attachments: structuredData,
         status: InquiryStatus.NEW,
       },
     })

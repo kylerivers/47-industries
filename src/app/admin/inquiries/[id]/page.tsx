@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPaperclip } from '@fortawesome/free-solid-svg-icons'
 
 interface ServiceInquiry {
   id: string
@@ -18,7 +16,26 @@ interface ServiceInquiry {
   budget?: string
   timeline?: string
   description: string
-  attachments?: any
+  attachments?: {
+    formVersion?: number
+    projectDetails?: {
+      services?: string[]
+      package?: string
+      projectName?: string
+      targetAudience?: string
+      pages?: string
+      screens?: string
+      features?: string[]
+      hasDesign?: string
+      designNotes?: string
+      referenceUrls?: string
+      integrations?: string
+      existingSystem?: string
+      startDate?: string
+    }
+    selectedServices?: string[]
+    selectedPackage?: string
+  }
   status: string
   assignedTo?: string
   estimatedCost?: number
@@ -42,6 +59,21 @@ export default function InquiryDetailPage() {
   const [estimatedCost, setEstimatedCost] = useState('')
   const [proposalUrl, setProposalUrl] = useState('')
   const [adminNotes, setAdminNotes] = useState('')
+
+  // Email reply state
+  const [showEmailModal, setShowEmailModal] = useState(false)
+  const [emailSubject, setEmailSubject] = useState('')
+  const [emailMessage, setEmailMessage] = useState('')
+  const [sendingEmail, setSendingEmail] = useState(false)
+  const [emailSuccess, setEmailSuccess] = useState('')
+
+  // Quote state
+  const [showQuoteModal, setShowQuoteModal] = useState(false)
+  const [quoteAmount, setQuoteAmount] = useState('')
+  const [quoteMonthly, setQuoteMonthly] = useState('')
+  const [quoteNotes, setQuoteNotes] = useState('')
+  const [quoteValidDays, setQuoteValidDays] = useState('14')
+  const [sendingQuote, setSendingQuote] = useState(false)
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768)
@@ -128,6 +160,88 @@ export default function InquiryDetailPage() {
     }
   }
 
+  const handleSendEmail = async () => {
+    if (!emailSubject || !emailMessage) {
+      alert('Please fill in subject and message')
+      return
+    }
+
+    try {
+      setSendingEmail(true)
+      const res = await fetch('/api/admin/inquiries/reply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          inquiryId: inquiry?.id,
+          to: inquiry?.email,
+          subject: emailSubject,
+          message: emailMessage,
+          referenceNumber: inquiry?.inquiryNumber,
+        }),
+      })
+
+      if (res.ok) {
+        setEmailSuccess('Email sent successfully!')
+        setEmailSubject('')
+        setEmailMessage('')
+        setTimeout(() => {
+          setShowEmailModal(false)
+          setEmailSuccess('')
+        }, 2000)
+      } else {
+        const data = await res.json()
+        alert(data.error || 'Failed to send email')
+      }
+    } catch (error) {
+      console.error('Error sending email:', error)
+      alert('Failed to send email')
+    } finally {
+      setSendingEmail(false)
+    }
+  }
+
+  const handleSendQuote = async () => {
+    if (!quoteAmount && !quoteMonthly) {
+      alert('Please enter at least one quote amount')
+      return
+    }
+
+    try {
+      setSendingQuote(true)
+      const res = await fetch('/api/admin/inquiries/send-quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          inquiryId: inquiry?.id,
+          to: inquiry?.email,
+          name: inquiry?.name,
+          inquiryNumber: inquiry?.inquiryNumber,
+          oneTimeAmount: quoteAmount ? parseFloat(quoteAmount) : null,
+          monthlyAmount: quoteMonthly ? parseFloat(quoteMonthly) : null,
+          notes: quoteNotes,
+          validDays: parseInt(quoteValidDays),
+        }),
+      })
+
+      if (res.ok) {
+        alert('Quote sent successfully!')
+        setShowQuoteModal(false)
+        // Update status to PROPOSAL_SENT
+        setStatus('PROPOSAL_SENT')
+        setEstimatedCost(quoteAmount || quoteMonthly || '')
+        handleSave()
+      } else {
+        const data = await res.json()
+        alert(data.error || 'Failed to send quote')
+      }
+    } catch (error) {
+      console.error('Error sending quote:', error)
+      alert('Failed to send quote')
+    } finally {
+      setSendingQuote(false)
+    }
+  }
+
   const getStatusColor = (s: string) => {
     const colors: Record<string, string> = {
       NEW: '#3b82f6',
@@ -175,6 +289,40 @@ export default function InquiryDetailPage() {
     })
   }
 
+  // Calculate suggested quote based on project details
+  const getSuggestedQuote = () => {
+    if (!inquiry?.attachments?.projectDetails) return null
+
+    const pd = inquiry.attachments.projectDetails
+    let basePrice = 0
+    const services = pd.services || inquiry.attachments.selectedServices || []
+
+    // Base prices per service
+    if (services.includes('WEBSITE')) basePrice += 2500
+    if (services.includes('WEB_APP')) basePrice += 8000
+    if (services.includes('IOS_APP')) basePrice += 8000
+    if (services.includes('ANDROID_APP')) basePrice += 7500
+    if (services.includes('CROSS_PLATFORM')) basePrice += 12000
+    if (services.includes('AI_AUTOMATION')) basePrice += 799 // Monthly
+
+    // Adjust for complexity
+    const features = pd.features || []
+    basePrice += features.length * 500
+
+    // Adjust for pages/screens
+    if (pd.pages?.includes('20-50')) basePrice += 2000
+    if (pd.pages?.includes('50+')) basePrice += 5000
+    if (pd.screens?.includes('25-50')) basePrice += 3000
+    if (pd.screens?.includes('50+')) basePrice += 6000
+
+    // Adjust for design needs
+    if (pd.hasDesign === 'No, need design help' || pd.hasDesign === 'Just an idea') {
+      basePrice += 2000
+    }
+
+    return basePrice
+  }
+
   if (loading) {
     return (
       <div style={{
@@ -202,6 +350,8 @@ export default function InquiryDetailPage() {
   }
 
   const statuses = ['NEW', 'CONTACTED', 'PROPOSAL_SENT', 'NEGOTIATING', 'ACCEPTED', 'DECLINED', 'COMPLETED']
+  const suggestedQuote = getSuggestedQuote()
+  const projectDetails = inquiry.attachments?.projectDetails
 
   return (
     <div>
@@ -264,6 +414,47 @@ export default function InquiryDetailPage() {
         </div>
       </div>
 
+      {/* Suggested Quote Banner */}
+      {suggestedQuote && suggestedQuote > 0 && (
+        <div style={{
+          background: 'linear-gradient(135deg, #3b82f620, #8b5cf620)',
+          border: '1px solid #3b82f640',
+          borderRadius: '12px',
+          padding: '16px 20px',
+          marginBottom: '24px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px',
+        }}>
+          <div>
+            <p style={{ margin: 0, color: '#a1a1aa', fontSize: '14px' }}>Suggested Quote (based on project details)</p>
+            <p style={{ margin: '4px 0 0 0', fontSize: '24px', fontWeight: 700, color: '#3b82f6' }}>
+              ${suggestedQuote.toLocaleString()}
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              setQuoteAmount(suggestedQuote.toString())
+              setShowQuoteModal(true)
+            }}
+            style={{
+              padding: '10px 20px',
+              background: '#3b82f6',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: 500,
+              cursor: 'pointer',
+            }}
+          >
+            Send Quote
+          </button>
+        </div>
+      )}
+
       <div style={{
         display: 'grid',
         gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr',
@@ -319,7 +510,137 @@ export default function InquiryDetailPage() {
             </div>
           </div>
 
-          {/* Project Details */}
+          {/* Project Details - Structured View */}
+          {projectDetails && (
+            <div style={{
+              background: '#18181b',
+              border: '1px solid #27272a',
+              borderRadius: '16px',
+              padding: '24px',
+            }}>
+              <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '16px', margin: '0 0 16px 0' }}>
+                Project Requirements
+              </h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {projectDetails.projectName && (
+                  <div>
+                    <p style={{ fontSize: '12px', color: '#71717a', margin: '0 0 4px 0', textTransform: 'uppercase' }}>Project Name</p>
+                    <p style={{ margin: 0, fontWeight: 500 }}>{projectDetails.projectName}</p>
+                  </div>
+                )}
+
+                {(projectDetails.services || inquiry.attachments?.selectedServices)?.length > 0 && (
+                  <div>
+                    <p style={{ fontSize: '12px', color: '#71717a', margin: '0 0 8px 0', textTransform: 'uppercase' }}>Services Requested</p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                      {(projectDetails.services || inquiry.attachments?.selectedServices || []).map((s: string) => (
+                        <span key={s} style={{
+                          padding: '4px 10px',
+                          background: '#3b82f620',
+                          color: '#3b82f6',
+                          borderRadius: '6px',
+                          fontSize: '13px',
+                        }}>
+                          {s.replace('_', ' ')}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {inquiry.attachments?.selectedPackage && (
+                  <div>
+                    <p style={{ fontSize: '12px', color: '#71717a', margin: '0 0 4px 0', textTransform: 'uppercase' }}>Selected Package</p>
+                    <p style={{ margin: 0 }}>{inquiry.attachments.selectedPackage}</p>
+                  </div>
+                )}
+
+                {projectDetails.targetAudience && (
+                  <div>
+                    <p style={{ fontSize: '12px', color: '#71717a', margin: '0 0 4px 0', textTransform: 'uppercase' }}>Target Audience</p>
+                    <p style={{ margin: 0 }}>{projectDetails.targetAudience}</p>
+                  </div>
+                )}
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  {projectDetails.pages && (
+                    <div>
+                      <p style={{ fontSize: '12px', color: '#71717a', margin: '0 0 4px 0', textTransform: 'uppercase' }}>Pages</p>
+                      <p style={{ margin: 0 }}>{projectDetails.pages}</p>
+                    </div>
+                  )}
+                  {projectDetails.screens && (
+                    <div>
+                      <p style={{ fontSize: '12px', color: '#71717a', margin: '0 0 4px 0', textTransform: 'uppercase' }}>Screens</p>
+                      <p style={{ margin: 0 }}>{projectDetails.screens}</p>
+                    </div>
+                  )}
+                </div>
+
+                {projectDetails.features && projectDetails.features.length > 0 && (
+                  <div>
+                    <p style={{ fontSize: '12px', color: '#71717a', margin: '0 0 8px 0', textTransform: 'uppercase' }}>Features Needed</p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                      {projectDetails.features.map((f: string) => (
+                        <span key={f} style={{
+                          padding: '4px 10px',
+                          background: '#27272a',
+                          borderRadius: '6px',
+                          fontSize: '13px',
+                        }}>
+                          {f}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {projectDetails.hasDesign && (
+                  <div>
+                    <p style={{ fontSize: '12px', color: '#71717a', margin: '0 0 4px 0', textTransform: 'uppercase' }}>Design Status</p>
+                    <p style={{ margin: 0 }}>{projectDetails.hasDesign}</p>
+                  </div>
+                )}
+
+                {projectDetails.designNotes && (
+                  <div>
+                    <p style={{ fontSize: '12px', color: '#71717a', margin: '0 0 4px 0', textTransform: 'uppercase' }}>Design Notes</p>
+                    <p style={{ margin: 0, color: '#a1a1aa' }}>{projectDetails.designNotes}</p>
+                  </div>
+                )}
+
+                {projectDetails.referenceUrls && (
+                  <div>
+                    <p style={{ fontSize: '12px', color: '#71717a', margin: '0 0 4px 0', textTransform: 'uppercase' }}>Reference URLs</p>
+                    <p style={{ margin: 0, color: '#a1a1aa', whiteSpace: 'pre-wrap' }}>{projectDetails.referenceUrls}</p>
+                  </div>
+                )}
+
+                {projectDetails.integrations && (
+                  <div>
+                    <p style={{ fontSize: '12px', color: '#71717a', margin: '0 0 4px 0', textTransform: 'uppercase' }}>Integrations</p>
+                    <p style={{ margin: 0, color: '#a1a1aa' }}>{projectDetails.integrations}</p>
+                  </div>
+                )}
+
+                {projectDetails.existingSystem && (
+                  <div>
+                    <p style={{ fontSize: '12px', color: '#71717a', margin: '0 0 4px 0', textTransform: 'uppercase' }}>Existing System</p>
+                    <p style={{ margin: 0, color: '#a1a1aa' }}>{projectDetails.existingSystem}</p>
+                  </div>
+                )}
+
+                {projectDetails.startDate && (
+                  <div>
+                    <p style={{ fontSize: '12px', color: '#71717a', margin: '0 0 4px 0', textTransform: 'uppercase' }}>Preferred Start Date</p>
+                    <p style={{ margin: 0 }}>{projectDetails.startDate}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Project Description */}
           <div style={{
             background: '#18181b',
             border: '1px solid #27272a',
@@ -327,7 +648,7 @@ export default function InquiryDetailPage() {
             padding: '24px',
           }}>
             <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '16px', margin: '0 0 16px 0' }}>
-              Project Details
+              Project Description
             </h2>
             <div style={{
               display: 'grid',
@@ -350,7 +671,7 @@ export default function InquiryDetailPage() {
             </div>
 
             <div>
-              <p style={{ fontSize: '12px', color: '#71717a', margin: '0 0 8px 0', textTransform: 'uppercase' }}>Project Description</p>
+              <p style={{ fontSize: '12px', color: '#71717a', margin: '0 0 8px 0', textTransform: 'uppercase' }}>Full Description</p>
               <div style={{
                 padding: '16px',
                 background: '#09090b',
@@ -362,47 +683,77 @@ export default function InquiryDetailPage() {
               </div>
             </div>
           </div>
-
-          {/* Attachments */}
-          {inquiry.attachments && Array.isArray(inquiry.attachments) && inquiry.attachments.length > 0 && (
-            <div style={{
-              background: '#18181b',
-              border: '1px solid #27272a',
-              borderRadius: '16px',
-              padding: '24px',
-            }}>
-              <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '16px', margin: '0 0 16px 0' }}>
-                Attachments
-              </h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {inquiry.attachments.map((attachment: any, index: number) => (
-                  <a
-                    key={index}
-                    href={attachment.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '12px',
-                      padding: '12px',
-                      background: '#09090b',
-                      borderRadius: '8px',
-                      textDecoration: 'none',
-                      color: 'inherit',
-                    }}
-                  >
-                    <FontAwesomeIcon icon={faPaperclip} style={{ fontSize: '16px', color: '#71717a' }} />
-                    <span style={{ color: '#3b82f6' }}>{attachment.name || `Attachment ${index + 1}`}</span>
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Right Column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {/* Quick Actions */}
+          <div style={{
+            background: '#18181b',
+            border: '1px solid #27272a',
+            borderRadius: '16px',
+            padding: '24px',
+          }}>
+            <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '16px', margin: '0 0 16px 0' }}>
+              Quick Actions
+            </h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <button
+                onClick={() => {
+                  setEmailSubject(`Re: Your ${getServiceTypeLabel(inquiry.serviceType)} Inquiry`)
+                  setShowEmailModal(true)
+                }}
+                style={{
+                  padding: '12px 16px',
+                  background: '#3b82f6',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  fontWeight: 500,
+                }}
+              >
+                Reply via Email
+              </button>
+              <button
+                onClick={() => {
+                  if (suggestedQuote) setQuoteAmount(suggestedQuote.toString())
+                  setShowQuoteModal(true)
+                }}
+                style={{
+                  padding: '12px 16px',
+                  background: '#10b981',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  fontWeight: 500,
+                }}
+              >
+                Send Quote
+              </button>
+              {inquiry.phone && (
+                <a
+                  href={`tel:${inquiry.phone}`}
+                  style={{
+                    display: 'block',
+                    padding: '12px 16px',
+                    background: '#27272a',
+                    borderRadius: '8px',
+                    textDecoration: 'none',
+                    color: 'white',
+                    fontSize: '14px',
+                    textAlign: 'center',
+                  }}
+                >
+                  Call Customer
+                </a>
+              )}
+            </div>
+          </div>
+
           {/* Update Inquiry */}
           <div style={{
             background: '#18181b',
@@ -560,54 +911,300 @@ export default function InquiryDetailPage() {
               Delete Inquiry
             </button>
           </div>
+        </div>
+      </div>
 
-          {/* Quick Actions */}
+      {/* Email Modal */}
+      {showEmailModal && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px',
+        }}>
           <div style={{
             background: '#18181b',
             border: '1px solid #27272a',
             borderRadius: '16px',
             padding: '24px',
+            width: '100%',
+            maxWidth: '500px',
           }}>
-            <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '16px', margin: '0 0 16px 0' }}>
-              Quick Actions
+            <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: 600 }}>
+              Send Email to {inquiry.name}
             </h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <a
-                href={`mailto:${inquiry.email}?subject=Re: Your ${getServiceTypeLabel(inquiry.serviceType)} Inquiry - ${inquiry.inquiryNumber}`}
+
+            {emailSuccess ? (
+              <div style={{
+                padding: '16px',
+                background: '#10b98120',
+                border: '1px solid #10b981',
+                borderRadius: '8px',
+                color: '#10b981',
+                textAlign: 'center',
+              }}>
+                {emailSuccess}
+              </div>
+            ) : (
+              <>
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '8px' }}>
+                    To
+                  </label>
+                  <input
+                    type="text"
+                    value={inquiry.email}
+                    disabled
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      background: '#09090b',
+                      border: '1px solid #27272a',
+                      borderRadius: '8px',
+                      color: '#71717a',
+                      fontSize: '14px',
+                    }}
+                  />
+                </div>
+
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '8px' }}>
+                    Subject
+                  </label>
+                  <input
+                    type="text"
+                    value={emailSubject}
+                    onChange={(e) => setEmailSubject(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      background: '#09090b',
+                      border: '1px solid #27272a',
+                      borderRadius: '8px',
+                      color: 'white',
+                      fontSize: '14px',
+                    }}
+                  />
+                </div>
+
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '8px' }}>
+                    Message
+                  </label>
+                  <textarea
+                    value={emailMessage}
+                    onChange={(e) => setEmailMessage(e.target.value)}
+                    rows={8}
+                    placeholder="Type your message..."
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      background: '#09090b',
+                      border: '1px solid #27272a',
+                      borderRadius: '8px',
+                      color: 'white',
+                      fontSize: '14px',
+                      resize: 'vertical',
+                    }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <button
+                    onClick={() => setShowEmailModal(false)}
+                    style={{
+                      flex: 1,
+                      padding: '12px',
+                      background: '#27272a',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSendEmail}
+                    disabled={sendingEmail}
+                    style={{
+                      flex: 1,
+                      padding: '12px',
+                      background: '#3b82f6',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      cursor: sendingEmail ? 'not-allowed' : 'pointer',
+                      opacity: sendingEmail ? 0.7 : 1,
+                    }}
+                  >
+                    {sendingEmail ? 'Sending...' : 'Send Email'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Quote Modal */}
+      {showQuoteModal && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px',
+        }}>
+          <div style={{
+            background: '#18181b',
+            border: '1px solid #27272a',
+            borderRadius: '16px',
+            padding: '24px',
+            width: '100%',
+            maxWidth: '500px',
+          }}>
+            <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: 600 }}>
+              Send Quote to {inquiry.name}
+            </h2>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '8px' }}>
+                One-Time Amount ($)
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                value={quoteAmount}
+                onChange={(e) => setQuoteAmount(e.target.value)}
+                placeholder="0.00"
                 style={{
-                  display: 'block',
-                  padding: '12px 16px',
+                  width: '100%',
+                  padding: '10px 12px',
                   background: '#09090b',
+                  border: '1px solid #27272a',
                   borderRadius: '8px',
-                  textDecoration: 'none',
                   color: 'white',
                   fontSize: '14px',
-                  textAlign: 'center',
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '8px' }}>
+                Monthly Amount ($) - optional
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                value={quoteMonthly}
+                onChange={(e) => setQuoteMonthly(e.target.value)}
+                placeholder="0.00"
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  background: '#09090b',
+                  border: '1px solid #27272a',
+                  borderRadius: '8px',
+                  color: 'white',
+                  fontSize: '14px',
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '8px' }}>
+                Valid For (days)
+              </label>
+              <select
+                value={quoteValidDays}
+                onChange={(e) => setQuoteValidDays(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  background: '#09090b',
+                  border: '1px solid #27272a',
+                  borderRadius: '8px',
+                  color: 'white',
+                  fontSize: '14px',
                 }}
               >
-                Send Email
-              </a>
-              {inquiry.phone && (
-                <a
-                  href={`tel:${inquiry.phone}`}
-                  style={{
-                    display: 'block',
-                    padding: '12px 16px',
-                    background: '#09090b',
-                    borderRadius: '8px',
-                    textDecoration: 'none',
-                    color: 'white',
-                    fontSize: '14px',
-                    textAlign: 'center',
-                  }}
-                >
-                  Call Customer
-                </a>
-              )}
+                <option value="7">7 days</option>
+                <option value="14">14 days</option>
+                <option value="30">30 days</option>
+              </select>
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '8px' }}>
+                Notes (optional)
+              </label>
+              <textarea
+                value={quoteNotes}
+                onChange={(e) => setQuoteNotes(e.target.value)}
+                rows={4}
+                placeholder="Any additional details about the quote..."
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  background: '#09090b',
+                  border: '1px solid #27272a',
+                  borderRadius: '8px',
+                  color: 'white',
+                  fontSize: '14px',
+                  resize: 'vertical',
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                onClick={() => setShowQuoteModal(false)}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  background: '#27272a',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSendQuote}
+                disabled={sendingQuote}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  background: '#10b981',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  cursor: sendingQuote ? 'not-allowed' : 'pointer',
+                  opacity: sendingQuote ? 0.7 : 1,
+                }}
+              >
+                {sendingQuote ? 'Sending...' : 'Send Quote'}
+              </button>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
