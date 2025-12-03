@@ -28,9 +28,14 @@ const CATEGORY_GROUPS = [
     ],
   },
   {
+    label: 'AI & Automation',
+    options: [
+      { value: 'AI_AUTOMATION', label: 'AI Automation', desc: 'AI receptionists, lead generators, workflow automation' },
+    ],
+  },
+  {
     label: 'Other Services',
     options: [
-      { value: 'AI_SOLUTIONS', label: 'AI Solutions', desc: 'AI/ML, chatbots, automation' },
       { value: 'UI_UX_DESIGN', label: 'UI/UX Design', desc: 'Design-only packages' },
       { value: 'THREE_D_PRINTING', label: '3D Printing', desc: 'Custom 3D printing services' },
       { value: 'MAINTENANCE', label: 'Maintenance', desc: 'Ongoing support plans' },

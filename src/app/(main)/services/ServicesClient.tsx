@@ -62,6 +62,11 @@ const SERVICE_TYPES = [
     label: 'Cross-Platform',
     description: 'Build once, deploy everywhere. React Native apps for both iOS and Android from a single codebase.',
   },
+  {
+    id: 'AI_AUTOMATION',
+    label: 'AI Automation',
+    description: 'AI-powered business automations. Receptionists, lead generators, workflow automation, and more.',
+  },
 ]
 
 // Map URL params to service type IDs
@@ -73,6 +78,9 @@ const CATEGORY_FROM_PARAM: Record<string, string> = {
   'ios': 'IOS_APP',
   'android': 'ANDROID_APP',
   'cross-platform': 'CROSS_PLATFORM_APP',
+  'ai': 'AI_AUTOMATION',
+  'ai-automation': 'AI_AUTOMATION',
+  'automation': 'AI_AUTOMATION',
   'app': 'IOS_APP', // Default app to iOS
 }
 
@@ -82,6 +90,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   IOS_APP: 'iOS App',
   ANDROID_APP: 'Android App',
   CROSS_PLATFORM_APP: 'Cross-Platform App',
+  AI_AUTOMATION: 'AI Automation',
 }
 
 const technologies = [

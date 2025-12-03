@@ -13,6 +13,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   IOS_APP: 'iOS App',
   ANDROID_APP: 'Android App',
   CROSS_PLATFORM_APP: 'Cross-Platform App',
+  AI_AUTOMATION: 'AI Automation',
   DESKTOP_APP: 'Desktop App',
   THREE_D_PRINTING: '3D Printing',
 }

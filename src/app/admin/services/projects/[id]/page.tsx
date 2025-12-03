@@ -7,9 +7,11 @@ import Image from 'next/image'
 
 const CATEGORIES = [
   { value: 'WEB_DEVELOPMENT', label: 'Web Development' },
+  { value: 'WEB_APP', label: 'Web Application' },
   { value: 'IOS_APP', label: 'iOS App' },
   { value: 'ANDROID_APP', label: 'Android App' },
   { value: 'CROSS_PLATFORM_APP', label: 'Cross-Platform App' },
+  { value: 'AI_AUTOMATION', label: 'AI Automation' },
   { value: 'DESKTOP_APP', label: 'Desktop App' },
   { value: 'THREE_D_PRINTING', label: '3D Printing' },
 ]
