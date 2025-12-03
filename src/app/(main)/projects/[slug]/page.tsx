@@ -231,7 +231,7 @@ export default async function ProjectPage({ params }: Props) {
                 {mobileImages.length > 0 && (
                   <h3 className="text-sm font-medium text-text-secondary mb-4">Desktop</h3>
                 )}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {desktopImages.map((img, i) => (
                     <div
                       key={i}
