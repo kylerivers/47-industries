@@ -12,6 +12,7 @@ interface Package {
   price: number | null
   priceDisplay: string | null
   priceNote: string | null
+  billingType: string
   shortDesc: string
   description: string
   features: unknown
@@ -172,6 +173,12 @@ export default function ServicesClient({ packages, projects }: ServicesClientPro
                   <h3 className="text-2xl font-bold mb-2">{pkg.name}</h3>
                   <div className="text-4xl font-bold mb-2">
                     {pkg.priceDisplay || (pkg.price ? `$${pkg.price.toLocaleString()}` : 'Custom')}
+                    {pkg.price && pkg.billingType === 'monthly' && (
+                      <span className="text-lg font-normal text-text-secondary">/mo</span>
+                    )}
+                    {pkg.price && pkg.billingType === 'yearly' && (
+                      <span className="text-lg font-normal text-text-secondary">/yr</span>
+                    )}
                   </div>
                   {pkg.priceNote && (
                     <p className="text-text-secondary text-xs mb-2">{pkg.priceNote}</p>

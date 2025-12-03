@@ -37,6 +37,7 @@ export default async function ServicesPage() {
     price: pkg.price ? Number(pkg.price) : null,
     priceDisplay: pkg.priceDisplay,
     priceNote: pkg.priceNote,
+    billingType: pkg.billingType,
     shortDesc: pkg.shortDesc,
     description: pkg.description,
     features: pkg.features,
