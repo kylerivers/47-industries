@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import Logo from './Logo'
 import { useCart } from '@/lib/cart-store'
@@ -25,6 +26,7 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [accountMenuOpen, setAccountMenuOpen] = useState(false)
+  const [scrolledPastHero, setScrolledPastHero] = useState(false)
   const [features, setFeatures] = useState<FeatureSettings>({
     shopEnabled: true,
     custom3DPrintingEnabled: true,
@@ -35,6 +37,8 @@ export default function Navbar() {
   })
   const { getItemCount } = useCart()
   const { data: session, status } = useSession()
+  const pathname = usePathname()
+  const isHomepage = pathname === '/'
 
   useEffect(() => {
     setMounted(true)
@@ -44,6 +48,23 @@ export default function Navbar() {
       .then(data => setFeatures(data))
       .catch(err => console.error('Failed to fetch features:', err))
   }, [])
+
+  // Track scroll position on homepage
+  useEffect(() => {
+    if (!isHomepage) {
+      setScrolledPastHero(true)
+      return
+    }
+
+    const handleScroll = () => {
+      // Show text after scrolling ~300px (past the hero title)
+      setScrolledPastHero(window.scrollY > 300)
+    }
+
+    handleScroll() // Check initial position
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [isHomepage])
 
   // Close account menu when clicking outside
   useEffect(() => {
@@ -64,7 +85,7 @@ export default function Navbar() {
       <div className="container mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Logo />
+          <Logo showText={scrolledPastHero} />
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
