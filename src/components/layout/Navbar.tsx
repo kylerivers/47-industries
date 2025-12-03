@@ -83,12 +83,14 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
       <div className="container mx-auto px-6">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Logo showText={scrolledPastHero} />
+        <div className="flex items-center h-16">
+          {/* Logo - fixed width container */}
+          <div className="flex-1 flex justify-start">
+            <Logo showText={scrolledPastHero} />
+          </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          {/* Desktop Navigation - centered */}
+          <div className="hidden md:flex items-center justify-center space-x-8">
             {features.shopEnabled && (
               <Link href="/shop" className="text-sm text-text-secondary hover:text-text-primary transition-colors">
                 Shop
@@ -122,8 +124,8 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Cart & Auth */}
-          <div className="hidden md:flex items-center gap-2">
+          {/* Cart & Auth - fixed width container */}
+          <div className="flex-1 hidden md:flex items-center justify-end gap-2">
             <Link href="/cart" className="relative text-text-secondary hover:text-text-primary transition-colors p-2">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />

@@ -8,9 +8,9 @@ interface LogoProps {
 
 export default function Logo({ className = '', size = 'md', showText = true }: LogoProps) {
   const sizes = {
-    sm: 32,
-    md: 40,
-    lg: 52,
+    sm: 36,
+    md: 44,
+    lg: 56,
   }
 
   const dimension = sizes[size]
@@ -25,8 +25,8 @@ export default function Logo({ className = '', size = 'md', showText = true }: L
         style={{ borderRadius: '8px' }}
       />
       <span
-        className={`text-xl font-bold transition-all duration-300 ${
-          showText ? 'opacity-100 max-w-[200px]' : 'opacity-0 max-w-0 overflow-hidden'
+        className={`text-xl font-bold whitespace-nowrap transition-opacity duration-300 ${
+          showText ? 'opacity-100' : 'opacity-0'
         }`}
       >
         47 Industries
