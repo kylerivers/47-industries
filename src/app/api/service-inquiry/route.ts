@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
       projectDetails: body.projectDetails,
       selectedServices: body.selectedServices || [],
       selectedPackage: body.selectedPackage || null,
-    } : null
+    } : undefined
 
     const inquiry = await prisma.serviceInquiry.create({
       data: {
@@ -137,7 +137,7 @@ export async function POST(req: NextRequest) {
         budget: body.budget || null,
         timeline: body.timeline || null,
         description: fullDescription,
-        attachments: structuredData,
+        ...(structuredData && { attachments: structuredData }),
         status: InquiryStatus.NEW,
       },
     })

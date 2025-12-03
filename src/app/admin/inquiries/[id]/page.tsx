@@ -529,7 +529,7 @@ export default function InquiryDetailPage() {
                   </div>
                 )}
 
-                {(projectDetails.services || inquiry.attachments?.selectedServices)?.length > 0 && (
+                {(projectDetails?.services || inquiry.attachments?.selectedServices || []).length > 0 && (
                   <div>
                     <p style={{ fontSize: '12px', color: '#71717a', margin: '0 0 8px 0', textTransform: 'uppercase' }}>Services Requested</p>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
