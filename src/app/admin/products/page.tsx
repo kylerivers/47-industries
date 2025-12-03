@@ -1307,7 +1307,9 @@ function InventoryTab() {
         <div>
           {alerts.filter(a => !a.isResolved).length === 0 ? (
             <div style={{ background: '#18181b', border: '1px solid #27272a', borderRadius: '12px', padding: '40px', textAlign: 'center' }}>
-              <div style={{ fontSize: '32px', marginBottom: '8px' }}>✅</div>
+              <svg className="w-8 h-8 mx-auto mb-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
               <p style={{ color: '#71717a' }}>No active alerts</p>
             </div>
           ) : (

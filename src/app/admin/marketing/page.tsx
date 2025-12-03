@@ -168,7 +168,9 @@ export default function MarketingPage() {
         </div>
       ) : campaigns.length === 0 ? (
         <div className="bg-surface border border-border rounded-xl p-12 text-center">
-          <div className="text-4xl mb-4">📧</div>
+          <svg className="w-12 h-12 mx-auto mb-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
           <h3 className="text-lg font-semibold mb-2">No campaigns yet</h3>
           <p className="text-text-secondary mb-4">
             Create your first email campaign to engage with customers

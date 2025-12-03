@@ -109,10 +109,10 @@ export default function ReportsPage() {
       <div className="border-b border-border">
         <div className="flex gap-6 overflow-x-auto">
           {[
-            { id: 'sales', label: 'Sales Report', icon: '💰' },
-            { id: 'customers', label: 'Customer Report', icon: '👥' },
-            { id: 'inventory', label: 'Inventory Report', icon: '📦' },
-            { id: 'services', label: 'Services Report', icon: '🛠️' },
+            { id: 'sales', label: 'Sales Report' },
+            { id: 'customers', label: 'Customer Report' },
+            { id: 'inventory', label: 'Inventory Report' },
+            { id: 'services', label: 'Services Report' },
           ].map(tab => (
             <button
               key={tab.id}
@@ -123,7 +123,6 @@ export default function ReportsPage() {
                   : 'text-text-secondary hover:text-white'
               }`}
             >
-              <span>{tab.icon}</span>
               {tab.label}
               {activeReport === tab.id && (
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500" />
@@ -154,7 +153,9 @@ function SalesReport({ data }: { data: SalesData | null }) {
   if (!data) {
     return (
       <div className="bg-surface border border-border rounded-xl p-12 text-center">
-        <div className="text-4xl mb-4">📊</div>
+        <svg className="w-12 h-12 mx-auto mb-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
         <h3 className="text-lg font-semibold mb-2">No Sales Data</h3>
         <p className="text-text-secondary">Sales data will appear here once orders are placed.</p>
       </div>
@@ -292,7 +293,9 @@ function CustomerReport({ data }: { data: CustomerData | null }) {
   if (!data) {
     return (
       <div className="bg-surface border border-border rounded-xl p-12 text-center">
-        <div className="text-4xl mb-4">👥</div>
+        <svg className="w-12 h-12 mx-auto mb-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
         <h3 className="text-lg font-semibold mb-2">No Customer Data</h3>
         <p className="text-text-secondary">Customer data will appear here once users sign up.</p>
       </div>
@@ -437,7 +440,9 @@ function InventoryReport({ data }: { data: InventoryData | null }) {
   if (!data) {
     return (
       <div className="bg-surface border border-border rounded-xl p-12 text-center">
-        <div className="text-4xl mb-4">📦</div>
+        <svg className="w-12 h-12 mx-auto mb-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+        </svg>
         <h3 className="text-lg font-semibold mb-2">No Inventory Data</h3>
         <p className="text-text-secondary">Inventory data will appear here once products are added.</p>
       </div>
@@ -621,7 +626,10 @@ function ServicesReport() {
   return (
     <div className="space-y-6">
       <div className="bg-surface border border-border rounded-xl p-12 text-center">
-        <div className="text-4xl mb-4">🛠️</div>
+        <svg className="w-12 h-12 mx-auto mb-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
         <h3 className="text-lg font-semibold mb-2">Services Report Coming Soon</h3>
         <p className="text-text-secondary max-w-md mx-auto">
           Track service inquiries, project completions, revenue from services, and more.

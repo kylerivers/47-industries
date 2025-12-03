@@ -281,7 +281,9 @@ function StockOverview({
       {/* Products Table */}
       {products.length === 0 ? (
         <div className="bg-surface border border-border rounded-xl p-12 text-center">
-          <div className="text-4xl mb-4">📦</div>
+          <svg className="w-12 h-12 mx-auto mb-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
           <h3 className="text-lg font-semibold mb-2">No products found</h3>
           <p className="text-text-secondary">
             {search ? 'Try a different search term' : 'Add products to start tracking inventory'}
@@ -316,7 +318,9 @@ function StockOverview({
                           />
                         ) : (
                           <div className="w-10 h-10 rounded-lg bg-surface-elevated flex items-center justify-center text-text-secondary">
-                            📦
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                            </svg>
                           </div>
                         )}
                         <span className="font-medium">{product.name}</span>
@@ -380,7 +384,9 @@ function StockMovements({ movements }: { movements: StockMovement[] }) {
     <div className="space-y-4">
       {movements.length === 0 ? (
         <div className="bg-surface border border-border rounded-xl p-12 text-center">
-          <div className="text-4xl mb-4">📊</div>
+          <svg className="w-12 h-12 mx-auto mb-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
           <h3 className="text-lg font-semibold mb-2">No stock movements yet</h3>
           <p className="text-text-secondary">
             Stock adjustments and order-related changes will appear here
@@ -456,7 +462,9 @@ function InventoryAlerts({ alerts, onRefresh }: { alerts: InventoryAlert[]; onRe
         <h3 className="text-lg font-semibold mb-4">Active Alerts ({activeAlerts.length})</h3>
         {activeAlerts.length === 0 ? (
           <div className="bg-surface border border-border rounded-xl p-8 text-center">
-            <div className="text-4xl mb-2">✅</div>
+            <svg className="w-10 h-10 mx-auto mb-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
             <p className="text-text-secondary">No active alerts - all inventory levels are healthy!</p>
           </div>
         ) : (
@@ -476,7 +484,15 @@ function InventoryAlerts({ alerts, onRefresh }: { alerts: InventoryAlert[]; onRe
                     alert.type === 'LOW_STOCK' ? 'bg-yellow-500/20' :
                     'bg-orange-500/20'
                   }`}>
-                    {alert.type === 'OUT_OF_STOCK' ? '🚫' : alert.type === 'LOW_STOCK' ? '⚠️' : '📦'}
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      {alert.type === 'OUT_OF_STOCK' ? (
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                      ) : alert.type === 'LOW_STOCK' ? (
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      ) : (
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                      )}
+                    </svg>
                   </div>
                   <div>
                     <p className="font-medium">{alert.product?.name || 'Unknown Product'}</p>
@@ -515,7 +531,11 @@ function InventoryAlerts({ alerts, onRefresh }: { alerts: InventoryAlert[]; onRe
                 className="bg-surface border border-border rounded-xl p-4 flex items-center justify-between opacity-60"
               >
                 <div className="flex items-center gap-4">
-                  <div className="p-2 rounded-lg bg-surface-elevated">✓</div>
+                  <div className="p-2 rounded-lg bg-surface-elevated">
+                    <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
                   <div>
                     <p className="font-medium">{alert.product?.name || 'Unknown Product'}</p>
                     <p className="text-sm text-text-secondary">{alert.type.replace('_', ' ')}</p>

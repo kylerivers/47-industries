@@ -215,7 +215,9 @@ function OrdersTab() {
           padding: '48px 24px',
           textAlign: 'center',
         }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🛒</div>
+          <svg className="w-12 h-12 mx-auto mb-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
           <h3 style={{
             fontSize: '24px',
             fontWeight: 700,
@@ -478,7 +480,9 @@ function ReturnsTab() {
           padding: '48px',
           textAlign: 'center',
         }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>📦</div>
+          <svg className="w-12 h-12 mx-auto mb-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
           <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>No return requests</h3>
           <p style={{ color: '#a1a1aa' }}>
             Return requests will appear here when customers submit them

@@ -270,7 +270,9 @@ function CustomersTab() {
         </div>
       ) : customers.length === 0 ? (
         <div style={{ background: '#1a1a1a', border: '1px solid #27272a', borderRadius: '12px', padding: '48px', textAlign: 'center' }}>
-          <div style={{ fontSize: '32px', marginBottom: '16px' }}>👥</div>
+          <svg className="w-12 h-12 mx-auto mb-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
           <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>No customers found</h3>
           <p style={{ color: '#a1a1aa' }}>
             {search ? 'Try a different search term' : 'Customers will appear here once they create an account or place an order'}

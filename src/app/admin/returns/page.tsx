@@ -151,7 +151,9 @@ export default function ReturnsPage() {
         </div>
       ) : returns.length === 0 ? (
         <div className="bg-surface border border-border rounded-xl p-12 text-center">
-          <div className="text-4xl mb-4">📦</div>
+          <svg className="w-12 h-12 mx-auto mb-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
           <h3 className="text-lg font-semibold mb-2">No return requests</h3>
           <p className="text-text-secondary">
             Return requests will appear here when customers submit them

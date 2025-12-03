@@ -603,7 +603,7 @@ export async function sendDigitalProductDelivery(data: {
         <body>
           <div class="container">
             <div class="header">
-              <div class="icon">📥</div>
+              <div class="icon" style="font-size: 48px; margin-bottom: 10px;">&#8595;</div>
               <h1 style="margin: 0;">Your Downloads Are Ready!</h1>
               <p style="margin: 10px 0 0 0; opacity: 0.9;">47 Industries Digital Products</p>
             </div>
