@@ -15,6 +15,11 @@ function getResend(): Resend {
 
 const FROM_EMAIL = process.env.EMAIL_FROM || 'noreply@47industries.com'
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@47industries.com'
+const CONFIRMATIONS_EMAIL = 'confirmations@47industries.com'
+const BCC_EMAIL = 'kylerivers4@gmail.com'
+
+// BCC addresses for all confirmation emails
+const CONFIRMATION_BCC = [CONFIRMATIONS_EMAIL, BCC_EMAIL]
 
 // Available email addresses for sending
 export const EMAIL_ADDRESSES = {
@@ -42,6 +47,7 @@ export async function sendCustomRequestConfirmation(data: {
     await getResend().emails.send({
       from: FROM_EMAIL,
       to: data.to,
+      bcc: CONFIRMATION_BCC,
       subject: `3D Print Request Received - ${data.requestNumber}`,
       html: `
         <!DOCTYPE html>
@@ -118,6 +124,7 @@ export async function sendContactConfirmation(data: {
     await getResend().emails.send({
       from: FROM_EMAIL,
       to: data.to,
+      bcc: CONFIRMATION_BCC,
       subject: `We received your message - ${data.inquiryNumber}`,
       html: `
         <!DOCTYPE html>
@@ -182,6 +189,7 @@ export async function sendServiceInquiryConfirmation(data: {
     await getResend().emails.send({
       from: FROM_EMAIL,
       to: data.to,
+      bcc: CONFIRMATION_BCC,
       subject: `Project Inquiry Received - ${data.inquiryNumber}`,
       html: `
         <!DOCTYPE html>
@@ -273,6 +281,7 @@ export async function sendAdminNotification(data: {
     await getResend().emails.send({
       from: FROM_EMAIL,
       to: ADMIN_EMAIL,
+      bcc: CONFIRMATION_BCC,
       subject: `[47 Industries] New ${data.type.replace('_', ' ')} - ${data.title}`,
       html: `
         <!DOCTYPE html>
@@ -323,6 +332,7 @@ export async function sendReplyEmail(data: {
     await getResend().emails.send({
       from,
       to: data.to,
+      bcc: CONFIRMATION_BCC,
       subject: data.referenceNumber ? `Re: ${data.subject} [${data.referenceNumber}]` : `Re: ${data.subject}`,
       html: `
         <!DOCTYPE html>
@@ -388,6 +398,7 @@ export async function sendOrderConfirmation(data: {
     await getResend().emails.send({
       from: FROM_EMAIL,
       to: data.to,
+      bcc: CONFIRMATION_BCC,
       subject: `Order Confirmed - ${data.orderNumber}`,
       html: `
         <!DOCTYPE html>
@@ -480,6 +491,7 @@ export async function sendShippingNotification(data: {
     await getResend().emails.send({
       from: FROM_EMAIL,
       to: data.to,
+      bcc: CONFIRMATION_BCC,
       subject: `Your Order Has Shipped - ${data.orderNumber}`,
       html: `
         <!DOCTYPE html>
@@ -585,6 +597,7 @@ export async function sendDigitalProductDelivery(data: {
     await getResend().emails.send({
       from: FROM_EMAIL,
       to: data.to,
+      bcc: CONFIRMATION_BCC,
       subject: `Your Digital Downloads Are Ready - ${data.orderNumber}`,
       html: `
         <!DOCTYPE html>
@@ -676,6 +689,7 @@ export async function sendQuoteEmail(data: {
     await getResend().emails.send({
       from: FROM_EMAIL,
       to: data.to,
+      bcc: CONFIRMATION_BCC,
       subject: `Your 3D Print Quote is Ready - ${data.requestNumber}`,
       html: `
         <!DOCTYPE html>

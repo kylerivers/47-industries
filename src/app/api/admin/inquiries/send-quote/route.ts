@@ -14,6 +14,9 @@ function getResend(): Resend {
   return resendClient
 }
 
+// BCC addresses for all confirmation emails
+const CONFIRMATION_BCC = ['confirmations@47industries.com', 'kylerivers4@gmail.com']
+
 // POST /api/admin/inquiries/send-quote - Send project quote to customer
 export async function POST(req: NextRequest) {
   try {
@@ -64,6 +67,7 @@ export async function POST(req: NextRequest) {
     await getResend().emails.send({
       from: 'contact@47industries.com',
       to: body.to,
+      bcc: CONFIRMATION_BCC,
       subject: `Your Project Quote - ${body.inquiryNumber}`,
       html: `
         <!DOCTYPE html>
