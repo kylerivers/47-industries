@@ -99,11 +99,11 @@ export default function InquiryDetailPage() {
         setProposalUrl(data.proposalUrl || '')
         setAdminNotes(data.adminNotes || '')
       } else {
-        router.push('/admin/inquiries')
+        router.push('/admin/inquiries?tab=service-inquiries')
       }
     } catch (error) {
       console.error('Error fetching inquiry:', error)
-      router.push('/admin/inquiries')
+      router.push('/admin/inquiries?tab=service-inquiries')
     } finally {
       setLoading(false)
     }
@@ -139,6 +139,34 @@ export default function InquiryDetailPage() {
     }
   }
 
+  const handleReject = async () => {
+    if (!confirm('Mark this inquiry as declined?')) {
+      return
+    }
+
+    try {
+      setSaving(true)
+      const res = await fetch(`/api/admin/inquiries/${params.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'DECLINED' }),
+      })
+
+      if (res.ok) {
+        setStatus('DECLINED')
+        setInquiry(inquiry ? { ...inquiry, status: 'DECLINED' } : null)
+        alert('Inquiry marked as declined')
+      } else {
+        alert('Failed to update inquiry')
+      }
+    } catch (error) {
+      console.error('Error updating inquiry:', error)
+      alert('Failed to update inquiry')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this inquiry? This action cannot be undone.')) {
       return
@@ -150,7 +178,7 @@ export default function InquiryDetailPage() {
       })
 
       if (res.ok) {
-        router.push('/admin/inquiries')
+        router.push('/admin/inquiries?tab=service-inquiries')
       } else {
         alert('Failed to delete inquiry')
       }
@@ -366,7 +394,7 @@ export default function InquiryDetailPage() {
       }}>
         <div>
           <Link
-            href="/admin/inquiries"
+            href="/admin/inquiries?tab=service-inquiries"
             style={{
               color: '#71717a',
               textDecoration: 'none',
@@ -377,7 +405,7 @@ export default function InquiryDetailPage() {
               marginBottom: '8px',
             }}
           >
-            ← Back to Inquiries
+            ← Back to Service Inquiries
           </Link>
           <h1 style={{
             fontSize: isMobile ? '24px' : '32px',
@@ -893,6 +921,28 @@ export default function InquiryDetailPage() {
             >
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
+
+            {status !== 'DECLINED' && (
+              <button
+                onClick={handleReject}
+                disabled={saving}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  background: 'transparent',
+                  color: '#f59e0b',
+                  border: '1px solid #f59e0b',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  cursor: saving ? 'not-allowed' : 'pointer',
+                  marginBottom: '12px',
+                  opacity: saving ? 0.7 : 1,
+                }}
+              >
+                Reject Inquiry
+              </button>
+            )}
 
             <button
               onClick={handleDelete}

@@ -341,6 +341,8 @@ function ServiceInquiriesTab() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [typeFilter, setTypeFilter] = useState('all')
   const [isMobile, setIsMobile] = useState(false)
+  const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState<string | null>(null)
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768)
@@ -420,6 +422,54 @@ function ServiceInquiriesTab() {
       day: 'numeric',
       year: 'numeric',
     })
+  }
+
+  const handleQuickAction = async (inquiryId: string, action: 'reject' | 'delete') => {
+    if (action === 'delete') {
+      if (!confirm('Are you sure you want to delete this inquiry? This cannot be undone.')) {
+        return
+      }
+      try {
+        setDeleting(inquiryId)
+        const res = await fetch(`/api/admin/inquiries/${inquiryId}`, {
+          method: 'DELETE',
+        })
+        if (res.ok) {
+          setInquiries(inquiries.filter(i => i.id !== inquiryId))
+        } else {
+          alert('Failed to delete inquiry')
+        }
+      } catch (error) {
+        console.error('Error deleting inquiry:', error)
+        alert('Failed to delete inquiry')
+      } finally {
+        setDeleting(null)
+        setActionMenuOpen(null)
+      }
+    } else if (action === 'reject') {
+      if (!confirm('Mark this inquiry as declined?')) {
+        return
+      }
+      try {
+        const res = await fetch(`/api/admin/inquiries/${inquiryId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'DECLINED' }),
+        })
+        if (res.ok) {
+          setInquiries(inquiries.map(i =>
+            i.id === inquiryId ? { ...i, status: 'DECLINED' } : i
+          ))
+        } else {
+          alert('Failed to update inquiry')
+        }
+      } catch (error) {
+        console.error('Error updating inquiry:', error)
+        alert('Failed to update inquiry')
+      } finally {
+        setActionMenuOpen(null)
+      }
+    }
   }
 
   const statuses = [
@@ -585,21 +635,107 @@ function ServiceInquiriesTab() {
                     Submitted {formatDate(inquiry.createdAt)}
                   </p>
                 </div>
-                <Link
-                  href={`/admin/inquiries/${inquiry.id}`}
-                  style={{
-                    display: 'inline-block',
-                    padding: '8px 16px',
-                    background: '#3b82f6',
-                    color: 'white',
-                    borderRadius: '8px',
-                    textDecoration: 'none',
-                    fontSize: '14px',
-                    fontWeight: 500,
-                  }}
-                >
-                  View Details
-                </Link>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <Link
+                    href={`/admin/inquiries/${inquiry.id}`}
+                    style={{
+                      display: 'inline-block',
+                      padding: '8px 16px',
+                      background: '#3b82f6',
+                      color: 'white',
+                      borderRadius: '8px',
+                      textDecoration: 'none',
+                      fontSize: '14px',
+                      fontWeight: 500,
+                    }}
+                  >
+                    View Details
+                  </Link>
+
+                  {/* Quick Actions Menu */}
+                  <div style={{ position: 'relative' }}>
+                    <button
+                      onClick={() => setActionMenuOpen(actionMenuOpen === inquiry.id ? null : inquiry.id)}
+                      style={{
+                        padding: '8px 12px',
+                        background: '#27272a',
+                        border: '1px solid #3f3f46',
+                        borderRadius: '8px',
+                        color: '#a1a1aa',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                      }}
+                    >
+                      ...
+                    </button>
+                    {actionMenuOpen === inquiry.id && (
+                      <div style={{
+                        position: 'absolute',
+                        right: 0,
+                        top: '100%',
+                        marginTop: '4px',
+                        background: '#18181b',
+                        border: '1px solid #27272a',
+                        borderRadius: '8px',
+                        minWidth: '150px',
+                        zIndex: 10,
+                        overflow: 'hidden',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                      }}>
+                        {inquiry.status !== 'DECLINED' && (
+                          <button
+                            onClick={() => handleQuickAction(inquiry.id, 'reject')}
+                            style={{
+                              width: '100%',
+                              padding: '10px 16px',
+                              background: 'transparent',
+                              border: 'none',
+                              color: '#f59e0b',
+                              cursor: 'pointer',
+                              fontSize: '14px',
+                              textAlign: 'left',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = '#27272a'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                          >
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            Reject
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleQuickAction(inquiry.id, 'delete')}
+                          disabled={deleting === inquiry.id}
+                          style={{
+                            width: '100%',
+                            padding: '10px 16px',
+                            background: 'transparent',
+                            border: 'none',
+                            color: '#ef4444',
+                            cursor: deleting === inquiry.id ? 'wait' : 'pointer',
+                            fontSize: '14px',
+                            textAlign: 'left',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            opacity: deleting === inquiry.id ? 0.5 : 1,
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = '#27272a'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                        >
+                          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          {deleting === inquiry.id ? 'Deleting...' : 'Delete'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
               <div style={{
