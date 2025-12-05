@@ -143,7 +143,7 @@ export default function Home() {
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Link
-                    href="/motorev"
+                    href="/projects/motorev"
                     className="px-6 py-3 border border-border rounded-lg hover:bg-surface transition-all inline-flex items-center justify-center"
                   >
                     Learn more
