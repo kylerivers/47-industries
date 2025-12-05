@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 interface ImageLightboxProps {
   src: string
@@ -11,6 +11,19 @@ interface ImageLightboxProps {
 
 export default function ImageLightbox({ src, alt, className = '', containerClassName = '' }: ImageLightboxProps) {
   const [isOpen, setIsOpen] = useState(false)
+
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      setIsOpen(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown)
+      return () => document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isOpen, handleKeyDown])
 
   return (
     <>
@@ -55,7 +68,7 @@ export default function ImageLightbox({ src, alt, className = '', containerClass
 
           {/* Navigation hint */}
           <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/50 text-sm">
-            Click outside to close
+            Press Esc or click outside to close
           </p>
         </div>
       )}

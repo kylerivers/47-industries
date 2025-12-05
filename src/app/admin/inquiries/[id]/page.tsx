@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
+import { useToast } from '@/components/ui/Toast'
 
 interface ServiceInquiry {
   id: string
@@ -52,6 +53,7 @@ export default function InquiryDetailPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const { showToast } = useToast()
 
   // Form state
   const [status, setStatus] = useState('')
@@ -127,13 +129,13 @@ export default function InquiryDetailPage() {
       if (res.ok) {
         const data = await res.json()
         setInquiry(data)
-        alert('Inquiry updated successfully!')
+        showToast('Inquiry updated successfully!', 'success')
       } else {
-        alert('Failed to update inquiry')
+        showToast('Failed to update inquiry', 'error')
       }
     } catch (error) {
       console.error('Error updating inquiry:', error)
-      alert('Failed to update inquiry')
+      showToast('Failed to update inquiry', 'error')
     } finally {
       setSaving(false)
     }
@@ -155,13 +157,13 @@ export default function InquiryDetailPage() {
       if (res.ok) {
         setStatus('DECLINED')
         setInquiry(inquiry ? { ...inquiry, status: 'DECLINED' } : null)
-        alert('Inquiry marked as declined')
+        showToast('Inquiry marked as declined', 'success')
       } else {
-        alert('Failed to update inquiry')
+        showToast('Failed to update inquiry', 'error')
       }
     } catch (error) {
       console.error('Error updating inquiry:', error)
-      alert('Failed to update inquiry')
+      showToast('Failed to update inquiry', 'error')
     } finally {
       setSaving(false)
     }
@@ -180,17 +182,17 @@ export default function InquiryDetailPage() {
       if (res.ok) {
         router.push('/admin/inquiries?tab=service-inquiries')
       } else {
-        alert('Failed to delete inquiry')
+        showToast('Failed to delete inquiry', 'error')
       }
     } catch (error) {
       console.error('Error deleting inquiry:', error)
-      alert('Failed to delete inquiry')
+      showToast('Failed to delete inquiry', 'error')
     }
   }
 
   const handleSendEmail = async () => {
     if (!emailSubject || !emailMessage) {
-      alert('Please fill in subject and message')
+      showToast('Please fill in subject and message', 'warning')
       return
     }
 
@@ -218,11 +220,11 @@ export default function InquiryDetailPage() {
         }, 2000)
       } else {
         const data = await res.json()
-        alert(data.error || 'Failed to send email')
+        showToast(data.error || 'Failed to send email', 'error')
       }
     } catch (error) {
       console.error('Error sending email:', error)
-      alert('Failed to send email')
+      showToast('Failed to send email', 'error')
     } finally {
       setSendingEmail(false)
     }
@@ -230,7 +232,7 @@ export default function InquiryDetailPage() {
 
   const handleSendQuote = async () => {
     if (!quoteAmount && !quoteMonthly) {
-      alert('Please enter at least one quote amount')
+      showToast('Please enter at least one quote amount', 'warning')
       return
     }
 
@@ -252,7 +254,7 @@ export default function InquiryDetailPage() {
       })
 
       if (res.ok) {
-        alert('Quote sent successfully!')
+        showToast('Quote sent successfully!', 'success')
         setShowQuoteModal(false)
         // Update status to PROPOSAL_SENT
         setStatus('PROPOSAL_SENT')
@@ -260,11 +262,11 @@ export default function InquiryDetailPage() {
         handleSave()
       } else {
         const data = await res.json()
-        alert(data.error || 'Failed to send quote')
+        showToast(data.error || 'Failed to send quote', 'error')
       }
     } catch (error) {
       console.error('Error sending quote:', error)
-      alert('Failed to send quote')
+      showToast('Failed to send quote', 'error')
     } finally {
       setSendingQuote(false)
     }

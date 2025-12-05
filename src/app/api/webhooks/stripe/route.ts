@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { stripe, formatAmountFromStripe, isStripeConfigured } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
-import { sendOrderConfirmation, sendDigitalProductDelivery } from '@/lib/email'
+import { sendOrderConfirmation, sendDigitalProductDelivery, sendPaymentFailureNotification } from '@/lib/email'
 import Stripe from 'stripe'
 import { randomBytes } from 'crypto'
 
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
       case 'payment_intent.payment_failed': {
         const paymentIntent = event.data.object as Stripe.PaymentIntent
         console.error('Payment failed:', paymentIntent.id)
-        // TODO: Send failure email to customer
+        await handlePaymentFailed(paymentIntent)
         break
       }
 
@@ -311,5 +311,33 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     } catch (emailError) {
       console.error('Failed to send email:', emailError)
     }
+  }
+}
+
+async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
+  const metadata = paymentIntent.metadata || {}
+  const customerEmail = paymentIntent.receipt_email || metadata.customerEmail
+  const customerName = metadata.customerName || 'Customer'
+  const orderNumber = metadata.orderNumber
+
+  if (!customerEmail) {
+    console.log('No customer email for payment failure notification')
+    return
+  }
+
+  const amount = paymentIntent.amount ? formatAmountFromStripe(paymentIntent.amount) : 0
+  const failureMessage = paymentIntent.last_payment_error?.message
+
+  try {
+    await sendPaymentFailureNotification({
+      to: customerEmail,
+      name: customerName,
+      orderNumber,
+      amount,
+      reason: failureMessage,
+    })
+    console.log('Payment failure notification sent to:', customerEmail)
+  } catch (emailError) {
+    console.error('Failed to send payment failure email:', emailError)
   }
 }

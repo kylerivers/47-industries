@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
+import { useToast } from '@/components/ui/Toast'
 
 // ============ TYPES ============
 interface CustomRequest {
@@ -343,6 +344,7 @@ function ServiceInquiriesTab() {
   const [isMobile, setIsMobile] = useState(false)
   const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null)
   const [deleting, setDeleting] = useState<string | null>(null)
+  const { showToast } = useToast()
 
   // Quote modal state
   const [showQuoteModal, setShowQuoteModal] = useState(false)
@@ -446,11 +448,11 @@ function ServiceInquiriesTab() {
         if (res.ok) {
           setInquiries(inquiries.filter(i => i.id !== inquiryId))
         } else {
-          alert('Failed to delete inquiry')
+          showToast('Failed to delete inquiry', 'error')
         }
       } catch (error) {
         console.error('Error deleting inquiry:', error)
-        alert('Failed to delete inquiry')
+        showToast('Failed to delete inquiry', 'error')
       } finally {
         setDeleting(null)
         setActionMenuOpen(null)
@@ -470,11 +472,11 @@ function ServiceInquiriesTab() {
             i.id === inquiryId ? { ...i, status: 'DECLINED' } : i
           ))
         } else {
-          alert('Failed to update inquiry')
+          showToast('Failed to update inquiry', 'error')
         }
       } catch (error) {
         console.error('Error updating inquiry:', error)
-        alert('Failed to update inquiry')
+        showToast('Failed to update inquiry', 'error')
       } finally {
         setActionMenuOpen(null)
       }
@@ -494,7 +496,7 @@ function ServiceInquiriesTab() {
   const handleSendQuote = async () => {
     if (!quoteInquiry) return
     if (!quoteAmount && !quoteMonthly) {
-      alert('Please enter at least one quote amount')
+      showToast('Please enter at least one quote amount', 'warning')
       return
     }
 
@@ -516,7 +518,7 @@ function ServiceInquiriesTab() {
       })
 
       if (res.ok) {
-        alert('Quote sent successfully!')
+        showToast('Quote sent successfully!', 'success')
         setShowQuoteModal(false)
         // Update inquiry status in the list
         setInquiries(inquiries.map(i =>
@@ -524,11 +526,11 @@ function ServiceInquiriesTab() {
         ))
       } else {
         const data = await res.json()
-        alert(data.error || 'Failed to send quote')
+        showToast(data.error || 'Failed to send quote', 'error')
       }
     } catch (error) {
       console.error('Error sending quote:', error)
-      alert('Failed to send quote')
+      showToast('Failed to send quote', 'error')
     } finally {
       setSendingQuote(false)
     }

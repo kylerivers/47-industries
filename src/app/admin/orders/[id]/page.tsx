@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
+import { useToast } from '@/components/ui/Toast'
 
 interface OrderItem {
   id: string
@@ -89,6 +90,7 @@ export default function OrderDetailPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const { showToast } = useToast()
 
   // Form state
   const [status, setStatus] = useState('')
@@ -218,16 +220,16 @@ export default function OrderDetailPage() {
         setTrackingNumber(data.trackingNumber || '')
         setCarrier(data.label?.carrier || '')
         fetchOrder()
-        alert(`Label purchased! Tracking: ${data.trackingNumber}`)
+        showToast(`Label purchased! Tracking: ${data.trackingNumber}`, 'success')
         if (data.labelUrl) {
           window.open(data.labelUrl, '_blank')
         }
       } else {
-        alert(data.error || 'Failed to purchase label')
+        showToast(data.error || 'Failed to purchase label', 'error')
       }
     } catch (error) {
       console.error('Error purchasing label:', error)
-      alert('Failed to purchase label')
+      showToast('Failed to purchase label', 'error')
     } finally {
       setPurchasingLabel(false)
     }
@@ -246,14 +248,14 @@ export default function OrderDetailPage() {
         setTrackingNumber('')
         setCarrier('')
         fetchOrder()
-        alert('Label voided successfully')
+        showToast('Label voided successfully', 'success')
       } else {
         const data = await res.json()
-        alert(data.error || 'Failed to void label')
+        showToast(data.error || 'Failed to void label', 'error')
       }
     } catch (error) {
       console.error('Error voiding label:', error)
-      alert('Failed to void label')
+      showToast('Failed to void label', 'error')
     }
   }
 
@@ -287,13 +289,13 @@ export default function OrderDetailPage() {
         setAdminNotes(data.order.adminNotes || '')
         setShowRefundModal(false)
         setRefundAmount('')
-        alert(`Refund of $${data.amount.toFixed(2)} processed successfully!`)
+        showToast(`Refund of $${data.amount.toFixed(2)} processed successfully!`, 'success')
       } else {
-        alert(data.error || 'Failed to process refund')
+        showToast(data.error || 'Failed to process refund', 'error')
       }
     } catch (error) {
       console.error('Error processing refund:', error)
-      alert('Failed to process refund')
+      showToast('Failed to process refund', 'error')
     } finally {
       setRefunding(false)
     }
@@ -317,13 +319,13 @@ export default function OrderDetailPage() {
       if (res.ok) {
         const data = await res.json()
         setOrder(data)
-        alert('Order updated successfully!')
+        showToast('Order updated successfully!', 'success')
       } else {
-        alert('Failed to update order')
+        showToast('Failed to update order', 'error')
       }
     } catch (error) {
       console.error('Error updating order:', error)
-      alert('Failed to update order')
+      showToast('Failed to update order', 'error')
     } finally {
       setSaving(false)
     }

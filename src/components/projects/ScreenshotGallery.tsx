@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 interface ProjectImage {
   url: string
@@ -14,6 +14,19 @@ interface ScreenshotGalleryProps {
 
 export default function ScreenshotGallery({ images, projectTitle }: ScreenshotGalleryProps) {
   const [selectedImage, setSelectedImage] = useState<ProjectImage | null>(null)
+
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      setSelectedImage(null)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (selectedImage) {
+      document.addEventListener('keydown', handleKeyDown)
+      return () => document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [selectedImage, handleKeyDown])
 
   const mobileImages = images.filter(img => img.type === 'mobile')
   const desktopImages = images.filter(img => img.type === 'desktop')
@@ -129,7 +142,7 @@ export default function ScreenshotGallery({ images, projectTitle }: ScreenshotGa
 
           {/* Navigation hint */}
           <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/50 text-sm">
-            Click outside to close
+            Press Esc or click outside to close
           </p>
         </div>
       )}

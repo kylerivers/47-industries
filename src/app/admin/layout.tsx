@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import NotificationBell from '@/components/admin/NotificationBell'
+import { ToastProvider } from '@/components/ui/Toast'
 
 interface NavItem {
   href: string
@@ -190,7 +191,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const showMobile = mounted && isMobile
 
   return (
-    <>
+    <ToastProvider>
       <head>
         <link rel="icon" href="https://47industries.com/logo.png" />
         <link rel="apple-touch-icon" href="https://47industries.com/logo.png" />
@@ -550,6 +551,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       {/* Floating Notification Bell */}
       <NotificationBell />
     </div>
-    </>
+    </ToastProvider>
   )
 }

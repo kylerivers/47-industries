@@ -743,6 +743,83 @@ export async function sendDigitalProductDelivery(data: {
   }
 }
 
+export async function sendPaymentFailureNotification(data: {
+  to: string
+  name: string
+  orderNumber?: string
+  amount: number
+  reason?: string
+}) {
+  try {
+    await getResend().emails.send({
+      from: FROM_EMAIL,
+      to: data.to,
+      bcc: CONFIRMATION_BCC,
+      subject: `Payment Failed${data.orderNumber ? ` - ${data.orderNumber}` : ''}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: #000; color: #fff; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
+            .alert-box { background: #fef2f2; border: 1px solid #fecaca; padding: 20px; border-radius: 8px; margin: 20px 0; }
+            .alert-icon { color: #dc2626; font-size: 32px; }
+            .button { display: inline-block; background: #3b82f6; color: #fff; padding: 15px 30px; text-decoration: none; border-radius: 8px; margin-top: 15px; font-weight: bold; }
+            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1 style="margin: 0;">47 Industries</h1>
+              <p style="margin: 10px 0 0 0; opacity: 0.8;">Payment Notification</p>
+            </div>
+            <div class="content">
+              <h2>Hello ${data.name || 'there'},</h2>
+
+              <div class="alert-box">
+                <p class="alert-icon" style="margin: 0;">!</p>
+                <p style="margin: 10px 0 0 0; font-size: 18px; font-weight: bold; color: #dc2626;">Payment Failed</p>
+                <p style="margin: 10px 0 0 0; color: #7f1d1d;">
+                  Unfortunately, we were unable to process your payment of <strong>$${data.amount.toFixed(2)}</strong>.
+                </p>
+                ${data.reason ? `<p style="margin: 10px 0 0 0; color: #7f1d1d;">Reason: ${data.reason}</p>` : ''}
+              </div>
+
+              <p><strong>What you can do:</strong></p>
+              <ul>
+                <li>Check that your card details are correct</li>
+                <li>Ensure your card has sufficient funds</li>
+                <li>Contact your bank if the issue persists</li>
+                <li>Try a different payment method</li>
+              </ul>
+
+              <div style="text-align: center;">
+                <a href="https://47industries.com/shop" class="button">Try Again</a>
+              </div>
+
+              <p style="margin-top: 25px;">If you continue to experience issues, please contact us at support@47industries.com and we'll be happy to help.</p>
+
+              <div class="footer">
+                <p>47 Industries</p>
+                <p><a href="https://47industries.com">47industries.com</a></p>
+              </div>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    })
+    return { success: true }
+  } catch (error) {
+    console.error('Failed to send payment failure notification:', error)
+    return { success: false, error }
+  }
+}
+
 function getCarrierTrackingUrl(carrier: string, trackingNumber: string): string {
   const carrierLower = carrier.toLowerCase()
 

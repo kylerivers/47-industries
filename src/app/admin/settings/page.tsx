@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { useToast } from '@/components/ui/Toast'
 import {
   faTruck,
   faPercent,
@@ -84,6 +85,7 @@ export default function AdminSettingsPage() {
   const [saving, setSaving] = useState(false)
   const [activeTab, setActiveTab] = useState('general')
   const [isMobile, setIsMobile] = useState(false)
+  const { showToast } = useToast()
   const [shippoStatus, setShippoStatus] = useState<ShippoStatus>({ configured: false })
   const [taxRateCount, setTaxRateCount] = useState(0)
   const [hasBusinessAddress, setHasBusinessAddress] = useState(false)
@@ -207,13 +209,13 @@ export default function AdminSettingsPage() {
         body: JSON.stringify(settings),
       })
       if (res.ok) {
-        alert('Settings saved successfully!')
+        showToast('Settings saved successfully!', 'success')
       } else {
-        alert('Failed to save settings')
+        showToast('Failed to save settings', 'error')
       }
     } catch (error) {
       console.error('Error saving settings:', error)
-      alert('Failed to save settings')
+      showToast('Failed to save settings', 'error')
     } finally {
       setSaving(false)
     }
