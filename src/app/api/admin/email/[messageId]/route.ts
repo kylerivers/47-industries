@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyAdminAuth } from '@/lib/auth-helper'
+import { getAdminAuthInfo } from '@/lib/auth-helper'
 
 import { prisma } from '@/lib/prisma'
 import { ZohoMailClient, refreshAccessToken } from '@/lib/zoho'
@@ -51,13 +51,13 @@ export async function GET(
   { params }: { params: Promise<{ messageId: string }> }
 ) {
   try {
-    const isAuthorized = await verifyAdminAuth(req)
+    const auth = await getAdminAuthInfo(req)
 
-    if (!isAuthorized) {
+    if (!auth.isAuthorized || !auth.userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const accessToken = await getValidAccessToken(session.user.id)
+    const accessToken = await getValidAccessToken(auth.userId)
 
     if (!accessToken) {
       return NextResponse.json(

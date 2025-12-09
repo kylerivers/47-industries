@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyAdminAuth } from '@/lib/auth-helper'
+import { getAdminAuthInfo } from '@/lib/auth-helper'
 
 import { prisma } from '@/lib/prisma'
 import { ZohoMailClient, refreshAccessToken } from '@/lib/zoho'
@@ -48,13 +48,13 @@ async function getValidAccessToken(userId: string): Promise<string | null> {
 // POST /api/admin/email/send - Send an email
 export async function POST(req: NextRequest) {
   try {
-    const isAuthorized = await verifyAdminAuth(req)
+    const auth = await getAdminAuthInfo(req)
 
-    if (!isAuthorized) {
+    if (!auth.isAuthorized || !auth.userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const accessToken = await getValidAccessToken(session.user.id)
+    const accessToken = await getValidAccessToken(auth.userId)
 
     if (!accessToken) {
       return NextResponse.json(
@@ -104,11 +104,17 @@ export async function POST(req: NextRequest) {
       sendError = err instanceof Error ? err.message : 'Unknown error'
     }
 
+    // Get user info for logging
+    const user = await prisma.user.findUnique({
+      where: { id: auth.userId },
+      select: { name: true, email: true },
+    })
+
     // Log the email (whether successful or failed)
     await prisma.emailLog.create({
       data: {
-        userId: session.user.id,
-        userName: session.user.name || session.user.email || 'Unknown',
+        userId: auth.userId,
+        userName: user?.name || user?.email || 'Unknown',
         fromAddress,
         toAddress: body.to,
         ccAddress: body.cc || null,

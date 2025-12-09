@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyAdminAuth } from '@/lib/auth-helper'
+import { getAdminAuthInfo } from '@/lib/auth-helper'
 
 import { prisma } from '@/lib/prisma'
 
 // GET /api/admin/email/signatures - Get all signatures for the user
 export async function GET(req: NextRequest) {
   try {
-    const isAuthorized = await verifyAdminAuth(req)
-    if (!isAuthorized) {
+    const auth = await getAdminAuthInfo(req)
+    if (!auth.isAuthorized || !auth.userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const signatures = await prisma.emailSignature.findMany({
-      where: { userId: session.user.id },
+      where: { userId: auth.userId },
       orderBy: { createdAt: 'desc' },
     })
 
@@ -26,8 +26,8 @@ export async function GET(req: NextRequest) {
 // POST /api/admin/email/signatures - Create a new signature
 export async function POST(req: NextRequest) {
   try {
-    const isAuthorized = await verifyAdminAuth(req)
-    if (!isAuthorized) {
+    const auth = await getAdminAuthInfo(req)
+    if (!auth.isAuthorized || !auth.userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     if (isDefault) {
       await prisma.emailSignature.updateMany({
         where: {
-          userId: session.user.id,
+          userId: auth.userId,
           isDefault: true,
           ...(forAddress ? { forAddress } : {}),
         },
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
 
     const signature = await prisma.emailSignature.create({
       data: {
-        userId: session.user.id,
+        userId: auth.userId,
         name,
         content,
         isDefault: isDefault || false,
