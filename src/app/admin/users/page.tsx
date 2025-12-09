@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
 
-type Permission = 'products' | 'orders' | 'users' | 'settings' | 'email' | 'custom_requests' | 'analytics'
+type Permission = 'products' | 'orders' | 'users' | 'settings' | 'email' | 'custom_requests' | 'analytics' | 'expenses'
 
 const AVAILABLE_PERMISSIONS: { key: Permission; label: string; description: string }[] = [
   { key: 'products', label: 'Products', description: 'Manage products and categories' },
@@ -14,6 +14,7 @@ const AVAILABLE_PERMISSIONS: { key: Permission; label: string; description: stri
   { key: 'email', label: 'Email', description: 'Access company email' },
   { key: 'custom_requests', label: 'Custom Requests', description: 'Manage 3D printing requests' },
   { key: 'analytics', label: 'Analytics', description: 'View analytics dashboard' },
+  { key: 'expenses', label: 'Expenses', description: 'View household bills and notifications' },
 ]
 
 const COMPANY_EMAILS = [
