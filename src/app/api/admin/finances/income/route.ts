@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
 import { prisma } from '@/lib/prisma'
+import { verifyAdminAuth } from '@/lib/auth-helper'
 
 export async function POST(request: NextRequest) {
-  const session = await getServerSession()
+  const isAuthorized = await verifyAdminAuth(request)
 
-  if (!session) {
+  if (!isAuthorized) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
     const body = await request.json()
-    const { source, amount, category, date, notes } = body
+    const { source, amount, category, date, notes, createdBy } = body
 
     if (!source || !amount || !category || !date) {
       return NextResponse.json(
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
         category,
         date: new Date(date),
         notes,
-        createdBy: session.user?.email || undefined,
+        createdBy: createdBy || undefined,
       },
     })
 
