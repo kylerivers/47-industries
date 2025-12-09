@@ -1352,6 +1352,44 @@ model SmsConsent {
 }
 
 // ============================================
+// FINANCE TRACKING
+// ============================================
+
+model FinanceExpense {
+  id          String   @id @default(cuid())
+  vendor      String
+  amount      Decimal  @db.Decimal(10, 2)
+  category    String
+  date        DateTime
+  notes       String?  @db.Text
+  recurring   Boolean  @default(false)
+
+  createdBy   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([date])
+  @@index([category])
+  @@index([recurring])
+}
+
+model FinanceIncome {
+  id          String   @id @default(cuid())
+  source      String
+  amount      Decimal  @db.Decimal(10, 2)
+  category    String
+  date        DateTime
+  notes       String?  @db.Text
+
+  createdBy   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([date])
+  @@index([category])
+}
+
+// ============================================
 // EMAIL AUDIT LOG
 // ============================================
 
