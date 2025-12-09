@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { verifyAdminAuth } from '@/lib/auth-helper'
+
 import { getZohoAuthUrl } from '@/lib/zoho'
 
 // GET /api/admin/email/connect - Get Zoho OAuth URL
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const isAuthorized = await verifyAdminAuth(req)
 
-    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
+    if (!isAuthorized) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

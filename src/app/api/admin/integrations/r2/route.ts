@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { verifyAdminAuth } from '@/lib/auth-helper'
+
 
 // GET /api/admin/integrations/r2 - Check Cloudflare R2 configuration status
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions)
+    const isAuthorized = await verifyAdminAuth(req)
 
-    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
+    if (!isAuthorized) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

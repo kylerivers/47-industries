@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { verifyAdminAuth } from '@/lib/auth-helper'
+
 import { prisma } from '@/lib/prisma'
 
 // GET /api/admin/returns - List all return requests
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const isAuthorized = await verifyAdminAuth(req)
 
-    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
+    if (!isAuthorized) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -54,9 +54,9 @@ export async function GET(req: NextRequest) {
 // POST /api/admin/returns - Create a new return request (admin-initiated)
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const isAuthorized = await verifyAdminAuth(req)
 
-    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
+    if (!isAuthorized) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { verifyAdminAuth } from '@/lib/auth-helper'
+
 import { prisma } from '@/lib/prisma'
 import { purchaseLabel, refundLabel, isShippoConfigured } from '@/lib/shippo'
 
@@ -11,9 +11,9 @@ interface RouteParams {
 // POST /api/admin/orders/[id]/shipping/label - Purchase a shipping label
 export async function POST(req: NextRequest, { params }: RouteParams) {
   try {
-    const session = await getServerSession(authOptions)
+    const isAuthorized = await verifyAdminAuth(req)
 
-    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
+    if (!isAuthorized) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -114,9 +114,9 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 // GET /api/admin/orders/[id]/shipping/label - Get existing label for order
 export async function GET(req: NextRequest, { params }: RouteParams) {
   try {
-    const session = await getServerSession(authOptions)
+    const isAuthorized = await verifyAdminAuth(req)
 
-    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
+    if (!isAuthorized) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -143,9 +143,9 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 // DELETE /api/admin/orders/[id]/shipping/label - Void a shipping label
 export async function DELETE(req: NextRequest, { params }: RouteParams) {
   try {
-    const session = await getServerSession(authOptions)
+    const isAuthorized = await verifyAdminAuth(req)
 
-    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
+    if (!isAuthorized) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

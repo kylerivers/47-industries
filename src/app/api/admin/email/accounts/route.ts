@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { verifyAdminAuth } from '@/lib/auth-helper'
+
 import { prisma } from '@/lib/prisma'
 import { ZohoMailClient, refreshAccessToken } from '@/lib/zoho'
 
@@ -45,8 +45,8 @@ async function getValidAccessToken(userId: string): Promise<string | null> {
 // GET /api/admin/email/accounts - Get all email accounts/mailboxes from Zoho
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
+    const isAuthorized = await verifyAdminAuth(req)
+    if (!isAuthorized) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
