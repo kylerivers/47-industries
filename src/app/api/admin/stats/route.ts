@@ -1,12 +1,12 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { verifyAdminAuth } from '@/lib/auth-helper'
 
 import { prisma } from '@/lib/prisma'
 
 // GET /api/admin/stats - Get dashboard statistics
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const isAuthorized = await verifyAdminAuth(req)
+    const isAuthorized = await verifyAdminAuth(request)
 
     if (!isAuthorized) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
