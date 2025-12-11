@@ -94,8 +94,30 @@ export async function GET(req: NextRequest) {
       )
     }
 
+    // Transform Zoho email format to mobile app expected format
+    const transformedEmails = emails.map((email: any) => ({
+      id: email.messageId || email.mailId,
+      messageId: email.messageId || email.mailId,
+      subject: email.subject || '(No Subject)',
+      from: {
+        address: email.fromAddress || email.sender || '',
+        name: email.fromName || email.senderName || email.fromAddress?.split('@')[0] || '',
+      },
+      to: email.toAddress ? [{
+        address: email.toAddress,
+        name: email.toName || email.toAddress?.split('@')[0] || '',
+      }] : [],
+      date: email.receivedTime ? new Date(parseInt(email.receivedTime)).toISOString()
+            : email.sentDateInGMT
+            || email.receivedDate
+            || new Date().toISOString(),
+      snippet: email.summary || email.snippet || '',
+      isRead: email.status === 'read' || email.isRead === true || email.status2 === '1',
+      hasAttachment: email.hasAttachment === true || email.hasAttachment === 'true' || (email.attachmentCount && email.attachmentCount > 0),
+    }))
+
     return NextResponse.json({
-      emails,
+      emails: transformedEmails,
       pagination: {
         start,
         limit,

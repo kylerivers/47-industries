@@ -56,9 +56,29 @@ export async function GET(req: NextRequest) {
     }
 
     const client = new ZohoMailClient(accessToken)
-    const folders = await client.getFolders()
 
-    return NextResponse.json({ folders })
+    // Get folders and accounts (mailboxes) in parallel
+    const [rawFolders, accounts] = await Promise.all([
+      client.getFolders(),
+      client.getAccounts(),
+    ])
+
+    // Transform folders to mobile app expected format
+    const folders = rawFolders.map((folder: any) => ({
+      id: folder.folderId || folder.folderName?.toLowerCase() || 'inbox',
+      name: folder.folderName || folder.path || 'Inbox',
+      path: folder.path || folder.folderName?.toLowerCase() || 'inbox',
+      unreadCount: folder.unreadCount || folder.unReadCount || 0,
+    }))
+
+    // Transform accounts to mailboxes format expected by mobile app
+    const mailboxes = accounts.map((acc: any) => ({
+      accountId: acc.accountId,
+      email: acc.emailAddress || acc.primaryEmailAddress || acc.accountName,
+      displayName: acc.displayName || acc.accountName,
+    }))
+
+    return NextResponse.json({ folders, mailboxes })
   } catch (error) {
     console.error('Error fetching folders:', error)
     return NextResponse.json({ error: 'Failed to fetch folders' }, { status: 500 })
