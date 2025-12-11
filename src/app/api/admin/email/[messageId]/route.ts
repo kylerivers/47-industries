@@ -72,26 +72,15 @@ export async function GET(
     // Get email content (HTML body)
     const rawContent = await client.getEmailContent(messageId)
 
-    // Extract the actual content string from Zoho's response
-    // Zoho returns { content: "...", htmlContent: "..." } or similar
-    let content: string = ''
-    if (typeof rawContent === 'string') {
-      content = rawContent
-    } else if (rawContent?.content) {
-      content = rawContent.content
-    } else if (rawContent?.htmlContent) {
-      content = rawContent.htmlContent
-    } else if (rawContent?.textContent) {
-      content = rawContent.textContent
-    } else if (rawContent?.body) {
-      content = rawContent.body
-    } else {
-      // Fallback: stringify if it's still an object
-      content = typeof rawContent === 'object' ? JSON.stringify(rawContent) : String(rawContent || '')
-    }
+    console.log('Zoho raw content type:', typeof rawContent)
+    console.log('Zoho raw content keys:', rawContent ? Object.keys(rawContent) : 'null')
+    console.log('Zoho raw content sample:', typeof rawContent === 'string'
+      ? rawContent.substring(0, 200)
+      : JSON.stringify(rawContent).substring(0, 500))
 
-    // Return HTML content as-is for proper rendering
-    return NextResponse.json({ content })
+    // Return the raw content - let client handle extraction
+    // Zoho returns { content: "html..." } typically
+    return NextResponse.json({ content: rawContent })
   } catch (error) {
     console.error('Error fetching email content:', error)
     return NextResponse.json(
