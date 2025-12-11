@@ -12,42 +12,51 @@ export async function GET(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url)
-    const period = searchParams.get('period') || '7d' // 24h, 7d, 30d, 90d
+    // Support both 'period' and 'range' query params for compatibility
+    const period = searchParams.get('period') || searchParams.get('range') || '7d'
 
     // Calculate date range
     const now = new Date()
     let startDate: Date
+    let previousStartDate: Date
+    let periodDays: number
+
     switch (period) {
       case '24h':
+        periodDays = 1
         startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+        previousStartDate = new Date(now.getTime() - 48 * 60 * 60 * 1000)
         break
       case '7d':
+        periodDays = 7
         startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+        previousStartDate = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000)
         break
       case '30d':
+        periodDays = 30
         startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+        previousStartDate = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000)
         break
       case '90d':
+        periodDays = 90
         startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
+        previousStartDate = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000)
         break
       default:
+        periodDays = 7
         startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+        previousStartDate = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000)
     }
 
-    // Clean up stale sessions (inactive for more than 45 seconds)
-    // Heartbeat runs every 30s, so missing one means user left
+    // Clean up stale sessions
     const cutoffTime = new Date(now.getTime() - 45 * 1000)
     await prisma.activeSession.deleteMany({
-      where: {
-        lastActive: { lt: cutoffTime }
-      }
+      where: { lastActive: { lt: cutoffTime } }
     })
 
-    // Get active users with location data
+    // Get active sessions
     const activeSessions = await prisma.activeSession.findMany({
-      where: {
-        lastActive: { gte: cutoffTime }
-      },
+      where: { lastActive: { gte: cutoffTime } },
       select: {
         id: true,
         sessionId: true,
@@ -61,43 +70,63 @@ export async function GET(req: NextRequest) {
         longitude: true
       }
     })
-    const activeUsers = activeSessions.length
 
-    // Get total page views in period
-    const totalPageViews = await prisma.pageView.count({
-      where: {
-        createdAt: { gte: startDate }
-      }
+    // Get orders and revenue for current period
+    const currentOrders = await prisma.order.findMany({
+      where: { createdAt: { gte: startDate } },
+      select: { total: true, status: true }
     })
 
-    // Get unique visitors in period
-    const uniqueVisitors = await prisma.pageView.groupBy({
+    // Get orders and revenue for previous period (for comparison)
+    const previousOrders = await prisma.order.findMany({
+      where: {
+        createdAt: { gte: previousStartDate, lt: startDate }
+      },
+      select: { total: true }
+    })
+
+    const currentRevenue = currentOrders.reduce((sum, o) => sum + Number(o.total || 0), 0)
+    const previousRevenue = previousOrders.reduce((sum, o) => sum + Number(o.total || 0), 0)
+    const currentOrderCount = currentOrders.length
+    const previousOrderCount = previousOrders.length
+
+    // Get refunds
+    const refundedOrders = currentOrders.filter(o => o.status === 'REFUNDED')
+    const refunds = refundedOrders.reduce((sum, o) => sum + Number(o.total || 0), 0)
+
+    // Get unique visitors
+    const currentVisitors = await prisma.pageView.groupBy({
       by: ['visitorId'],
-      where: {
-        createdAt: { gte: startDate }
-      }
+      where: { createdAt: { gte: startDate } }
+    })
+    const previousVisitors = await prisma.pageView.groupBy({
+      by: ['visitorId'],
+      where: { createdAt: { gte: previousStartDate, lt: startDate } }
     })
 
-    // Get unique sessions in period
-    const uniqueSessions = await prisma.pageView.groupBy({
-      by: ['sessionId'],
-      where: {
-        createdAt: { gte: startDate }
-      }
+    // Calculate conversion rate
+    const currentConversion = currentVisitors.length > 0
+      ? (currentOrderCount / currentVisitors.length) * 100
+      : 0
+    const previousConversion = previousVisitors.length > 0
+      ? (previousOrderCount / previousVisitors.length) * 100
+      : 0
+
+    // Get total page views
+    const totalPageViews = await prisma.pageView.count({
+      where: { createdAt: { gte: startDate } }
     })
 
     // Get top pages
     const topPages = await prisma.pageView.groupBy({
       by: ['path'],
-      where: {
-        createdAt: { gte: startDate }
-      },
+      where: { createdAt: { gte: startDate } },
       _count: { path: true },
       orderBy: { _count: { path: 'desc' } },
       take: 10
     })
 
-    // Get traffic by device
+    // Get device stats
     const deviceStats = await prisma.pageView.groupBy({
       by: ['device'],
       where: {
@@ -107,22 +136,25 @@ export async function GET(req: NextRequest) {
       _count: { device: true }
     })
 
-    // Get traffic by browser
-    const browserStats = await prisma.pageView.groupBy({
-      by: ['browser'],
-      where: {
-        createdAt: { gte: startDate },
-        browser: { not: null }
-      },
-      _count: { browser: true },
-      orderBy: { _count: { browser: 'desc' } },
-      take: 5
+    const totalDeviceViews = deviceStats.reduce((sum, d) => sum + d._count.device, 0)
+    const devices = {
+      mobile: 0,
+      desktop: 0,
+      tablet: 0
+    }
+    deviceStats.forEach(d => {
+      const deviceLower = (d.device || '').toLowerCase()
+      const percentage = totalDeviceViews > 0 ? Math.round((d._count.device / totalDeviceViews) * 100) : 0
+      if (deviceLower.includes('mobile') || deviceLower.includes('phone')) {
+        devices.mobile += percentage
+      } else if (deviceLower.includes('tablet') || deviceLower.includes('ipad')) {
+        devices.tablet += percentage
+      } else {
+        devices.desktop += percentage
+      }
     })
 
-    // Get page views over time (daily breakdown)
-    const pageViewsByDay = await getPageViewsByDay(startDate, now)
-
-    // Get referrer stats
+    // Get referrer/traffic sources
     const referrerStats = await prisma.pageView.groupBy({
       by: ['referrer'],
       where: {
@@ -134,27 +166,82 @@ export async function GET(req: NextRequest) {
       take: 10
     })
 
-    // Get abandoned carts
-    const abandonedCarts = await prisma.abandonedCart.findMany({
-      where: {
-        createdAt: { gte: startDate },
-        recoveredAt: null
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 20
+    const totalReferrerViews = referrerStats.reduce((sum, r) => sum + r._count.referrer, 0) || 1
+    const trafficSources = referrerStats.map(r => {
+      let name = 'Direct'
+      try {
+        if (r.referrer) {
+          name = new URL(r.referrer).hostname
+        }
+      } catch {
+        name = r.referrer || 'Direct'
+      }
+      const percentage = Math.round((r._count.referrer / totalReferrerViews) * 100)
+      return {
+        name,
+        visitors: r._count.referrer,
+        percentage
+      }
     })
 
-    const abandonedCartValue = await prisma.abandonedCart.aggregate({
+    // Get top products
+    const topProductSales = await prisma.orderItem.groupBy({
+      by: ['productId'],
       where: {
-        createdAt: { gte: startDate },
-        recoveredAt: null
+        order: { createdAt: { gte: startDate } }
       },
-      _sum: { totalValue: true },
-      _count: true
+      _sum: { quantity: true, price: true },
+      orderBy: { _sum: { quantity: 'desc' } },
+      take: 5
     })
+
+    const productIds = topProductSales.map(p => p.productId).filter(Boolean)
+    const products = productIds.length > 0 ? await prisma.product.findMany({
+      where: { id: { in: productIds as string[] } },
+      select: { id: true, name: true }
+    }) : []
+
+    const topProducts = topProductSales.map(p => {
+      const product = products.find(pr => pr.id === p.productId)
+      return {
+        name: product?.name || 'Unknown Product',
+        sales: p._sum.quantity || 0,
+        revenue: Number(p._sum.price || 0)
+      }
+    })
+
+    // Get page views by day
+    const pageViewsByDay = await getPageViewsByDay(startDate, now)
+
+    // Calculate avg order value
+    const avgOrderValue = currentOrderCount > 0 ? currentRevenue / currentOrderCount : 0
 
     return NextResponse.json({
-      activeUsers,
+      // Data format expected by mobile app
+      revenue: {
+        current: currentRevenue,
+        previous: previousRevenue
+      },
+      orders: {
+        current: currentOrderCount,
+        previous: previousOrderCount
+      },
+      visitors: {
+        current: currentVisitors.length,
+        previous: previousVisitors.length
+      },
+      conversionRate: {
+        current: currentConversion,
+        previous: previousConversion
+      },
+      avgOrderValue,
+      refunds,
+      trafficSources,
+      topProducts,
+      devices,
+
+      // Original data for web admin
+      activeUsers: activeSessions.length,
       activeSessions: activeSessions.map(s => ({
         id: s.id,
         currentPage: s.currentPage,
@@ -167,21 +254,10 @@ export async function GET(req: NextRequest) {
         longitude: s.longitude
       })),
       totalPageViews,
-      uniqueVisitors: uniqueVisitors.length,
-      uniqueSessions: uniqueSessions.length,
+      uniqueVisitors: currentVisitors.length,
       topPages: topPages.map(p => ({ path: p.path, views: p._count.path })),
       deviceStats: deviceStats.map(d => ({ device: d.device, count: d._count.device })),
-      browserStats: browserStats.map(b => ({ browser: b.browser, count: b._count.browser })),
       pageViewsByDay,
-      referrerStats: referrerStats.map(r => ({
-        referrer: r.referrer ? new URL(r.referrer).hostname : 'Direct',
-        count: r._count.referrer
-      })),
-      abandonedCarts: {
-        count: abandonedCartValue._count,
-        totalValue: abandonedCartValue._sum.totalValue || 0,
-        items: abandonedCarts
-      },
       period
     })
   } catch (error) {
@@ -193,24 +269,17 @@ export async function GET(req: NextRequest) {
 async function getPageViewsByDay(startDate: Date, endDate: Date) {
   const pageViews = await prisma.pageView.findMany({
     where: {
-      createdAt: {
-        gte: startDate,
-        lte: endDate
-      }
+      createdAt: { gte: startDate, lte: endDate }
     },
-    select: {
-      createdAt: true
-    }
+    select: { createdAt: true }
   })
 
-  // Group by day
   const byDay: Record<string, number> = {}
   pageViews.forEach(pv => {
     const day = pv.createdAt.toISOString().split('T')[0]
     byDay[day] = (byDay[day] || 0) + 1
   })
 
-  // Fill in missing days with 0
   const result: { date: string; views: number }[] = []
   const currentDate = new Date(startDate)
   while (currentDate <= endDate) {

@@ -68,6 +68,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       activeUsers: activeSessions.length,
+      pageViews: recentPageViews, // Mobile app expects this field name
       activeSessions: activeSessions.map(s => ({
         id: s.id,
         currentPage: s.currentPage,
