@@ -87,6 +87,32 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// DELETE /api/admin/bills - Clear all bills (for reprocessing)
+export async function DELETE(request: NextRequest) {
+  const isAuthorized = await verifyAdminAuth(request)
+  if (!isAuthorized) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  try {
+    // Delete all bill payments first (foreign key constraint)
+    await prisma.billPayment.deleteMany({})
+
+    // Delete all bills
+    const result = await prisma.bill.deleteMany({})
+
+    console.log(`Deleted ${result.count} bills for reprocessing`)
+    return NextResponse.json({
+      success: true,
+      deleted: result.count,
+      message: 'All bills cleared. Run backfill to repopulate.'
+    })
+  } catch (error: any) {
+    console.error('Error clearing bills:', error)
+    return NextResponse.json({ error: 'Failed to clear bills' }, { status: 500 })
+  }
+}
+
 // POST /api/admin/bills - Manually create a bill
 export async function POST(request: NextRequest) {
   const isAuthorized = await verifyAdminAuth(request)
