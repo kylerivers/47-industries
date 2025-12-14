@@ -103,23 +103,38 @@ If this is not a bill or payment, return confidence: 0.`
       where: { active: true }
     })
 
-    const emailText = `${email.from} ${email.subject} ${email.snippet}`.toLowerCase()
+    const emailText = `${email.from} ${email.subject} ${email.snippet} ${email.body}`.toLowerCase()
+
+    let bestMatch: any = null
+    let bestScore = 0
 
     for (const bill of recurringBills) {
       const patterns = bill.emailPatterns as string[]
       if (!patterns || patterns.length === 0) continue
 
-      const matches = patterns.every(pattern =>
-        emailText.includes(pattern.toLowerCase())
-      )
+      // Count how many patterns match (more matches = higher confidence)
+      let matchCount = 0
+      for (const pattern of patterns) {
+        if (emailText.includes(pattern.toLowerCase())) {
+          matchCount++
+        }
+      }
 
-      if (matches) {
-        console.log(`[PARSER] Matched recurring bill: ${bill.name}`)
-        return bill
+      // Calculate score as percentage of patterns matched
+      const score = matchCount / patterns.length
+
+      // Need at least one pattern to match, prefer higher scores
+      if (matchCount > 0 && score > bestScore) {
+        bestScore = score
+        bestMatch = bill
       }
     }
 
-    return null
+    if (bestMatch) {
+      console.log(`[PARSER] Matched recurring bill: ${bestMatch.name} (score: ${(bestScore * 100).toFixed(0)}%)`)
+    }
+
+    return bestMatch
   }
 
   async processEmail(email: EmailData): Promise<{ created: boolean; billId?: string; action?: string }> {
@@ -161,23 +176,47 @@ If this is not a bill or payment, return confidence: 0.`
     parsed: ParsedBill,
     period: string
   ): Promise<{ created: boolean; billId?: string; action?: string }> {
-    // Find existing pending bill instance for this vendor in current period
+    // Find matching recurring bill for better matching
+    const recurringBill = await this.matchRecurringBill(email)
+
+    // Determine the period (handle quarterly bills)
+    let billPeriod = period
+    if (recurringBill?.frequency === 'QUARTERLY') {
+      const now = new Date()
+      const quarter = Math.floor(now.getMonth() / 3) + 1
+      billPeriod = `${now.getFullYear()}-Q${quarter}`
+    }
+
+    // Find existing pending bill instance for this vendor
+    // Try multiple matching strategies
     const existingBill = await prisma.billInstance.findFirst({
       where: {
-        vendor: { contains: parsed.vendor.split(' ')[0] }, // Match first word of vendor
-        period,
-        status: 'PENDING'
-      }
+        OR: [
+          // Match by recurring bill ID
+          { recurringBillId: recurringBill?.id, status: 'PENDING' },
+          // Match by exact vendor and period
+          { vendor: parsed.vendor, period: billPeriod, status: 'PENDING' },
+          // Match by partial vendor name and period
+          { vendor: { contains: parsed.vendor.split(' ')[0] }, period: billPeriod, status: 'PENDING' },
+          // Also check previous period in case payment is late
+          { vendor: { contains: parsed.vendor.split(' ')[0] }, status: 'PENDING' }
+        ]
+      },
+      orderBy: { dueDate: 'asc' } // Get oldest pending bill first
     })
 
     if (existingBill) {
-      // Mark as paid
+      // Mark as paid and update amount if we have it
       await prisma.billInstance.update({
         where: { id: existingBill.id },
         data: {
           status: 'PAID',
           paidDate: new Date(),
-          paidVia: parsed.paymentMethod || 'Confirmed via email'
+          paidVia: parsed.paymentMethod || 'Confirmed via email',
+          // Update amount if we have one and the current is 0 or different
+          ...(parsed.amount && (Number(existingBill.amount) === 0 || !existingBill.amount)
+            ? { amount: parsed.amount }
+            : {})
         }
       })
 
@@ -195,7 +234,7 @@ If this is not a bill or payment, return confidence: 0.`
       return { created: false, billId: existingBill.id, action: 'marked_paid' }
     } else {
       // Create a new bill instance marked as already paid
-      const billInstance = await this.createBillInstance(email, parsed, period, true)
+      const billInstance = await this.createBillInstance(email, parsed, billPeriod, true)
       return { created: true, billId: billInstance?.id, action: 'created_paid' }
     }
   }
@@ -206,31 +245,59 @@ If this is not a bill or payment, return confidence: 0.`
     period: string,
     founderCount: number
   ): Promise<{ created: boolean; billId?: string; action?: string }> {
-    // Check if we already have a bill for this vendor this period
+    // Find matching recurring bill for better vendor matching
+    const recurringBill = await this.matchRecurringBill(email)
+
+    // Determine the period for this bill (handle quarterly bills)
+    let billPeriod = period
+    if (recurringBill?.frequency === 'QUARTERLY') {
+      const now = new Date()
+      const quarter = Math.floor(now.getMonth() / 3) + 1
+      billPeriod = `${now.getFullYear()}-Q${quarter}`
+    }
+
+    // Check if we already have a bill for this vendor/recurring bill this period
     const existingBill = await prisma.billInstance.findFirst({
       where: {
-        vendor: parsed.vendor,
-        period,
+        OR: [
+          { recurringBillId: recurringBill?.id, period: billPeriod },
+          { vendor: parsed.vendor, period: billPeriod },
+          // Also match by partial vendor name
+          { vendor: { contains: parsed.vendor.split(' ')[0] }, period: billPeriod }
+        ],
         emailId: { not: email.id }
       }
     })
 
     if (existingBill) {
-      // Update amount if we now have one
-      if (parsed.amount && !existingBill.amount) {
+      // Update amount if we now have one (or if the amount changed for variable bills)
+      const shouldUpdateAmount = parsed.amount && (
+        !existingBill.amount ||
+        Number(existingBill.amount) === 0 ||
+        // For variable bills, always update to latest amount
+        (recurringBill?.amountType === 'VARIABLE' && parsed.amount !== Number(existingBill.amount))
+      )
+
+      if (shouldUpdateAmount) {
         await prisma.billInstance.update({
           where: { id: existingBill.id },
-          data: { amount: parsed.amount }
+          data: {
+            amount: parsed.amount,
+            // Update due date if we have a more specific one
+            ...(parsed.dueDate ? { dueDate: new Date(parsed.dueDate) } : {})
+          }
         })
 
         // Update founder payment amounts
-        if (founderCount > 0) {
+        if (founderCount > 0 && parsed.amount) {
           const perPerson = parsed.amount / founderCount
           await prisma.founderPayment.updateMany({
             where: { billInstanceId: existingBill.id },
             data: { amount: perPerson }
           })
         }
+
+        console.log(`[PARSER] Updated ${parsed.vendor} amount to $${parsed.amount}`)
       }
 
       await this.markProcessed(email.id, parsed.vendor, existingBill.id)
@@ -238,7 +305,7 @@ If this is not a bill or payment, return confidence: 0.`
     }
 
     // Create new bill instance
-    const billInstance = await this.createBillInstance(email, parsed, period, false)
+    const billInstance = await this.createBillInstance(email, parsed, billPeriod, false)
     return { created: true, billId: billInstance?.id, action: 'created_new' }
   }
 
