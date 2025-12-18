@@ -36,6 +36,16 @@ export async function POST(req: NextRequest) {
       code_verifier = body.code_verifier
     }
 
+    // Debug logging
+    console.log('OAuth token request:', {
+      contentType,
+      grant_type,
+      has_code: !!code,
+      has_redirect_uri: !!redirect_uri,
+      has_client_id: !!client_id,
+      has_client_secret: !!client_secret,
+    })
+
     // Validate grant_type
     if (grant_type !== 'authorization_code') {
       return NextResponse.json(
@@ -46,6 +56,7 @@ export async function POST(req: NextRequest) {
 
     // Validate required parameters
     if (!code || !redirect_uri || !client_id || !client_secret) {
+      console.error('Missing required parameters:', { code: !!code, redirect_uri: !!redirect_uri, client_id: !!client_id, client_secret: !!client_secret })
       return NextResponse.json(
         { error: 'invalid_request', error_description: 'Missing required parameters' },
         { status: 400 }
