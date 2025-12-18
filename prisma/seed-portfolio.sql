@@ -251,3 +251,40 @@ VALUES (
   0, 1, 18,
   NOW(), NOW()
 );
+
+-- BookFade - SaaS Barber Booking Platform
+INSERT INTO ServiceProject (id, title, slug, category, categories, clientName, description, challenge, solution, results, technologies, isFeatured, isActive, sortOrder, liveUrl, createdAt, updatedAt)
+VALUES (
+  UUID(),
+  'BookFade',
+  'bookfade',
+  'WEB_APP',
+  '["WEB_APP", "WEB_DEVELOPMENT"]',
+  'BookFade (47 Industries Product)',
+  'BookFade is a comprehensive SaaS booking platform designed specifically for barbers and barbershops. The platform features a marketing website, admin dashboard for barbers to manage their business, and custom booking pages for each barber. Barbers can set their own services, pricing, availability, and accept bookings 24/7 with automated SMS and email notifications.',
+  'Barbers and barbershops needed an affordable, professional booking solution that allows customers to book appointments online without phone calls. The platform needed to support both individual barbers and entire shops with multiple barbers, handle custom domains, integrate with calendars, and provide a seamless mobile experience.',
+  'We built a multi-tenant SaaS platform with separate domains for marketing (bookfade.com) and the application (bookfade.app). Each barber gets a unique booking page (bookfade.app/slug) and can optionally use their own custom domain. The platform includes a full admin dashboard for managing services, availability, appointments, and business analytics. We integrated Stripe for subscriptions, Twilio for SMS notifications, Google Calendar sync, and built a companion mobile app for barbers. The system supports both individual barbers and shop plans with multiple barbers.',
+  'BookFade successfully launched with a 14-day free trial model and tiered pricing (Barber plan at $29.99/month and Shop plan at $59.99/month). The platform features automated trial reminders, custom domain support via Cloudflare for SaaS, and comprehensive booking management with real-time availability.',
+  '["Next.js 16", "TypeScript", "React", "Tailwind CSS", "Prisma", "MySQL", "NextAuth.js", "Stripe", "Twilio", "Resend", "Google Calendar API", "Cloudflare for SaaS", "Railway"]',
+  1, 1, 3,
+  'https://bookfade.com',
+  NOW(), NOW()
+);
+
+-- InstaLeadAI - Instagram Lead Generation Platform
+INSERT INTO ServiceProject (id, title, slug, category, categories, clientName, description, challenge, solution, results, technologies, isFeatured, isActive, sortOrder, createdAt, updatedAt)
+VALUES (
+  UUID(),
+  'InstaLeadAI',
+  'instaleadai',
+  'IOS_APP',
+  '["IOS_APP", "WEB_APP"]',
+  '47 Industries (Internal Product)',
+  'InstaLeadAI is a complete Instagram lead generation and management system consisting of an iOS app and Node.js backend. The platform helps businesses capture leads from Instagram, track conversations, automate follow-ups, and convert prospects into appointments. Features include lead capture, Instagram account tracking, conversation flow automation, appointment scheduling, and real-time analytics dashboard.',
+  'Businesses using Instagram for lead generation struggled with manual lead tracking, follow-up management, and converting Instagram conversations into appointments. There was no integrated solution that combined lead capture, conversation tracking, and appointment scheduling in one seamless platform.',
+  'We built a native iOS app with SwiftUI for the frontend and a robust Node.js/Express API backend deployed on Railway. The system uses MySQL for data persistence and features real-time synchronization between the mobile app and backend. The architecture is designed for scalability with automatic deployments via GitHub to Railway, proper database schema management, and environment-driven configuration.',
+  'Successfully launched as an internal 47 Industries product for Instagram lead generation. The platform enables businesses to streamline their Instagram sales funnel with automated lead capture and conversation tracking.',
+  '["Swift", "SwiftUI", "Node.js", "Express.js", "MySQL", "Railway", "RESTful API"]',
+  0, 1, 4,
+  NOW(), NOW()
+);
