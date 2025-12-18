@@ -4,9 +4,9 @@ import { prisma } from '@/lib/prisma'
 import ScreenshotGallery from '@/components/projects/ScreenshotGallery'
 import ImageLightbox from '@/components/projects/ImageLightbox'
 
-// Force dynamic rendering - database not available at build time
+// Force dynamic rendering - always fetch fresh data from database
 export const dynamic = 'force-dynamic'
-export const revalidate = 0 // Disable caching completely
+export const revalidate = 0
 
 const CATEGORY_LABELS: Record<string, string> = {
   WEB_DEVELOPMENT: 'Web Development',
