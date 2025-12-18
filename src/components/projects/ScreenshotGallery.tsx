@@ -46,19 +46,22 @@ export default function ScreenshotGallery({ images, projectTitle }: ScreenshotGa
                 <h3 className="text-sm font-medium text-text-secondary mb-4">Desktop</h3>
               )}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {desktopImages.map((img, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setSelectedImage(img)}
-                    className="aspect-video rounded-xl overflow-hidden bg-surface hover:ring-2 hover:ring-accent/50 transition-all cursor-pointer"
-                  >
-                    <img
-                      src={img.url}
-                      alt={`${projectTitle} desktop screenshot ${i + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ))}
+                {desktopImages.map((img, i) => {
+                  const imageUrl = typeof img === 'string' ? img : (img?.url || img)
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => setSelectedImage(img)}
+                      className="aspect-video rounded-xl overflow-hidden bg-surface hover:ring-2 hover:ring-accent/50 transition-all cursor-pointer"
+                    >
+                      <img
+                        src={imageUrl}
+                        alt={`${projectTitle} desktop screenshot ${i + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  )
+                })}
               </div>
             </div>
           )}
@@ -73,37 +76,43 @@ export default function ScreenshotGallery({ images, projectTitle }: ScreenshotGa
               {/* Mobile: Horizontal scroll */}
               <div className="md:hidden overflow-x-auto pb-4 -mx-4 px-4">
                 <div className="flex gap-3" style={{ width: 'max-content' }}>
-                  {mobileImages.map((img, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setSelectedImage(img)}
-                      className="w-32 h-56 flex-shrink-0 rounded-lg overflow-hidden bg-surface"
-                    >
-                      <img
-                        src={img.url}
-                        alt={`${projectTitle} mobile screenshot ${i + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                    </button>
-                  ))}
+                  {mobileImages.map((img, i) => {
+                    const imageUrl = typeof img === 'string' ? img : (img?.url || img)
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => setSelectedImage(img)}
+                        className="w-32 h-56 flex-shrink-0 rounded-lg overflow-hidden bg-surface"
+                      >
+                        <img
+                          src={imageUrl}
+                          alt={`${projectTitle} mobile screenshot ${i + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
 
               {/* Desktop: Grid of mobile screenshots - smaller, phone-sized */}
               <div className="hidden md:flex md:flex-wrap md:gap-6 md:justify-center">
-                {mobileImages.map((img, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setSelectedImage(img)}
-                    className="w-48 h-auto rounded-xl overflow-hidden bg-surface hover:ring-2 hover:ring-accent/50 transition-all cursor-pointer shadow-lg"
-                  >
-                    <img
-                      src={img.url}
-                      alt={`${projectTitle} mobile screenshot ${i + 1}`}
-                      className="w-full h-auto object-contain"
-                    />
-                  </button>
-                ))}
+                {mobileImages.map((img, i) => {
+                  const imageUrl = typeof img === 'string' ? img : (img?.url || img)
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => setSelectedImage(img)}
+                      className="w-48 h-auto rounded-xl overflow-hidden bg-surface hover:ring-2 hover:ring-accent/50 transition-all cursor-pointer shadow-lg"
+                    >
+                      <img
+                        src={imageUrl}
+                        alt={`${projectTitle} mobile screenshot ${i + 1}`}
+                        className="w-full h-auto object-contain"
+                      />
+                    </button>
+                  )
+                })}
               </div>
             </div>
           )}
@@ -132,10 +141,10 @@ export default function ScreenshotGallery({ images, projectTitle }: ScreenshotGa
             onClick={(e) => e.stopPropagation()}
           >
             <img
-              src={selectedImage.url}
+              src={typeof selectedImage === 'string' ? selectedImage : (selectedImage?.url || selectedImage)}
               alt={`${projectTitle} screenshot`}
               className={`max-h-[85vh] w-auto rounded-lg shadow-2xl ${
-                selectedImage.type === 'mobile' ? 'max-w-[400px]' : 'max-w-full'
+                (typeof selectedImage === 'object' && selectedImage?.type === 'mobile') ? 'max-w-[400px]' : 'max-w-full'
               }`}
             />
           </div>
