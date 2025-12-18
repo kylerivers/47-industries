@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import crypto from 'crypto'
+import jwt from 'jsonwebtoken'
 
 // POST /api/oauth/token
 // OAuth 2.0 Token Endpoint
@@ -169,6 +170,27 @@ export async function POST(req: NextRequest) {
       data: { used: true }
     })
 
+    // Get user data for id_token
+    const user = await prisma.user.findUnique({
+      where: { id: authCode.userId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        image: true,
+        emailVerified: true,
+        role: true,
+        isFounder: true,
+      }
+    })
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'server_error', error_description: 'User not found' },
+        { status: 500 }
+      )
+    }
+
     // Generate access token
     const accessToken = crypto.randomBytes(32).toString('hex')
     const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
@@ -183,11 +205,39 @@ export async function POST(req: NextRequest) {
       }
     })
 
+    // Generate id_token (JWT) for OpenID Connect
+    const scopes = authCode.scopes as string[]
+    const baseUrl = process.env.NEXTAUTH_URL || 'https://admin.47industries.com'
+    const idTokenPayload: any = {
+      sub: user.id,
+      aud: client_id,
+      iss: baseUrl,
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60), // 30 days
+    }
+
+    // Add claims based on scopes
+    if (scopes.includes('email')) {
+      idTokenPayload.email = user.email
+      idTokenPayload.email_verified = !!user.emailVerified
+    }
+
+    if (scopes.includes('profile')) {
+      idTokenPayload.name = user.name
+      idTokenPayload.picture = user.image
+      idTokenPayload.role = user.role
+      idTokenPayload.isFounder = user.isFounder
+    }
+
+    const secret = process.env.NEXTAUTH_SECRET!
+    const idToken = jwt.sign(idTokenPayload, secret, { algorithm: 'HS256' })
+
     return NextResponse.json({
       access_token: accessToken,
       token_type: 'Bearer',
       expires_in: 30 * 24 * 60 * 60, // 30 days in seconds
-      scope: (authCode.scopes as string[]).join(' '),
+      scope: scopes.join(' '),
+      id_token: idToken,
     })
   } catch (error) {
     console.error('OAuth token error:', error)
