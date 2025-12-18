@@ -89,18 +89,18 @@ export default function ScreenshotGallery({ images, projectTitle }: ScreenshotGa
                 </div>
               </div>
 
-              {/* Desktop: Grid of mobile screenshots */}
-              <div className="hidden md:grid grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+              {/* Desktop: Grid of mobile screenshots - smaller, phone-sized */}
+              <div className="hidden md:flex md:flex-wrap md:gap-6 md:justify-center">
                 {mobileImages.map((img, i) => (
                   <button
                     key={i}
                     onClick={() => setSelectedImage(img)}
-                    className="aspect-[9/16] rounded-lg overflow-hidden bg-surface hover:ring-2 hover:ring-accent/50 transition-all cursor-pointer"
+                    className="w-48 h-auto rounded-xl overflow-hidden bg-surface hover:ring-2 hover:ring-accent/50 transition-all cursor-pointer shadow-lg"
                   >
                     <img
                       src={img.url}
                       alt={`${projectTitle} mobile screenshot ${i + 1}`}
-                      className="w-full h-full object-cover"
+                      className="w-full h-auto object-contain"
                     />
                   </button>
                 ))}
