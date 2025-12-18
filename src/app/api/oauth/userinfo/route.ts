@@ -68,6 +68,8 @@ export async function GET(req: NextRequest) {
         name: true,
         image: true,
         emailVerified: true,
+        role: true,
+        isFounder: true,
       }
     })
 
@@ -94,6 +96,8 @@ export async function GET(req: NextRequest) {
     if (scopes.includes('profile')) {
       userInfo.name = user.name
       userInfo.picture = user.image
+      userInfo.role = user.role
+      userInfo.isFounder = user.isFounder
     }
 
     return NextResponse.json(userInfo)
