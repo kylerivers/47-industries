@@ -16,13 +16,15 @@ export async function POST(req: NextRequest) {
     let code_verifier: string | null = null
 
     if (contentType.includes('application/x-www-form-urlencoded')) {
-      const formData = await req.formData()
-      grant_type = formData.get('grant_type') as string | null
-      code = formData.get('code') as string | null
-      redirect_uri = formData.get('redirect_uri') as string | null
-      client_id = formData.get('client_id') as string | null
-      client_secret = formData.get('client_secret') as string | null
-      code_verifier = formData.get('code_verifier') as string | null
+      // Parse URL-encoded form data
+      const text = await req.text()
+      const params = new URLSearchParams(text)
+      grant_type = params.get('grant_type')
+      code = params.get('code')
+      redirect_uri = params.get('redirect_uri')
+      client_id = params.get('client_id')
+      client_secret = params.get('client_secret')
+      code_verifier = params.get('code_verifier')
     } else {
       // Fallback to JSON for compatibility
       const body = await req.json()
