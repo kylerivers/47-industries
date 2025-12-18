@@ -72,6 +72,27 @@ async function main() {
     }
   }
 
+  // Create default settings
+  const settings = [
+    { key: 'shopEnabled', value: 'true', description: 'Enable the shop page' },
+    { key: 'customPrintingEnabled', value: 'true', description: 'Enable custom 3D printing requests' },
+    { key: 'digitalDownloadsEnabled', value: 'true', description: 'Enable digital downloads' },
+    { key: 'siteName', value: '47 Industries', description: 'Site name' },
+  ]
+
+  for (const setting of settings) {
+    const existing = await prisma.setting.findUnique({
+      where: { key: setting.key },
+    })
+
+    if (!existing) {
+      await prisma.setting.create({ data: setting })
+      console.log(`✅ Created setting: ${setting.key}`)
+    } else {
+      console.log(`✅ Setting already exists: ${setting.key}`)
+    }
+  }
+
   console.log('✅ Database seeding completed!')
 }
 
