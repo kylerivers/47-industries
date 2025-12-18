@@ -65,13 +65,24 @@ export class GmailScanner {
     const afterTimestamp = Math.floor(afterDate.getTime() / 1000)
 
     const query = `${this.buildSearchQuery()} after:${afterTimestamp}`
+    console.log(`[GMAIL] Search query: ${query.substring(0, 200)}...`)
 
     try {
+      // First try to get tokens to verify auth works
+      const tokens = await oauth2Client.getAccessToken()
+      if (!tokens.token) {
+        console.error('[GMAIL] Failed to get access token')
+        return []
+      }
+      console.log('[GMAIL] OAuth token obtained successfully')
+
       const response = await gmail.users.messages.list({
         userId: 'me',
         q: query,
-        maxResults: 20
+        maxResults: 50 // Increased from 20
       })
+
+      console.log(`[GMAIL] API returned ${response.data.messages?.length || 0} messages`)
 
       const messages = response.data.messages || []
       const emails: EmailMessage[] = []
@@ -116,7 +127,10 @@ export class GmailScanner {
 
       return emails
     } catch (error: any) {
-      console.error('Error fetching emails:', error.message)
+      console.error('[GMAIL] Error fetching emails:', error.message)
+      if (error.response?.data) {
+        console.error('[GMAIL] API error details:', JSON.stringify(error.response.data))
+      }
       return []
     }
   }

@@ -29,6 +29,16 @@ export async function GET(request: NextRequest) {
   try {
     console.log(`[SCAN] Starting bill scan (${daysBack} days back)...`)
 
+    // Check if Gmail is configured
+    if (!process.env.GMAIL_REFRESH_TOKEN) {
+      console.error('[SCAN] GMAIL_REFRESH_TOKEN not configured')
+      return NextResponse.json({
+        success: false,
+        error: 'Gmail not configured',
+        message: 'GMAIL_REFRESH_TOKEN environment variable is missing'
+      }, { status: 500 })
+    }
+
     // Fetch emails from specified days back
     const emails = await gmailScanner.fetchFromAllAccounts(daysBack)
     console.log(`[SCAN] Found ${emails.length} emails to process`)
