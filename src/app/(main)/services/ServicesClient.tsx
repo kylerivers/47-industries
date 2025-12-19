@@ -230,7 +230,7 @@ export default function ServicesClient({ packages, projects }: ServicesClientPro
                     <div className="text-sm text-text-secondary">Mobile Apps</div>
                   </div>
                   <div className="bg-background border border-border rounded-xl p-4">
-                    <div className="text-2xl font-bold text-accent mb-1">Custom</div>
+                    <div className="text-2xl font-bold text-accent mb-1">$400</div>
                     <div className="text-sm text-text-secondary">AI Automation</div>
                   </div>
                 </div>
