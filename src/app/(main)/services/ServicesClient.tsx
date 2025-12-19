@@ -438,9 +438,12 @@ export default function ServicesClient({ packages, projects }: ServicesClientPro
             </div>
           </div>
         </div>
+      </div>
+      </div>
 
-        {/* Technologies */}
-        <div className="mb-20">
+      {/* Technologies */}
+      <div className="py-20 bg-surface/30">
+        <div className="container mx-auto px-6">
           <h2 className="text-4xl font-bold mb-8 text-center">Technologies We Use</h2>
           <div className="flex flex-wrap gap-4 justify-center max-w-4xl mx-auto">
             {technologies.map((tech) => (
@@ -453,22 +456,26 @@ export default function ServicesClient({ packages, projects }: ServicesClientPro
             ))}
           </div>
         </div>
+      </div>
 
-        {/* CTA */}
-        <div className="text-center py-16 border-t border-border">
-          <h2 className="text-4xl font-bold mb-6">Ready to start your project?</h2>
-          <p className="text-xl text-text-secondary mb-8 max-w-2xl mx-auto">
-            Let's discuss your ideas and create something amazing together.
-          </p>
-          <Link
-            href="/contact"
-            className="inline-flex items-center px-10 py-5 bg-text-primary text-background rounded-lg text-lg font-medium hover:bg-text-secondary transition-all"
-          >
-            Contact Us
-            <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-            </svg>
-          </Link>
+      {/* CTA */}
+      <div className="py-20">
+        <div className="container mx-auto px-6">
+          <div className="text-center py-16 border-t border-border">
+            <h2 className="text-4xl font-bold mb-6">Ready to start your project?</h2>
+            <p className="text-xl text-text-secondary mb-8 max-w-2xl mx-auto">
+              Let's discuss your ideas and create something amazing together.
+            </p>
+            <Link
+              href="/contact"
+              className="inline-flex items-center px-10 py-5 bg-text-primary text-background rounded-lg text-lg font-medium hover:bg-text-secondary transition-all"
+            >
+              Contact Us
+              <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </Link>
+          </div>
         </div>
       </div>
     </div>
