@@ -71,29 +71,7 @@ export default async function MotoRevProjectPage() {
   ]
 
   return (
-    <>
-      {/* Custom Brand Color Styles - MotoRev Red (#ff3b30) - Excludes navbar */}
-      {project.accentColor && (
-        <style dangerouslySetInnerHTML={{
-          __html: `
-            /* MotoRev brand red - Scoped to page content only, NOT navbar */
-            main .text-accent { color: #ff3b30 !important; }
-            main .bg-accent { background-color: #ff3b30 !important; }
-            main .bg-accent\\/10 { background-color: rgba(255, 59, 48, 0.1) !important; }
-            main .bg-accent\\/5 { background-color: rgba(255, 59, 48, 0.05) !important; }
-            main .border-accent { border-color: #ff3b30 !important; }
-            main .border-accent\\/20 { border-color: rgba(255, 59, 48, 0.2) !important; }
-            main .hover\\:bg-accent\\/90:hover { background-color: #ff2d1f !important; }
-            main .ring-accent\\/50 { --tw-ring-color: rgba(255, 59, 48, 0.5) !important; }
-
-            /* Gradient backgrounds matching MotoRev brand */
-            main .from-accent { --tw-gradient-from: #ff3b30 !important; }
-            main .to-accent { --tw-gradient-to: #ff2d1f !important; }
-            main .via-accent { --tw-gradient-via: #ff3b30 !important; }
-          `
-        }} />
-      )}
-      <div className="min-h-screen">
+    <div className="min-h-screen">
         {/* Hero Section - Same as other projects */}
         <div className="pt-20 pb-12 md:pt-24 md:pb-16">
         <div className="container mx-auto px-4 md:px-6">
@@ -171,38 +149,33 @@ export default async function MotoRevProjectPage() {
 
               {/* Action buttons */}
               <div className="flex flex-wrap gap-3">
-                {project.liveUrl && (
-                  <a
-                    href={project.liveUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center px-5 py-2.5 bg-accent text-white rounded-lg font-medium hover:bg-accent/90 transition-colors text-sm"
-                  >
-                    Join Beta
-                    <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                  </a>
-                )}
-                {project.videoUrl && (
-                  <a
-                    href={project.videoUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center px-5 py-2.5 bg-surface border border-border rounded-lg font-medium hover:bg-surface-elevated transition-colors text-sm"
-                  >
-                    Watch Video
-                    <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </a>
-                )}
+                <a
+                  href="https://motorevapp.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-5 py-2.5 bg-accent text-white rounded-lg font-medium hover:bg-accent/90 transition-colors text-sm"
+                >
+                  Download iOS Beta
+                  <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                </a>
+                <a
+                  href="https://motorev.app"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-5 py-2.5 bg-surface border border-accent text-accent rounded-lg font-medium hover:bg-accent hover:text-white transition-all text-sm"
+                >
+                  Try Web App
+                  <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                  </svg>
+                </a>
                 <Link
                   href="/start-project"
                   className="inline-flex items-center px-5 py-2.5 border border-border rounded-lg font-medium hover:bg-surface transition-colors text-sm"
                 >
-                  Start Your Project
+                  Build Similar App
                 </Link>
               </div>
             </div>
@@ -314,6 +287,21 @@ export default async function MotoRevProjectPage() {
       {/* MOTOREV-SPECIFIC SECTIONS BELOW */}
       {/* ============================================ */}
 
+      {/* Mission Statement */}
+      <div className="py-16 bg-gradient-to-b from-background to-surface/30">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">Built For Riders, By Riders</h2>
+            <p className="text-lg md:text-xl text-text-secondary leading-relaxed mb-8">
+              MotoRev isn't just another app—it's a tribute to the riding community and a testament to what's possible when passion meets technology. Born from a desire to honor Bryce Raiford's memory and unite riders worldwide, MotoRev represents months of development, thousands of lines of code, and a relentless commitment to excellence.
+            </p>
+            <p className="text-lg text-text-secondary leading-relaxed">
+              This is what 47 Industries builds: native iOS apps with SwiftUI, scalable web platforms, real-time GPS tracking, social communities, and complete product ecosystems. From concept to App Store submission to a growing user base, we bring ideas to life with world-class execution.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Features Grid */}
       <div className="py-16 bg-surface/30">
         <div className="container mx-auto px-4 md:px-6">
@@ -329,12 +317,61 @@ export default async function MotoRevProjectPage() {
         </div>
       </div>
 
+      {/* What Went Into This */}
+      <div className="py-16">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl font-bold mb-10 text-center">What Went Into This</h2>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="bg-surface/50 border border-border rounded-xl p-6">
+                <h3 className="text-xl font-bold mb-3">Native iOS Development</h3>
+                <p className="text-text-secondary text-sm mb-4">
+                  Built entirely in Swift with SwiftUI, leveraging the latest iOS frameworks for maximum performance and a native user experience. MapKit for GPS tracking, CoreLocation for precision, and CloudKit for seamless sync.
+                </p>
+              </div>
+              <div className="bg-surface/50 border border-border rounded-xl p-6">
+                <h3 className="text-xl font-bold mb-3">Full-Stack Web Platform</h3>
+                <p className="text-text-secondary text-sm mb-4">
+                  Companion web app at motorev.app built with modern web technologies. Real-time sync between mobile and web, responsive design, and a unified experience across all platforms.
+                </p>
+              </div>
+              <div className="bg-surface/50 border border-border rounded-xl p-6">
+                <h3 className="text-xl font-bold mb-3">Social Infrastructure</h3>
+                <p className="text-text-secondary text-sm mb-4">
+                  Custom-built social feed, user profiles, ride sharing, and community features. Real-time updates, image uploads, and engagement systems designed for the riding community.
+                </p>
+              </div>
+              <div className="bg-surface/50 border border-border rounded-xl p-6">
+                <h3 className="text-xl font-bold mb-3">Subscription & Payments</h3>
+                <p className="text-text-secondary text-sm mb-4">
+                  In-app purchase integration with StoreKit 2, subscription management, and seamless payment processing. Free tier with Pro upgrades at $9.99/mo or $99.99/yr.
+                </p>
+              </div>
+            </div>
+            <div className="mt-8 text-center">
+              <p className="text-text-secondary mb-6">
+                Want to build something like this? 47 Industries specializes in mobile apps, web platforms, and complete product ecosystems.
+              </p>
+              <Link
+                href="/start-project"
+                className="inline-flex items-center px-8 py-4 bg-accent text-white rounded-lg font-medium hover:bg-accent/90 transition-all"
+              >
+                Start Your Project
+                <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Development Roadmap */}
       <div className="py-16">
         <div className="container mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-bold mb-10 text-center">Development Roadmap</h2>
           <div className="max-w-2xl mx-auto space-y-0">
-            {/* Completed: App Development */}
+            {/* Milestone 1: iOS Development - COMPLETED */}
             <div className="flex gap-4 md:gap-6">
               <div className="flex flex-col items-center">
                 <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-green-500 flex items-center justify-center text-white">
@@ -346,12 +383,29 @@ export default async function MotoRevProjectPage() {
               </div>
               <div className="pb-8 pt-1">
                 <div className="text-sm text-green-500 font-semibold mb-1">COMPLETED</div>
-                <h3 className="text-lg md:text-xl font-bold mb-1">App Development</h3>
-                <p className="text-text-secondary text-sm">Core app built with Swift and SwiftUI</p>
+                <h3 className="text-lg md:text-xl font-bold mb-1">iOS Development</h3>
+                <p className="text-text-secondary text-sm">Native iOS app built with Swift and SwiftUI</p>
               </div>
             </div>
 
-            {/* In Progress: iOS Beta Testing */}
+            {/* Milestone 2: Public Beta - LIVE NOW */}
+            <div className="flex gap-4 md:gap-6">
+              <div className="flex flex-col items-center">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-green-500 flex items-center justify-center text-white">
+                  <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div className="w-px h-16 bg-border"></div>
+              </div>
+              <div className="pb-8 pt-1">
+                <div className="text-sm text-green-500 font-semibold mb-1">LIVE NOW</div>
+                <h3 className="text-lg md:text-xl font-bold mb-1">Public Beta</h3>
+                <p className="text-text-secondary text-sm">Available now via TestFlight at motorevapp.com</p>
+              </div>
+            </div>
+
+            {/* Milestone 3: App Store Submission - AWAITING APPROVAL */}
             <div className="flex gap-4 md:gap-6">
               <div className="flex flex-col items-center">
                 <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-accent flex items-center justify-center text-white animate-pulse">
@@ -362,38 +416,53 @@ export default async function MotoRevProjectPage() {
                 <div className="w-px h-16 bg-border"></div>
               </div>
               <div className="pb-8 pt-1">
-                <div className="text-sm text-accent font-semibold mb-1">IN PROGRESS</div>
-                <h3 className="text-lg md:text-xl font-bold mb-1">iOS Beta Testing</h3>
-                <p className="text-text-secondary text-sm">Testing with real users via TestFlight</p>
+                <div className="text-sm text-accent font-semibold mb-1">AWAITING APPROVAL</div>
+                <h3 className="text-lg md:text-xl font-bold mb-1">App Store Submission</h3>
+                <p className="text-text-secondary text-sm">Submitted December 17, 2025 - pending Apple review</p>
               </div>
             </div>
 
-            {/* Upcoming: iOS Public Launch */}
-            <div className="flex gap-4 md:gap-6">
-              <div className="flex flex-col items-center">
-                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-surface border-2 border-accent flex items-center justify-center text-accent font-bold text-sm">
-                  Dec
-                </div>
-                <div className="w-px h-16 bg-border"></div>
-              </div>
-              <div className="pb-8 pt-1">
-                <div className="text-sm text-text-secondary font-semibold mb-1">DECEMBER 17, 2025</div>
-                <h3 className="text-lg md:text-xl font-bold mb-1">iOS Public Launch</h3>
-                <p className="text-text-secondary text-sm">Available on Apple App Store</p>
-              </div>
-            </div>
-
-            {/* Future: Android Release */}
+            {/* Milestone 4: Android Development - Q1 2026 */}
             <div className="flex gap-4 md:gap-6">
               <div className="flex flex-col items-center">
                 <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-surface border border-border flex items-center justify-center text-text-secondary font-bold text-sm">
                   Q1
                 </div>
+                <div className="w-px h-16 bg-border"></div>
+              </div>
+              <div className="pb-8 pt-1">
+                <div className="text-sm text-text-secondary font-semibold mb-1">Q1 2026</div>
+                <h3 className="text-lg md:text-xl font-bold mb-1">Android Development</h3>
+                <p className="text-text-secondary text-sm">Research and development for Android version</p>
+              </div>
+            </div>
+
+            {/* Milestone 5: Android Beta - Q2-Q3 2026 */}
+            <div className="flex gap-4 md:gap-6">
+              <div className="flex flex-col items-center">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-surface border border-border flex items-center justify-center text-text-secondary font-bold text-xs">
+                  Q2-Q3
+                </div>
+                <div className="w-px h-16 bg-border"></div>
+              </div>
+              <div className="pb-8 pt-1">
+                <div className="text-sm text-text-secondary font-semibold mb-1">Q2-Q3 2026</div>
+                <h3 className="text-lg md:text-xl font-bold mb-1">Android Beta</h3>
+                <p className="text-text-secondary text-sm">Testing phase with Android users</p>
+              </div>
+            </div>
+
+            {/* Milestone 6: Android Public Release - Q3-Q4 2026 */}
+            <div className="flex gap-4 md:gap-6">
+              <div className="flex flex-col items-center">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-surface border border-border flex items-center justify-center text-text-secondary font-bold text-xs">
+                  Q3-Q4
+                </div>
               </div>
               <div className="pt-1">
-                <div className="text-sm text-text-secondary font-semibold mb-1">Q1 2026</div>
-                <h3 className="text-lg md:text-xl font-bold mb-1">Android Release</h3>
-                <p className="text-text-secondary text-sm">Coming to Google Play Store</p>
+                <div className="text-sm text-text-secondary font-semibold mb-1">Q3-Q4 2026</div>
+                <h3 className="text-lg md:text-xl font-bold mb-1">Android Public Release</h3>
+                <p className="text-text-secondary text-sm">Available on Google Play Store</p>
               </div>
             </div>
           </div>
@@ -487,27 +556,40 @@ export default async function MotoRevProjectPage() {
       {/* CTA Section */}
       <div className="py-16">
         <div className="container mx-auto px-4 md:px-6 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to ride?</h2>
-          <p className="text-lg text-text-secondary mb-8 max-w-xl mx-auto">
-            Join thousands of riders tracking their adventures with MotoRev
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Experience MotoRev Today</h2>
+          <p className="text-lg text-text-secondary mb-8 max-w-2xl mx-auto">
+            Join thousands of riders tracking their journeys. Try the iOS beta or explore the web app. This is what 47 Industries builds—powerful, meaningful software that brings communities together.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
             <a
-              href={project.liveUrl || 'https://motorevapp.com'}
+              href="https://motorevapp.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center px-8 py-4 bg-text-primary text-background rounded-lg font-medium hover:bg-text-secondary transition-all"
+              className="inline-flex items-center justify-center px-8 py-4 bg-accent text-white rounded-lg font-medium hover:bg-accent/90 transition-all"
             >
-              Join Beta
+              Download iOS Beta
               <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
               </svg>
             </a>
+            <a
+              href="https://motorev.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center px-8 py-4 bg-surface border border-accent text-accent rounded-lg font-medium hover:bg-accent hover:text-white transition-all"
+            >
+              Try Web App
+              <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+              </svg>
+            </a>
+          </div>
+          <div className="flex justify-center">
             <Link
               href="/start-project"
               className="inline-flex items-center justify-center px-8 py-4 border border-border rounded-lg font-medium hover:bg-surface transition-colors"
             >
-              Start a Similar Project
+              Build Your Own Platform Like This
             </Link>
           </div>
 
@@ -518,6 +600,5 @@ export default async function MotoRevProjectPage() {
         </div>
       </div>
     </div>
-    </>
   )
 }
