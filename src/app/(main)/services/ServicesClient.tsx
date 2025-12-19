@@ -115,47 +115,221 @@ export default function ServicesClient({ packages, projects }: ServicesClientPro
   // Get packages for selected type (3 tiers per category)
   const displayPackages = packages.filter(pkg => pkg.category === selectedType)
 
-  const currentService = SERVICE_TYPES.find(t => t.id === selectedType)
+  // Get featured products (first 3 featured projects, prioritizing those with custom pages)
+  const featuredProducts = projects.filter(p => p.isFeatured).slice(0, 3)
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
-      <div className="pt-20 pb-8">
+      {/* Integrated Hero - Services + Work + Pricing at a Glance */}
+      <div className="pt-20 pb-12">
         <div className="container mx-auto px-6">
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              {currentService?.label || 'Our Services'}
-            </h1>
-            <p className="text-lg text-text-secondary mb-8">
-              {currentService?.description}
-            </p>
+          <div className="max-w-7xl mx-auto">
+            {/* Top: What We Do */}
+            <div className="text-center mb-12">
+              <h1 className="text-5xl md:text-6xl font-bold mb-4">
+                Software That Works
+              </h1>
+              <p className="text-xl text-text-secondary max-w-3xl mx-auto mb-8">
+                We build mobile apps, SaaS platforms, and websites. See our work, explore services, and start your project.
+              </p>
 
-            {/* Service Type Tabs */}
-            <div className="inline-flex flex-wrap justify-center gap-2 md:gap-3">
-              {SERVICE_TYPES.map((type) => (
-                <button
-                  key={type.id}
-                  onClick={() => setSelectedType(type.id)}
-                  className={`px-4 py-2 md:px-5 md:py-2.5 rounded-full text-sm font-medium transition-all ${
-                    selectedType === type.id
-                      ? 'bg-accent text-white'
-                      : 'bg-surface border border-border text-text-secondary hover:text-white hover:border-text-secondary'
-                  }`}
+              {/* Service Type Quick Nav */}
+              <div className="inline-flex flex-wrap justify-center gap-2">
+                {SERVICE_TYPES.slice(0, 6).map((type) => (
+                  <button
+                    key={type.id}
+                    onClick={() => {
+                      setSelectedType(type.id)
+                      document.getElementById('packages')?.scrollIntoView({ behavior: 'smooth' })
+                    }}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                      selectedType === type.id
+                        ? 'bg-accent text-white'
+                        : 'bg-surface border border-border text-text-secondary hover:border-accent'
+                    }`}
+                  >
+                    {type.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Middle: Featured Work Grid (3 columns) */}
+            <div className="grid md:grid-cols-3 gap-6 mb-12">
+              {featuredProducts.slice(0, 3).map((product) => (
+                <Link
+                  key={product.id}
+                  href={`/projects/${product.slug}`}
+                  className="group border border-border rounded-xl overflow-hidden hover:border-accent transition-all bg-surface"
                 >
-                  {type.label}
-                </button>
+                  <div className="aspect-video bg-surface-elevated relative overflow-hidden">
+                    {product.thumbnailUrl ? (
+                      <img
+                        src={product.thumbnailUrl}
+                        alt={product.title}
+                        className="object-cover w-full h-full group-hover:scale-105 transition-transform"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 text-text-secondary absolute inset-0 m-auto">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                      </div>
+                    )}
+                    <div className="absolute top-2 right-2 px-2 py-1 bg-accent text-white text-xs font-bold rounded">
+                      47 IND.
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-bold mb-1 group-hover:text-accent transition-colors line-clamp-1">
+                      {product.title}
+                    </h3>
+                    <p className="text-text-secondary text-sm line-clamp-1">{product.clientName}</p>
+                  </div>
+                </Link>
               ))}
+            </div>
+
+            {/* Bottom: Pricing Preview + CTA */}
+            <div className="bg-surface/50 border border-border rounded-2xl p-8">
+              <div className="grid md:grid-cols-2 gap-8 items-center">
+                <div>
+                  <h2 className="text-3xl font-bold mb-4">Transparent Pricing</h2>
+                  <p className="text-text-secondary mb-6">
+                    {SERVICE_TYPES.find(t => t.id === selectedType)?.description ||
+                     'Choose a service type above to see pricing options. Or contact us for custom quotes.'}
+                  </p>
+                  <div className="flex flex-wrap gap-3">
+                    <Link
+                      href="#packages"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        document.getElementById('packages')?.scrollIntoView({ behavior: 'smooth' })
+                      }}
+                      className="px-6 py-3 bg-accent text-white rounded-lg font-medium hover:bg-accent/90 transition-all"
+                    >
+                      View Packages
+                    </Link>
+                    <Link
+                      href="/contact"
+                      className="px-6 py-3 border border-border rounded-lg font-medium hover:bg-surface transition-all"
+                    >
+                      Get Custom Quote
+                    </Link>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-background border border-border rounded-xl p-4">
+                    <div className="text-2xl font-bold text-accent mb-1">$5K+</div>
+                    <div className="text-sm text-text-secondary">Websites</div>
+                  </div>
+                  <div className="bg-background border border-border rounded-xl p-4">
+                    <div className="text-2xl font-bold text-accent mb-1">$15K+</div>
+                    <div className="text-sm text-text-secondary">Web Apps</div>
+                  </div>
+                  <div className="bg-background border border-border rounded-xl p-4">
+                    <div className="text-2xl font-bold text-accent mb-1">$25K+</div>
+                    <div className="text-sm text-text-secondary">Mobile Apps</div>
+                  </div>
+                  <div className="bg-background border border-border rounded-xl p-4">
+                    <div className="text-2xl font-bold text-accent mb-1">Custom</div>
+                    <div className="text-sm text-text-secondary">AI Automation</div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-6 py-12">
-        {/* Pricing Cards */}
-        {displayPackages.length > 0 ? (
-          <div className="mb-20">
-            <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-              {displayPackages.map((pkg) => (
+      {/* Full Portfolio - All Projects */}
+      <div className="py-20" id="portfolio">
+        <div className="container mx-auto px-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl md:text-5xl font-bold mb-4">Our Portfolio</h2>
+              <p className="text-lg text-text-secondary max-w-2xl mx-auto">
+                Our own products and client work - websites, mobile apps, and SaaS platforms built for real businesses.
+              </p>
+            </div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {projects.map((project) => (
+                <Link
+                  key={project.id}
+                  href={`/projects/${project.slug}`}
+                  className="group border border-border rounded-xl overflow-hidden hover:border-accent/50 transition-all bg-surface"
+                >
+                  <div className="aspect-video bg-surface-elevated flex items-center justify-center relative overflow-hidden">
+                    {project.thumbnailUrl ? (
+                      <img
+                        src={project.thumbnailUrl}
+                        alt={project.title}
+                        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 text-text-secondary">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <div className="text-xs text-accent font-medium mb-2">
+                      {CATEGORY_LABELS[project.category] || project.category}
+                    </div>
+                    <h3 className="text-lg font-bold mb-1 group-hover:text-accent transition-colors line-clamp-1">
+                      {project.title}
+                    </h3>
+                    <p className="text-text-secondary text-sm">{project.clientName}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            {/* View More Button */}
+            <div className="mt-10 text-center">
+              <Link
+                href="/portfolio"
+                className="inline-flex items-center px-8 py-4 border border-border rounded-lg text-base font-medium hover:bg-surface hover:border-accent/50 transition-all"
+              >
+                View Full Portfolio
+                <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Service Packages Section */}
+      <div className="py-20 bg-surface/30" id="packages">
+        <div className="container mx-auto px-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl md:text-5xl font-bold mb-4">Service Packages</h2>
+              <p className="text-lg text-text-secondary max-w-2xl mx-auto mb-8">
+                Transparent pricing for common project types. Every project is unique - these are starting points for our conversations.
+              </p>
+
+              {/* Service Type Tabs */}
+              <div className="inline-flex flex-wrap justify-center gap-2 md:gap-3">
+                {SERVICE_TYPES.map((type) => (
+                  <button
+                    key={type.id}
+                    onClick={() => setSelectedType(type.id)}
+                    className={`px-4 py-2 md:px-5 md:py-2.5 rounded-full text-sm font-medium transition-all ${
+                      selectedType === type.id
+                        ? 'bg-accent text-white'
+                        : 'bg-surface border border-border text-text-secondary hover:text-white hover:border-text-secondary'
+                    }`}
+                  >
+                    {type.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Pricing Cards */}
+            {displayPackages.length > 0 ? (
+              <div className="grid lg:grid-cols-3 gap-8">
+                {displayPackages.map((pkg) => (
                 <div
                   key={pkg.id}
                   className={`border rounded-2xl p-8 ${
@@ -217,78 +391,22 @@ export default function ServicesClient({ packages, projects }: ServicesClientPro
                 </div>
               ))}
             </div>
-
+            ) : (
+              <div className="text-center py-12 border border-border rounded-2xl">
+                <p className="text-text-secondary">
+                  Service packages coming soon. Contact us for custom quotes.
+                </p>
+              </div>
+            )}
           </div>
-        ) : (
-          <div className="mb-20 text-center py-12 border border-border rounded-2xl max-w-4xl mx-auto">
-            <p className="text-text-secondary">
-              Service packages coming soon. Contact us for custom quotes.
-            </p>
-          </div>
-        )}
+        </div>
+      </div>
 
-        {/* Portfolio Section */}
-        {projects.length > 0 && (
-          <div className="mb-20">
-            <h2 className="text-4xl font-bold mb-4 text-center">Our Work</h2>
-            <p className="text-center text-text-secondary mb-12 max-w-2xl mx-auto">
-              Check out some of our recent projects
-            </p>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {projects.map((project) => (
-                <Link
-                  key={project.id}
-                  href={`/projects/${project.slug}`}
-                  className="group border border-border rounded-xl overflow-hidden hover:border-accent/50 transition-all bg-surface"
-                >
-                  <div className="aspect-video bg-surface-elevated flex items-center justify-center relative overflow-hidden">
-                    {project.thumbnailUrl ? (
-                      <img
-                        src={project.thumbnailUrl}
-                        alt={project.title}
-                        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 text-text-secondary">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                      </div>
-                    )}
-                    {project.isFeatured && (
-                      <div className="absolute top-2 right-2 px-2 py-1 bg-yellow-500/90 text-black text-xs font-semibold rounded">
-                        Featured
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-4">
-                    <div className="text-xs text-accent font-medium mb-2">
-                      {CATEGORY_LABELS[project.category] || project.category}
-                    </div>
-                    <h3 className="text-lg font-bold mb-1 group-hover:text-accent transition-colors line-clamp-1">
-                      {project.title}
-                    </h3>
-                    <p className="text-text-secondary text-sm">{project.clientName}</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-            {/* View More Button */}
-            <div className="mt-10 text-center">
-              <Link
-                href="/portfolio"
-                className="inline-flex items-center px-6 py-3 border border-border rounded-lg text-sm font-medium hover:bg-surface hover:border-accent/50 transition-all"
-              >
-                View Full Portfolio
-                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </Link>
-            </div>
-          </div>
-        )}
-
-        {/* Our Process */}
-        <div className="mb-20 bg-surface rounded-3xl p-12">
-          <h2 className="text-4xl font-bold mb-12 text-center">Our Process</h2>
+      {/* Our Process */}
+      <div className="py-20">
+        <div className="container mx-auto px-6">
+          <div className="max-w-6xl mx-auto bg-surface rounded-3xl p-12">
+            <h2 className="text-4xl font-bold mb-12 text-center">Our Process</h2>
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="text-5xl font-bold text-accent mb-4">01</div>
