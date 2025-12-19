@@ -566,7 +566,7 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
                 )}
                 <div className="text-sm text-text-secondary">
                   <p>Recommended: 800x450px</p>
-                  <p>Max 5MB, JPG or PNG</p>
+                  <p>Max 25MB, JPG or PNG</p>
                 </div>
               </div>
             </div>

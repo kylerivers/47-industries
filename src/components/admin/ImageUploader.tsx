@@ -261,7 +261,7 @@ export default function ImageUploader({
                 Drag and drop images here, or click to browse
               </p>
               <p style={{ color: '#71717a', fontSize: '12px', margin: 0 }}>
-                JPEG, PNG, WebP, or GIF (max 5MB each)
+                JPEG, PNG, WebP, or GIF (max 25MB each)
               </p>
             </>
           )}
