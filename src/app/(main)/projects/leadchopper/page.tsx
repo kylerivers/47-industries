@@ -243,43 +243,62 @@ export default async function LeadChopperPage() {
         </div>
       </div>
 
+      {/* Case Study Section - Standard Template */}
+      {(project.challenge || project.solution || project.results) && (
+        <div className="py-12 bg-surface/30">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+              {/* Challenge */}
+              {project.challenge && (
+                <div className="bg-background/50 rounded-xl p-6">
+                  <h2 className="text-lg font-bold mb-3">The Challenge</h2>
+                  <p className="text-text-secondary text-sm leading-relaxed">{project.challenge}</p>
+                </div>
+              )}
+
+              {/* Solution */}
+              {project.solution && (
+                <div className="bg-background/50 rounded-xl p-6">
+                  <h2 className="text-lg font-bold mb-3">Our Solution</h2>
+                  <p className="text-text-secondary text-sm leading-relaxed">{project.solution}</p>
+                </div>
+              )}
+
+              {/* Results */}
+              {project.results && (
+                <div className="bg-background/50 rounded-xl p-6">
+                  <h2 className="text-lg font-bold mb-3">Results</h2>
+                  <p className="text-text-secondary text-sm leading-relaxed">{project.results}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Key Metrics - Custom Section */}
-      <div className="py-12 bg-surface/30">
+      <div className="py-12 bg-background">
         <div className="container mx-auto px-4 md:px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
-            <div className="bg-background/50 rounded-lg p-4 text-center border border-border">
+            <div className="bg-surface rounded-lg p-4 text-center border border-border">
               <div className="text-2xl font-bold text-accent mb-1">85%</div>
               <div className="text-xs text-text-secondary">Open Rate</div>
             </div>
-            <div className="bg-background/50 rounded-lg p-4 text-center border border-border">
+            <div className="bg-surface rounded-lg p-4 text-center border border-border">
               <div className="text-2xl font-bold text-accent mb-1">32%</div>
               <div className="text-xs text-text-secondary">Reply Rate</div>
             </div>
-            <div className="bg-background/50 rounded-lg p-4 text-center border border-border">
+            <div className="bg-surface rounded-lg p-4 text-center border border-border">
               <div className="text-2xl font-bold text-accent mb-1">3</div>
               <div className="text-xs text-text-secondary">Channels</div>
             </div>
-            <div className="bg-background/50 rounded-lg p-4 text-center border border-border">
+            <div className="bg-surface rounded-lg p-4 text-center border border-border">
               <div className="text-2xl font-bold text-accent mb-1">24/7</div>
               <div className="text-xs text-text-secondary">Autopilot</div>
             </div>
           </div>
         </div>
       </div>
-
-      {/* The Challenge */}
-      {project.challenge && (
-        <div className="py-16 bg-surface/30">
-          <div className="container mx-auto px-4 md:px-6">
-            <div className="max-w-4xl mx-auto">
-              <h2 className="text-3xl font-bold mb-6 text-center">The Challenge</h2>
-              <p className="text-lg text-text-secondary leading-relaxed text-center">
-                {project.challenge}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Features Grid */}
       <div className="py-20">
@@ -332,20 +351,6 @@ export default async function LeadChopperPage() {
           </div>
         </div>
       </div>
-
-      {/* Solution */}
-      {project.solution && (
-        <div className="py-20">
-          <div className="container mx-auto px-4 md:px-6">
-            <div className="max-w-4xl mx-auto">
-              <h2 className="text-3xl font-bold mb-6 text-center">Our Solution</h2>
-              <p className="text-lg text-text-secondary leading-relaxed">
-                {project.solution}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Comparison Table */}
       <div className="py-20 bg-surface/30">
@@ -409,22 +414,6 @@ export default async function LeadChopperPage() {
           </div>
         </div>
       </div>
-
-      {/* Results */}
-      {project.results && (
-        <div className="py-20">
-          <div className="container mx-auto px-4 md:px-6">
-            <div className="max-w-4xl mx-auto">
-              <h2 className="text-3xl font-bold mb-6 text-center">Real Results</h2>
-              <div className="bg-surface/50 border border-border rounded-xl p-8">
-                <p className="text-lg text-text-secondary leading-relaxed">
-                  {project.results}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Tech Stack */}
       {technologies.length > 0 && (
