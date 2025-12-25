@@ -106,8 +106,8 @@ function getEmailTemplate(content: string, title: string = '47 Industries') {
       <!-- Header -->
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="email-header" style="background-color: #000000; border-bottom: 1px solid #27272a;">
         <tr>
-          <td align="center" style="padding: 40px 20px;">
-            <img src="${APP_URL}/logo.png" alt="47 Industries" style="height: 48px; width: auto; display: block;" />
+          <td style="padding: 24px 32px;">
+            <img src="${APP_URL}/logo.png" alt="47 Industries" style="height: 40px; width: auto; display: block; border-radius: 8px;" />
           </td>
         </tr>
       </table>
@@ -115,7 +115,7 @@ function getEmailTemplate(content: string, title: string = '47 Industries') {
       <!-- Body -->
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="email-body" style="background-color: #ffffff;">
         <tr>
-          <td align="center" style="padding: 48px 20px;">
+          <td align="center" style="padding: 40px 20px;">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="max-width: 600px; width: 100%;">
               <tr>
                 <td>
@@ -159,12 +159,12 @@ function getEmailTemplate(content: string, title: string = '47 Industries') {
 // Accent box component for reference numbers, quotes, etc
 function getAccentBox(title: string, value: string, subtitle?: string) {
   return `
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 32px 0;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 24px 0;">
       <tr>
-        <td align="center" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); padding: 32px; border-radius: 16px;">
-          <p style="margin: 0 0 12px 0; color: rgba(255,255,255,0.9); font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600;">${title}</p>
-          <p style="margin: 0; color: #ffffff; font-size: 40px; font-weight: 700; line-height: 1.1; letter-spacing: 0.5px;">${value}</p>
-          ${subtitle ? `<p style="margin: 12px 0 0 0; color: rgba(255,255,255,0.95); font-size: 15px;">${subtitle}</p>` : ''}
+        <td style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); padding: 24px; border-radius: 12px;">
+          <p style="margin: 0 0 8px 0; color: rgba(255,255,255,0.9); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">${title}</p>
+          <p style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 700; line-height: 1.2; letter-spacing: 0.3px;">${value}</p>
+          ${subtitle ? `<p style="margin: 8px 0 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">${subtitle}</p>` : ''}
         </td>
       </tr>
     </table>
@@ -259,10 +259,10 @@ export async function sendCustomRequestConfirmation(data: {
   quantity?: number
 }) {
   const content = `
-    <h1 style="margin: 0 0 16px 0; color: #18181b; font-size: 32px; font-weight: 700; line-height: 1.2;" class="text-primary">
+    <h1 style="margin: 0 0 12px 0; color: #18181b; font-size: 28px; font-weight: 700; line-height: 1.3;" class="text-primary">
       Hello ${data.name}!
     </h1>
-    <p style="margin: 0 0 8px 0; color: #52525b; font-size: 17px; line-height: 1.6;" class="text-secondary">
+    <p style="margin: 0 0 8px 0; color: #52525b; font-size: 16px; line-height: 1.6;" class="text-secondary">
       Thank you for submitting your 3D printing request. We've received your files and specifications and our team is reviewing them now.
     </p>
 
@@ -290,7 +290,7 @@ export async function sendCustomRequestConfirmation(data: {
       { number: 3, title: 'Quote Delivery', description: 'You\'ll receive an email with pricing and estimated delivery time' },
     ])}
 
-    <p style="margin: 40px 0 0 0; color: #52525b; font-size: 15px; text-align: center;" class="text-secondary">
+    <p style="margin: 32px 0 0 0; color: #52525b; font-size: 15px; text-align: center;" class="text-secondary">
       Expect to hear from us within <strong style="color: #18181b;" class="text-primary">24-48 hours</strong>
     </p>
   `
@@ -318,10 +318,10 @@ export async function sendContactConfirmation(data: {
   subject: string
 }) {
   const content = `
-    <h1 style="margin: 0 0 16px 0; color: #18181b; font-size: 32px; font-weight: 700; line-height: 1.2;" class="text-primary">
+    <h1 style="margin: 0 0 12px 0; color: #18181b; font-size: 28px; font-weight: 700; line-height: 1.3;" class="text-primary">
       Hello ${data.name}!
     </h1>
-    <p style="margin: 0 0 8px 0; color: #52525b; font-size: 17px; line-height: 1.6;" class="text-secondary">
+    <p style="margin: 0 0 8px 0; color: #52525b; font-size: 16px; line-height: 1.6;" class="text-secondary">
       Thank you for reaching out. We've received your message and will get back to you soon.
     </p>
 
@@ -377,10 +377,10 @@ export async function sendServiceInquiryConfirmation(data: {
     : `<span style="display: inline-block; background-color: #eff6ff; color: #3b82f6; padding: 8px 16px; border-radius: 24px; font-size: 14px; font-weight: 500;">${data.serviceType}</span>`
 
   const content = `
-    <h1 style="margin: 0 0 16px 0; color: #18181b; font-size: 32px; font-weight: 700; line-height: 1.2;" class="text-primary">
+    <h1 style="margin: 0 0 12px 0; color: #18181b; font-size: 28px; font-weight: 700; line-height: 1.3;" class="text-primary">
       Hello ${data.name}!
     </h1>
-    <p style="margin: 0 0 8px 0; color: #52525b; font-size: 17px; line-height: 1.6;" class="text-secondary">
+    <p style="margin: 0 0 8px 0; color: #52525b; font-size: 16px; line-height: 1.6;" class="text-secondary">
       Thank you for your interest in working with us. We've received your project inquiry and our team is excited to review it.
     </p>
 
@@ -423,7 +423,7 @@ export async function sendServiceInquiryConfirmation(data: {
       { number: 3, title: 'Proposal', description: 'You\'ll receive a detailed proposal with timeline and pricing' },
     ])}
 
-    <p style="margin: 40px 0 0 0; color: #52525b; font-size: 15px; text-align: center;" class="text-secondary">
+    <p style="margin: 32px 0 0 0; color: #52525b; font-size: 15px; text-align: center;" class="text-secondary">
       Expect to hear from us within <strong style="color: #18181b;" class="text-primary">1-2 business days</strong>
     </p>
   `
@@ -458,7 +458,7 @@ export async function sendAdminNotification(data: {
   }
 
   const content = `
-    <h1 style="margin: 0 0 16px 0; color: #18181b; font-size: 32px; font-weight: 700; line-height: 1.2;" class="text-primary">
+    <h1 style="margin: 0 0 12px 0; color: #18181b; font-size: 28px; font-weight: 700; line-height: 1.3;" class="text-primary">
       New ${typeLabels[data.type]}
     </h1>
 
@@ -501,7 +501,7 @@ export async function sendReplyEmail(data: {
   const from = data.senderName ? `${data.senderName} <${fromEmail}>` : fromEmail
 
   const content = `
-    <h1 style="margin: 0 0 32px 0; color: #18181b; font-size: 32px; font-weight: 700; line-height: 1.2;" class="text-primary">
+    <h1 style="margin: 0 0 32px 0; color: #18181b; font-size: 28px; font-weight: 700; line-height: 1.3;" class="text-primary">
       ${data.subject}
     </h1>
 
@@ -565,10 +565,10 @@ export async function sendOrderConfirmation(data: {
   }).join('')
 
   const content = `
-    <h1 style="margin: 0 0 16px 0; color: #18181b; font-size: 32px; font-weight: 700; line-height: 1.2;" class="text-primary">
+    <h1 style="margin: 0 0 12px 0; color: #18181b; font-size: 28px; font-weight: 700; line-height: 1.3;" class="text-primary">
       Thank you, ${data.name}!
     </h1>
-    <p style="margin: 0 0 8px 0; color: #52525b; font-size: 17px; line-height: 1.6;" class="text-secondary">
+    <p style="margin: 0 0 8px 0; color: #52525b; font-size: 16px; line-height: 1.6;" class="text-secondary">
       Your order has been confirmed and is being processed.
     </p>
 
@@ -622,7 +622,7 @@ export async function sendOrderConfirmation(data: {
       </table>
     `)}
 
-    <p style="margin: 40px 0 0 0; color: #52525b; font-size: 15px; text-align: center;" class="text-secondary">
+    <p style="margin: 32px 0 0 0; color: #52525b; font-size: 15px; text-align: center;" class="text-secondary">
       We'll send you tracking information once your order ships.
     </p>
   `
@@ -663,7 +663,7 @@ export async function sendShippingNotification(data: {
     <h1 style="margin: 0 0 16px 0; color: #18181b; font-size: 32px; font-weight: 700; text-align: center; line-height: 1.2;" class="text-primary">
       Your Order is On Its Way!
     </h1>
-    <p style="margin: 0 0 8px 0; color: #52525b; font-size: 17px; line-height: 1.6; text-align: center;" class="text-secondary">
+    <p style="margin: 0 0 8px 0; color: #52525b; font-size: 16px; line-height: 1.6; text-align: center;" class="text-secondary">
       Hello ${data.name}! Great news - your order has been shipped.
     </p>
 
@@ -677,7 +677,7 @@ export async function sendShippingNotification(data: {
 
     ${getButton('Track Your Package', trackingUrl)}
 
-    <p style="margin: 40px 0 0 0; color: #71717a; font-size: 14px; text-align: center; line-height: 1.6;" class="text-muted">
+    <p style="margin: 32px 0 0 0; color: #71717a; font-size: 14px; text-align: center; line-height: 1.6;" class="text-muted">
       Delivery times vary based on your location and shipping method.<br>
       Most orders arrive within 5-10 business days.
     </p>
@@ -742,7 +742,7 @@ export async function sendDigitalProductDelivery(data: {
     <h1 style="margin: 0 0 16px 0; color: #18181b; font-size: 32px; font-weight: 700; text-align: center; line-height: 1.2;" class="text-primary">
       Your Downloads Are Ready!
     </h1>
-    <p style="margin: 0 0 8px 0; color: #52525b; font-size: 17px; line-height: 1.6; text-align: center;" class="text-secondary">
+    <p style="margin: 0 0 8px 0; color: #52525b; font-size: 16px; line-height: 1.6; text-align: center;" class="text-secondary">
       Hello ${data.name || 'there'}! Your digital products are ready for download.
     </p>
 
@@ -794,10 +794,10 @@ export async function sendPaymentFailureNotification(data: {
       </div>
     </div>
 
-    <h1 style="margin: 0 0 16px 0; color: #18181b; font-size: 32px; font-weight: 700; line-height: 1.2;" class="text-primary">
+    <h1 style="margin: 0 0 12px 0; color: #18181b; font-size: 28px; font-weight: 700; line-height: 1.3;" class="text-primary">
       Hello ${data.name || 'there'},
     </h1>
-    <p style="margin: 0 0 8px 0; color: #52525b; font-size: 17px; line-height: 1.6;" class="text-secondary">
+    <p style="margin: 0 0 8px 0; color: #52525b; font-size: 16px; line-height: 1.6;" class="text-secondary">
       Unfortunately, we were unable to process your payment of <strong style="color: #18181b;" class="text-primary">$${data.amount.toFixed(2)}</strong>.
     </p>
 
@@ -845,17 +845,17 @@ export async function sendQuoteEmail(data: {
   notes?: string
 }) {
   const content = `
-    <h1 style="margin: 0 0 16px 0; color: #18181b; font-size: 32px; font-weight: 700; line-height: 1.2;" class="text-primary">
+    <h1 style="margin: 0 0 12px 0; color: #18181b; font-size: 28px; font-weight: 700; line-height: 1.3;" class="text-primary">
       Hello ${data.name}!
     </h1>
-    <p style="margin: 0 0 8px 0; color: #52525b; font-size: 17px; line-height: 1.6;" class="text-secondary">
+    <p style="margin: 0 0 8px 0; color: #52525b; font-size: 16px; line-height: 1.6;" class="text-secondary">
       Great news! We've reviewed your 3D printing request and prepared a quote for you.
     </p>
 
     ${getCard(`
       <div style="text-align: center; padding: 8px 0;">
         <p style="margin: 0 0 12px 0; color: #71717a; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;" class="text-muted">Request #${data.requestNumber}</p>
-        <p style="margin: 0 0 20px 0; color: #10b981; font-size: 56px; font-weight: 700; line-height: 1;">$${data.estimatedPrice.toFixed(2)}</p>
+        <p style="margin: 0 0 20px 0; color: #10b981; font-size: 36px; font-weight: 700; line-height: 1;">$${data.estimatedPrice.toFixed(2)}</p>
         <p style="margin: 0; color: #52525b; font-size: 16px;" class="text-secondary">Estimated delivery: <strong style="color: #18181b;" class="text-primary">${data.estimatedDays} business days</strong></p>
       </div>
     `)}
