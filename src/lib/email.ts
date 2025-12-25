@@ -33,7 +33,208 @@ export const EMAIL_ADDRESSES = {
 
 export type EmailAddress = keyof typeof EMAIL_ADDRESSES
 
-// Email templates
+// Unified email template with dark mode support
+function getEmailTemplate(content: string, title: string = '47 Industries') {
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="color-scheme" content="light dark">
+      <meta name="supported-color-schemes" content="light dark">
+      <title>${title}</title>
+      <style>
+        :root {
+          color-scheme: light dark;
+          supported-color-schemes: light dark;
+        }
+
+        /* Light mode (default) */
+        body {
+          margin: 0;
+          padding: 0;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+          background-color: #f4f4f5;
+          color: #18181b;
+        }
+
+        /* Dark mode */
+        @media (prefers-color-scheme: dark) {
+          body {
+            background-color: #0a0a0a !important;
+            color: #ffffff !important;
+          }
+          .email-container {
+            background-color: #0a0a0a !important;
+          }
+          .email-header {
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%) !important;
+            border-bottom: 1px solid #27272a !important;
+          }
+          .email-content {
+            background-color: #0a0a0a !important;
+            border-left: 1px solid #27272a !important;
+            border-right: 1px solid #27272a !important;
+          }
+          .email-footer {
+            background-color: #0a0a0a !important;
+            border: 1px solid #27272a !important;
+            color: #71717a !important;
+          }
+          .card {
+            background-color: #1a1a1a !important;
+            border: 1px solid #27272a !important;
+          }
+          .text-primary {
+            color: #ffffff !important;
+          }
+          .text-secondary {
+            color: #a1a1aa !important;
+          }
+          .text-muted {
+            color: #71717a !important;
+          }
+          .divider {
+            border-color: #27272a !important;
+          }
+          a {
+            color: #60a5fa !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f4f4f5;">
+        <tr>
+          <td align="center" style="padding: 40px 20px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="max-width: 600px; width: 100%;" class="email-container">
+
+              <!-- Header -->
+              <tr>
+                <td class="email-header" style="background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%); padding: 32px 40px; text-align: center; border-radius: 12px 12px 0 0;">
+                  <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600; letter-spacing: -0.5px;">47 Industries</h1>
+                  <p style="margin: 8px 0 0 0; color: #a1a1aa; font-size: 14px; letter-spacing: 0.5px;">Digital Solutions</p>
+                </td>
+              </tr>
+
+              <!-- Content -->
+              <tr>
+                <td class="email-content" style="background-color: #ffffff; padding: 40px; border-left: 1px solid #e4e4e7; border-right: 1px solid #e4e4e7;">
+                  ${content}
+                </td>
+              </tr>
+
+              <!-- Footer -->
+              <tr>
+                <td class="email-footer" style="background-color: #fafafa; padding: 32px 40px; text-align: center; border: 1px solid #e4e4e7; border-top: none; border-radius: 0 0 12px 12px;">
+                  <p style="margin: 0 0 12px 0; color: #71717a; font-size: 13px;">47 Industries - Digital Solutions</p>
+                  <p style="margin: 0 0 16px 0;">
+                    <a href="https://47industries.com" style="color: #3b82f6; text-decoration: none; font-size: 13px; font-weight: 500;">47industries.com</a>
+                  </p>
+                  <p style="margin: 0; color: #a1a1aa; font-size: 11px; line-height: 1.6;">
+                    Questions? Reply to this email or contact us at<br>
+                    <a href="mailto:support@47industries.com" style="color: #3b82f6; text-decoration: none;">support@47industries.com</a>
+                  </p>
+                </td>
+              </tr>
+
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `
+}
+
+// Accent box component for reference numbers, quotes, etc
+function getAccentBox(title: string, value: string, subtitle?: string) {
+  return `
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 24px 0;">
+      <tr>
+        <td style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); padding: 24px; border-radius: 12px; text-align: center;">
+          <p style="margin: 0 0 8px 0; color: rgba(255,255,255,0.8); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">${title}</p>
+          <p style="margin: 0; color: #ffffff; font-size: 32px; font-weight: 700; letter-spacing: 0.5px;">${value}</p>
+          ${subtitle ? `<p style="margin: 8px 0 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">${subtitle}</p>` : ''}
+        </td>
+      </tr>
+    </table>
+  `
+}
+
+// Card component for details
+function getCard(content: string, noPadding: boolean = false) {
+  const padding = noPadding ? '0' : '20px'
+  return `
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 16px 0;" class="card">
+      <tr>
+        <td style="background-color: #fafafa; border: 1px solid #e4e4e7; border-radius: 12px; padding: ${padding};">
+          ${content}
+        </td>
+      </tr>
+    </table>
+  `
+}
+
+// Button component
+function getButton(text: string, url: string, isPrimary: boolean = true) {
+  const bgColor = isPrimary ? '#3b82f6' : '#18181b'
+  const hoverColor = isPrimary ? '#2563eb' : '#27272a'
+
+  return `
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 24px auto;">
+      <tr>
+        <td align="center" style="border-radius: 8px; background-color: ${bgColor};">
+          <a href="${url}" style="display: inline-block; padding: 14px 32px; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 15px; letter-spacing: 0.3px;">${text}</a>
+        </td>
+      </tr>
+    </table>
+  `
+}
+
+// Detail row component
+function getDetailRow(label: string, value: string) {
+  return `
+    <tr>
+      <td style="padding: 12px 20px; border-bottom: 1px solid #e4e4e7;" class="divider">
+        <p style="margin: 0 0 4px 0; color: #71717a; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;" class="text-muted">${label}</p>
+        <p style="margin: 0; color: #18181b; font-size: 15px; font-weight: 500;" class="text-primary">${value}</p>
+      </td>
+    </tr>
+  `
+}
+
+// Timeline/steps component
+function getTimeline(steps: Array<{ number: number, title: string, description: string }>) {
+  const stepsHtml = steps.map(step => `
+    <tr>
+      <td style="padding: 16px 20px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+          <tr>
+            <td width="40" valign="top">
+              <div style="width: 32px; height: 32px; background-color: #3b82f6; color: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; text-align: center; line-height: 32px;">
+                ${step.number}
+              </div>
+            </td>
+            <td valign="top" style="padding-left: 16px;">
+              <p style="margin: 0 0 4px 0; color: #18181b; font-size: 15px; font-weight: 600;" class="text-primary">${step.title}</p>
+              <p style="margin: 0; color: #71717a; font-size: 14px; line-height: 1.5;" class="text-muted">${step.description}</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  `).join('')
+
+  return getCard(`
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+      ${stepsHtml}
+    </table>
+  `, true)
+}
+
+// 1. Custom 3D Print Request Confirmation
 export async function sendCustomRequestConfirmation(data: {
   to: string
   name: string
@@ -43,69 +244,52 @@ export async function sendCustomRequestConfirmation(data: {
   color?: string
   quantity?: number
 }) {
+  const content = `
+    <h2 style="margin: 0 0 16px 0; color: #18181b; font-size: 24px; font-weight: 700;" class="text-primary">
+      Hello ${data.name}!
+    </h2>
+    <p style="margin: 0 0 24px 0; color: #52525b; font-size: 15px; line-height: 1.6;" class="text-secondary">
+      Thank you for submitting your 3D printing request. We've received your files and specifications.
+    </p>
+
+    ${getAccentBox('Request Number', data.requestNumber)}
+
+    ${data.material ? getCard(`
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+        <tr>
+          <td style="padding: 0 0 16px 0;">
+            <p style="margin: 0; color: #18181b; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;" class="text-primary">Request Details</p>
+          </td>
+        </tr>
+        ${getDetailRow('Material', data.material)}
+        ${getDetailRow('Finish', data.finish || 'Standard')}
+        ${getDetailRow('Color', data.color || 'Default')}
+        ${getDetailRow('Quantity', String(data.quantity || 1))}
+      </table>
+    `, true) : ''}
+
+    <h3 style="margin: 32px 0 16px 0; color: #18181b; font-size: 16px; font-weight: 700;" class="text-primary">
+      What Happens Next
+    </h3>
+
+    ${getTimeline([
+      { number: 1, title: 'Review', description: 'Our team will review your 3D model and specifications' },
+      { number: 2, title: 'Quote Preparation', description: 'We\'ll prepare a detailed quote within 24-48 hours' },
+      { number: 3, title: 'Quote Delivery', description: 'You\'ll receive an email with pricing and estimated delivery time' },
+    ])}
+
+    <p style="margin: 32px 0 0 0; color: #52525b; font-size: 14px; text-align: center;" class="text-secondary">
+      Expect to hear from us within <strong style="color: #18181b;" class="text-primary">24-48 hours</strong>
+    </p>
+  `
+
   try {
     await getResend().emails.send({
       from: FROM_EMAIL,
       to: data.to,
       bcc: CONFIRMATION_BCC,
       subject: `3D Print Request Received - ${data.requestNumber}`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: #000; color: #fff; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
-            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
-            .highlight { background: #3b82f6; color: #fff; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0; }
-            .details { background: #fff; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #e5e5e5; }
-            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1 style="margin: 0;">47 Industries</h1>
-              <p style="margin: 10px 0 0 0; opacity: 0.8;">Custom 3D Printing</p>
-            </div>
-            <div class="content">
-              <h2>Hello ${data.name}!</h2>
-              <p>Thank you for submitting your 3D printing request. We've received your files and specifications.</p>
-
-              <div class="highlight">
-                <p style="margin: 0; font-size: 14px;">Your Request Number</p>
-                <p style="margin: 5px 0 0 0; font-size: 24px; font-weight: bold;">${data.requestNumber}</p>
-              </div>
-
-              ${data.material ? `
-              <div class="details">
-                <p style="margin: 0 0 10px 0; font-weight: bold;">Your Request Details:</p>
-                <p style="margin: 5px 0;"><strong>Material:</strong> ${data.material}</p>
-                <p style="margin: 5px 0;"><strong>Finish:</strong> ${data.finish || 'Standard'}</p>
-                <p style="margin: 5px 0;"><strong>Color:</strong> ${data.color || 'Default'}</p>
-                <p style="margin: 5px 0;"><strong>Quantity:</strong> ${data.quantity || 1}</p>
-              </div>
-              ` : ''}
-
-              <p><strong>What happens next?</strong></p>
-              <ol>
-                <li>Our team will review your 3D model and specifications</li>
-                <li>We'll prepare a detailed quote within 24-48 hours</li>
-                <li>You'll receive an email with pricing and estimated delivery time</li>
-              </ol>
-
-              <p>If you have any questions, simply reply to this email or contact us at support@47industries.com</p>
-
-              <div class="footer">
-                <p>47 Industries - Innovation in 3D Printing</p>
-                <p><a href="https://47industries.com">47industries.com</a></p>
-              </div>
-            </div>
-          </div>
-        </body>
-        </html>
-      `,
+      html: getEmailTemplate(content, '3D Print Request Received'),
     })
     return { success: true }
   } catch (error) {
@@ -114,63 +298,45 @@ export async function sendCustomRequestConfirmation(data: {
   }
 }
 
+// 2. Contact Form Confirmation
 export async function sendContactConfirmation(data: {
   to: string
   name: string
   inquiryNumber: string
   subject: string
 }) {
+  const content = `
+    <h2 style="margin: 0 0 16px 0; color: #18181b; font-size: 24px; font-weight: 700;" class="text-primary">
+      Hello ${data.name}!
+    </h2>
+    <p style="margin: 0 0 24px 0; color: #52525b; font-size: 15px; line-height: 1.6;" class="text-secondary">
+      Thank you for reaching out to us. We've received your inquiry about:
+    </p>
+
+    ${getCard(`
+      <p style="margin: 0; padding: 20px; color: #18181b; font-size: 15px; font-weight: 500; border-left: 4px solid #3b82f6; background-color: #eff6ff;" class="text-primary">
+        ${data.subject}
+      </p>
+    `)}
+
+    ${getAccentBox('Reference Number', data.inquiryNumber)}
+
+    <p style="margin: 0 0 24px 0; color: #52525b; font-size: 15px; line-height: 1.6;" class="text-secondary">
+      One of our team members will review your message and get back to you within 1-2 business days.
+    </p>
+
+    <p style="margin: 0; color: #52525b; font-size: 14px; text-align: center;" class="text-secondary">
+      In the meantime, feel free to explore our services at <a href="https://47industries.com" style="color: #3b82f6; text-decoration: none; font-weight: 500;">47industries.com</a>
+    </p>
+  `
+
   try {
     await getResend().emails.send({
       from: FROM_EMAIL,
       to: data.to,
       bcc: CONFIRMATION_BCC,
       subject: `We received your message - ${data.inquiryNumber}`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: #000; color: #fff; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
-            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
-            .highlight { background: #3b82f6; color: #fff; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0; }
-            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1 style="margin: 0;">47 Industries</h1>
-              <p style="margin: 10px 0 0 0; opacity: 0.8;">Web & App Development</p>
-            </div>
-            <div class="content">
-              <h2>Hello ${data.name}!</h2>
-              <p>Thank you for reaching out to us. We've received your inquiry about:</p>
-
-              <blockquote style="border-left: 4px solid #3b82f6; padding-left: 15px; margin: 20px 0; color: #555;">
-                ${data.subject}
-              </blockquote>
-
-              <div class="highlight">
-                <p style="margin: 0; font-size: 14px;">Reference Number</p>
-                <p style="margin: 5px 0 0 0; font-size: 24px; font-weight: bold;">${data.inquiryNumber}</p>
-              </div>
-
-              <p>One of our team members will review your message and get back to you within 1-2 business days.</p>
-
-              <p>In the meantime, feel free to check out our services at <a href="https://47industries.com">47industries.com</a></p>
-
-              <div class="footer">
-                <p>47 Industries - Digital Solutions</p>
-                <p><a href="https://47industries.com">47industries.com</a></p>
-              </div>
-            </div>
-          </div>
-        </body>
-        </html>
-      `,
+      html: getEmailTemplate(content, 'Message Received'),
     })
     return { success: true }
   } catch (error) {
@@ -179,6 +345,7 @@ export async function sendContactConfirmation(data: {
   }
 }
 
+// 3. Service Inquiry Confirmation
 export async function sendServiceInquiryConfirmation(data: {
   to: string
   name: string
@@ -193,10 +360,69 @@ export async function sendServiceInquiryConfirmation(data: {
   const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://47industries.com'
   const trackingUrl = `${APP_URL}/inquiry/${data.inquiryNumber}`
 
-  // Build services list HTML
   const servicesHtml = data.services && data.services.length > 0
-    ? data.services.map(s => `<span style="display: inline-block; background: #3b82f6; color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 13px; margin: 3px 4px 3px 0;">${s}</span>`).join('')
-    : `<span style="display: inline-block; background: #3b82f6; color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 13px;">${data.serviceType}</span>`
+    ? data.services.map(s => `
+        <span style="display: inline-block; background-color: #eff6ff; color: #3b82f6; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 500; margin: 4px 4px 4px 0;">
+          ${s}
+        </span>
+      `).join('')
+    : `<span style="display: inline-block; background-color: #eff6ff; color: #3b82f6; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 500;">${data.serviceType}</span>`
+
+  const content = `
+    <h2 style="margin: 0 0 16px 0; color: #18181b; font-size: 24px; font-weight: 700;" class="text-primary">
+      Hello ${data.name}!
+    </h2>
+    <p style="margin: 0 0 24px 0; color: #52525b; font-size: 15px; line-height: 1.6;" class="text-secondary">
+      Thank you for your interest in working with us. We've received your project inquiry and our team is excited to review it.
+    </p>
+
+    ${getAccentBox('Reference Number', data.inquiryNumber)}
+
+    ${getCard(`
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+        <tr>
+          <td style="padding: 0 0 16px 0;">
+            <p style="margin: 0; color: #18181b; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;" class="text-primary">Project Summary</p>
+          </td>
+        </tr>
+        ${data.projectName ? getDetailRow('Project Name', data.projectName) : ''}
+        <tr>
+          <td style="padding: 12px 20px; border-bottom: 1px solid #e4e4e7;" class="divider">
+            <p style="margin: 0 0 8px 0; color: #71717a; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;" class="text-muted">Services Requested</p>
+            <div style="margin: 0;">${servicesHtml}</div>
+          </td>
+        </tr>
+        ${data.budget ? getDetailRow('Budget Range', data.budget) : ''}
+        ${data.timeline ? getDetailRow('Timeline', data.timeline) : ''}
+        ${data.description ? `
+          <tr>
+            <td style="padding: 12px 20px;">
+              <p style="margin: 0 0 8px 0; color: #71717a; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;" class="text-muted">Project Description</p>
+              <p style="margin: 0; color: #52525b; font-size: 14px; line-height: 1.6;" class="text-secondary">${data.description.length > 200 ? data.description.substring(0, 200) + '...' : data.description}</p>
+            </td>
+          </tr>
+        ` : ''}
+      </table>
+    `, true)}
+
+    <div style="text-align: center;">
+      ${getButton('View Full Inquiry & Updates', trackingUrl)}
+    </div>
+
+    <h3 style="margin: 32px 0 16px 0; color: #18181b; font-size: 16px; font-weight: 700;" class="text-primary">
+      What Happens Next
+    </h3>
+
+    ${getTimeline([
+      { number: 1, title: 'Review', description: 'Our team will carefully review your project requirements' },
+      { number: 2, title: 'Discovery Call', description: 'We\'ll schedule a call to discuss your vision in detail' },
+      { number: 3, title: 'Proposal', description: 'You\'ll receive a detailed proposal with timeline and pricing' },
+    ])}
+
+    <p style="margin: 32px 0 0 0; color: #52525b; font-size: 14px; text-align: center;" class="text-secondary">
+      Expect to hear from us within <strong style="color: #18181b;" class="text-primary">1-2 business days</strong>
+    </p>
+  `
 
   try {
     await getResend().emails.send({
@@ -204,150 +430,7 @@ export async function sendServiceInquiryConfirmation(data: {
       to: data.to,
       bcc: CONFIRMATION_BCC,
       subject: `Project Inquiry Received - ${data.inquiryNumber}`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta name="color-scheme" content="light dark">
-          <meta name="supported-color-schemes" content="light dark">
-          <style>
-            :root { color-scheme: light dark; }
-            @media (prefers-color-scheme: dark) {
-              .email-body { background-color: #0a0a0a !important; }
-              .email-container { background-color: #0a0a0a !important; }
-              .content-box { background-color: #1a1a1a !important; border-color: #27272a !important; }
-              .text-primary { color: #ffffff !important; }
-              .text-secondary { color: #a1a1aa !important; }
-              .details-box { background-color: #0a0a0a !important; border-color: #27272a !important; }
-              .timeline-box { background-color: #0a0a0a !important; border-color: #27272a !important; }
-              .footer-text { color: #71717a !important; }
-            }
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif; line-height: 1.6; margin: 0; padding: 0; }
-          </style>
-        </head>
-        <body class="email-body" style="background-color: #f4f4f5; margin: 0; padding: 20px;">
-          <div class="email-container" style="max-width: 600px; margin: 0 auto; background-color: #f4f4f5;">
-
-            <!-- Header with Logo -->
-            <div style="background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%); padding: 40px 30px; text-align: center; border-radius: 12px 12px 0 0;">
-              <img src="${APP_URL}/logo.png" alt="47 Industries" style="height: 48px; margin-bottom: 16px;" />
-              <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 600;">Project Inquiry Received</h1>
-            </div>
-
-            <!-- Main Content -->
-            <div class="content-box" style="background-color: #ffffff; padding: 32px; border: 1px solid #e4e4e7; border-top: none;">
-
-              <p class="text-primary" style="color: #18181b; font-size: 16px; margin: 0 0 20px 0;">
-                Hello <strong>${data.name}</strong>,
-              </p>
-
-              <p class="text-secondary" style="color: #52525b; font-size: 15px; margin: 0 0 24px 0;">
-                Thank you for your interest in working with us. We've received your project inquiry and our team is excited to review it.
-              </p>
-
-              <!-- Reference Number Box -->
-              <div style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); padding: 24px; border-radius: 12px; text-align: center; margin-bottom: 24px;">
-                <p style="margin: 0 0 8px 0; color: rgba(255,255,255,0.8); font-size: 13px; text-transform: uppercase; letter-spacing: 1px;">Reference Number</p>
-                <p style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700; letter-spacing: 1px;">${data.inquiryNumber}</p>
-              </div>
-
-              <!-- Project Details -->
-              <div class="details-box" style="background-color: #fafafa; border: 1px solid #e4e4e7; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
-                <h3 class="text-primary" style="color: #18181b; font-size: 14px; font-weight: 600; margin: 0 0 16px 0; text-transform: uppercase; letter-spacing: 0.5px;">Project Summary</h3>
-
-                ${data.projectName ? `
-                <div style="margin-bottom: 12px;">
-                  <span class="text-secondary" style="color: #71717a; font-size: 13px;">Project Name</span>
-                  <p class="text-primary" style="color: #18181b; font-size: 15px; margin: 4px 0 0 0; font-weight: 500;">${data.projectName}</p>
-                </div>
-                ` : ''}
-
-                <div style="margin-bottom: 12px;">
-                  <span class="text-secondary" style="color: #71717a; font-size: 13px;">Services Requested</span>
-                  <div style="margin-top: 8px;">${servicesHtml}</div>
-                </div>
-
-                ${data.budget ? `
-                <div style="margin-bottom: 12px;">
-                  <span class="text-secondary" style="color: #71717a; font-size: 13px;">Budget Range</span>
-                  <p class="text-primary" style="color: #18181b; font-size: 15px; margin: 4px 0 0 0; font-weight: 500;">${data.budget}</p>
-                </div>
-                ` : ''}
-
-                ${data.timeline ? `
-                <div style="margin-bottom: 12px;">
-                  <span class="text-secondary" style="color: #71717a; font-size: 13px;">Timeline</span>
-                  <p class="text-primary" style="color: #18181b; font-size: 15px; margin: 4px 0 0 0; font-weight: 500;">${data.timeline}</p>
-                </div>
-                ` : ''}
-
-                ${data.description ? `
-                <div style="margin-bottom: 0;">
-                  <span class="text-secondary" style="color: #71717a; font-size: 13px;">Project Description</span>
-                  <p class="text-primary" style="color: #18181b; font-size: 14px; margin: 4px 0 0 0; line-height: 1.6;">${data.description.length > 200 ? data.description.substring(0, 200) + '...' : data.description}</p>
-                </div>
-                ` : ''}
-              </div>
-
-              <!-- View Full Details Button -->
-              <div style="text-align: center; margin-bottom: 24px;">
-                <a href="${trackingUrl}" style="display: inline-block; background: #18181b; color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">
-                  View Full Inquiry & Updates
-                </a>
-              </div>
-
-              <!-- What's Next Timeline -->
-              <div class="timeline-box" style="background-color: #fafafa; border: 1px solid #e4e4e7; border-radius: 12px; padding: 20px;">
-                <h3 class="text-primary" style="color: #18181b; font-size: 14px; font-weight: 600; margin: 0 0 16px 0; text-transform: uppercase; letter-spacing: 0.5px;">What Happens Next</h3>
-
-                <div style="display: flex; align-items: flex-start; margin-bottom: 16px;">
-                  <div style="width: 28px; height: 28px; background: #3b82f6; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; margin-right: 14px; flex-shrink: 0;">1</div>
-                  <div>
-                    <p class="text-primary" style="color: #18181b; font-size: 14px; font-weight: 600; margin: 0;">Review</p>
-                    <p class="text-secondary" style="color: #71717a; font-size: 13px; margin: 2px 0 0 0;">Our team will carefully review your project requirements</p>
-                  </div>
-                </div>
-
-                <div style="display: flex; align-items: flex-start; margin-bottom: 16px;">
-                  <div style="width: 28px; height: 28px; background: #3b82f6; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; margin-right: 14px; flex-shrink: 0;">2</div>
-                  <div>
-                    <p class="text-primary" style="color: #18181b; font-size: 14px; font-weight: 600; margin: 0;">Discovery Call</p>
-                    <p class="text-secondary" style="color: #71717a; font-size: 13px; margin: 2px 0 0 0;">We'll schedule a call to discuss your vision in detail</p>
-                  </div>
-                </div>
-
-                <div style="display: flex; align-items: flex-start;">
-                  <div style="width: 28px; height: 28px; background: #3b82f6; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; margin-right: 14px; flex-shrink: 0;">3</div>
-                  <div>
-                    <p class="text-primary" style="color: #18181b; font-size: 14px; font-weight: 600; margin: 0;">Proposal</p>
-                    <p class="text-secondary" style="color: #71717a; font-size: 13px; margin: 2px 0 0 0;">You'll receive a detailed proposal with timeline and pricing</p>
-                  </div>
-                </div>
-              </div>
-
-              <p class="text-secondary" style="color: #52525b; font-size: 14px; margin: 24px 0 0 0; text-align: center;">
-                Expect to hear from us within <strong style="color: #18181b;">1-2 business days</strong>.
-              </p>
-
-            </div>
-
-            <!-- Footer -->
-            <div style="padding: 24px 32px; text-align: center; border-radius: 0 0 12px 12px; background-color: #fafafa; border: 1px solid #e4e4e7; border-top: none;">
-              <p class="footer-text" style="color: #71717a; font-size: 13px; margin: 0 0 8px 0;">
-                47 Industries - Digital Solutions
-              </p>
-              <p style="margin: 0;">
-                <a href="https://47industries.com" style="color: #3b82f6; text-decoration: none; font-size: 13px;">47industries.com</a>
-              </p>
-              <p class="footer-text" style="color: #a1a1aa; font-size: 11px; margin: 16px 0 0 0;">
-                Questions? Reply to this email or visit your <a href="${trackingUrl}" style="color: #3b82f6; text-decoration: none;">inquiry page</a>.
-              </p>
-            </div>
-
-          </div>
-        </body>
-        </html>
-      `,
+      html: getEmailTemplate(content, 'Project Inquiry Received'),
     })
     return { success: true }
   } catch (error) {
@@ -356,44 +439,47 @@ export async function sendServiceInquiryConfirmation(data: {
   }
 }
 
+// 4. Admin Notification
 export async function sendAdminNotification(data: {
   type: 'custom_request' | 'contact' | 'order' | 'service_inquiry'
   title: string
   details: string
   link: string
 }) {
+  const typeLabels: Record<string, string> = {
+    custom_request: '3D Print Request',
+    contact: 'Contact Message',
+    order: 'Order',
+    service_inquiry: 'Service Inquiry',
+  }
+
+  const content = `
+    <h2 style="margin: 0 0 16px 0; color: #18181b; font-size: 24px; font-weight: 700;" class="text-primary">
+      New ${typeLabels[data.type]}
+    </h2>
+
+    <h3 style="margin: 0 0 24px 0; color: #3b82f6; font-size: 18px; font-weight: 600;">
+      ${data.title}
+    </h3>
+
+    ${getCard(`
+      <div style="padding: 20px;">
+        <pre style="margin: 0; color: #52525b; font-size: 14px; line-height: 1.6; white-space: pre-wrap; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', 'Roboto', sans-serif;" class="text-secondary">${data.details}</pre>
+      </div>
+    `)}
+
+    <div style="text-align: center;">
+      ${getButton('View in Admin Panel', data.link)}
+    </div>
+  `
+
   try {
     await getResend().emails.send({
       from: FROM_EMAIL,
       to: ADMIN_EMAIL,
       bcc: CONFIRMATION_BCC,
-      subject: `[47 Industries] New ${data.type.replace('_', ' ')} - ${data.title}`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: #1a1a1a; color: #fff; padding: 20px; border-radius: 8px 8px 0 0; }
-            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
-            .button { display: inline-block; background: #3b82f6; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin-top: 20px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h2 style="margin: 0;">New ${data.type.replace('_', ' ').toUpperCase()}</h2>
-            </div>
-            <div class="content">
-              <h3>${data.title}</h3>
-              <div style="white-space: pre-wrap;">${data.details}</div>
-              <a href="${data.link}" class="button">View in Admin Panel</a>
-            </div>
-          </div>
-        </body>
-        </html>
-      `,
+      subject: `[47 Industries] New ${typeLabels[data.type]} - ${data.title}`,
+      html: getEmailTemplate(content, `New ${typeLabels[data.type]}`),
     })
     return { success: true }
   } catch (error) {
@@ -402,6 +488,7 @@ export async function sendAdminNotification(data: {
   }
 }
 
+// 5. Reply Email
 export async function sendReplyEmail(data: {
   to: string
   subject: string
@@ -410,49 +497,34 @@ export async function sendReplyEmail(data: {
   fromAddress?: string
   senderName?: string
 }) {
-  try {
-    const fromEmail = data.fromAddress || FROM_EMAIL
-    const from = data.senderName ? `${data.senderName} <${fromEmail}>` : fromEmail
+  const fromEmail = data.fromAddress || FROM_EMAIL
+  const from = data.senderName ? `${data.senderName} <${fromEmail}>` : fromEmail
 
+  const content = `
+    <h2 style="margin: 0 0 24px 0; color: #18181b; font-size: 24px; font-weight: 700;" class="text-primary">
+      ${data.subject}
+    </h2>
+
+    ${getCard(`
+      <div style="padding: 20px;">
+        <div style="margin: 0; color: #18181b; font-size: 15px; line-height: 1.8; white-space: pre-wrap;" class="text-primary">${data.message.replace(/\n/g, '<br>')}</div>
+      </div>
+    `)}
+
+    ${data.referenceNumber ? `
+      <p style="margin: 24px 0 0 0; color: #71717a; font-size: 13px; text-align: center;" class="text-muted">
+        Reference: <strong style="color: #52525b;" class="text-secondary">${data.referenceNumber}</strong>
+      </p>
+    ` : ''}
+  `
+
+  try {
     await getResend().emails.send({
       from,
       to: data.to,
       bcc: CONFIRMATION_BCC,
       subject: data.referenceNumber ? `Re: ${data.subject} [${data.referenceNumber}]` : `Re: ${data.subject}`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: #000; color: #fff; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
-            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
-            .message { background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #e5e5e5; }
-            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1 style="margin: 0;">47 Industries</h1>
-            </div>
-            <div class="content">
-              <div class="message">
-                ${data.message.replace(/\n/g, '<br>')}
-              </div>
-
-              ${data.referenceNumber ? `<p style="margin-top: 20px; color: #666; font-size: 14px;">Reference: ${data.referenceNumber}</p>` : ''}
-
-              <div class="footer">
-                <p>47 Industries</p>
-                <p><a href="https://47industries.com">47industries.com</a></p>
-              </div>
-            </div>
-          </div>
-        </body>
-        </html>
-      `,
+      html: getEmailTemplate(content, data.subject),
     })
     return { success: true }
   } catch (error) {
@@ -461,6 +533,7 @@ export async function sendReplyEmail(data: {
   }
 }
 
+// 6. Order Confirmation
 export async function sendOrderConfirmation(data: {
   to: string
   name: string
@@ -471,90 +544,100 @@ export async function sendOrderConfirmation(data: {
   tax: number
   total: number
 }) {
-  try {
-    const itemsHtml = data.items.map(item => `
-      <tr>
-        <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.name}</td>
-        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
-        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">$${item.price.toFixed(2)}</td>
-      </tr>
-    `).join('')
+  const itemsHtml = data.items.map(item => `
+    <tr>
+      <td style="padding: 16px 20px; border-bottom: 1px solid #e4e4e7;" class="divider">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+          <tr>
+            <td width="60%" style="padding-right: 16px;">
+              <p style="margin: 0; color: #18181b; font-size: 15px; font-weight: 500;" class="text-primary">${item.name}</p>
+              <p style="margin: 4px 0 0 0; color: #71717a; font-size: 13px;" class="text-muted">Qty: ${item.quantity}</p>
+            </td>
+            <td width="40%" align="right">
+              <p style="margin: 0; color: #18181b; font-size: 15px; font-weight: 600;" class="text-primary">$${item.price.toFixed(2)}</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  `).join('')
 
+  const content = `
+    <h2 style="margin: 0 0 16px 0; color: #18181b; font-size: 24px; font-weight: 700;" class="text-primary">
+      Thank you, ${data.name}!
+    </h2>
+    <p style="margin: 0 0 24px 0; color: #52525b; font-size: 15px; line-height: 1.6;" class="text-secondary">
+      Your order has been confirmed and is being processed.
+    </p>
+
+    ${getAccentBox('Order Number', data.orderNumber)}
+
+    ${getCard(`
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+        <tr>
+          <td style="padding: 20px 20px 16px 20px;">
+            <p style="margin: 0; color: #18181b; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;" class="text-primary">Order Items</p>
+          </td>
+        </tr>
+        ${itemsHtml}
+      </table>
+    `, true)}
+
+    ${getCard(`
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+        <tr>
+          <td style="padding: 20px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+              <tr>
+                <td style="padding: 8px 0;">
+                  <p style="margin: 0; color: #52525b; font-size: 14px;" class="text-secondary">Subtotal</p>
+                </td>
+                <td align="right" style="padding: 8px 0;">
+                  <p style="margin: 0; color: #18181b; font-size: 14px; font-weight: 500;" class="text-primary">$${data.subtotal.toFixed(2)}</p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;">
+                  <p style="margin: 0; color: #52525b; font-size: 14px;" class="text-secondary">Shipping</p>
+                </td>
+                <td align="right" style="padding: 8px 0;">
+                  <p style="margin: 0; color: #18181b; font-size: 14px; font-weight: 500;" class="text-primary">$${data.shipping.toFixed(2)}</p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;">
+                  <p style="margin: 0; color: #52525b; font-size: 14px;" class="text-secondary">Tax</p>
+                </td>
+                <td align="right" style="padding: 8px 0;">
+                  <p style="margin: 0; color: #18181b; font-size: 14px; font-weight: 500;" class="text-primary">$${data.tax.toFixed(2)}</p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 16px 0 0 0; border-top: 2px solid #e4e4e7;" class="divider">
+                  <p style="margin: 0; color: #18181b; font-size: 16px; font-weight: 700;" class="text-primary">Total</p>
+                </td>
+                <td align="right" style="padding: 16px 0 0 0; border-top: 2px solid #e4e4e7;" class="divider">
+                  <p style="margin: 0; color: #18181b; font-size: 18px; font-weight: 700;" class="text-primary">$${data.total.toFixed(2)}</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    `)}
+
+    <p style="margin: 32px 0 0 0; color: #52525b; font-size: 14px; text-align: center;" class="text-secondary">
+      We'll send you another email with tracking information once your order ships.
+    </p>
+  `
+
+  try {
     await getResend().emails.send({
       from: FROM_EMAIL,
       to: data.to,
       bcc: CONFIRMATION_BCC,
       subject: `Order Confirmed - ${data.orderNumber}`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: #000; color: #fff; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
-            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
-            .highlight { background: #10b981; color: #fff; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0; }
-            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-            th { text-align: left; padding: 10px; border-bottom: 2px solid #ddd; }
-            .totals { background: #fff; padding: 15px; border-radius: 8px; }
-            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1 style="margin: 0;">47 Industries</h1>
-              <p style="margin: 10px 0 0 0; opacity: 0.8;">Order Confirmation</p>
-            </div>
-            <div class="content">
-              <h2>Thank you, ${data.name}!</h2>
-              <p>Your order has been confirmed and is being processed.</p>
-
-              <div class="highlight">
-                <p style="margin: 0; font-size: 14px;">Order Number</p>
-                <p style="margin: 5px 0 0 0; font-size: 24px; font-weight: bold;">${data.orderNumber}</p>
-              </div>
-
-              <table>
-                <thead>
-                  <tr>
-                    <th>Item</th>
-                    <th style="text-align: center;">Qty</th>
-                    <th style="text-align: right;">Price</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${itemsHtml}
-                </tbody>
-              </table>
-
-              <div class="totals">
-                <p style="margin: 5px 0; display: flex; justify-content: space-between;">
-                  <span>Subtotal:</span> <span>$${data.subtotal.toFixed(2)}</span>
-                </p>
-                <p style="margin: 5px 0; display: flex; justify-content: space-between;">
-                  <span>Shipping:</span> <span>$${data.shipping.toFixed(2)}</span>
-                </p>
-                <p style="margin: 5px 0; display: flex; justify-content: space-between;">
-                  <span>Tax:</span> <span>$${data.tax.toFixed(2)}</span>
-                </p>
-                <p style="margin: 15px 0 0 0; padding-top: 10px; border-top: 2px solid #ddd; display: flex; justify-content: space-between; font-size: 18px; font-weight: bold;">
-                  <span>Total:</span> <span>$${data.total.toFixed(2)}</span>
-                </p>
-              </div>
-
-              <p style="margin-top: 20px;">We'll send you another email with tracking information once your order ships.</p>
-
-              <div class="footer">
-                <p>47 Industries</p>
-                <p><a href="https://47industries.com">47industries.com</a></p>
-              </div>
-            </div>
-          </div>
-        </body>
-        </html>
-      `,
+      html: getEmailTemplate(content, 'Order Confirmed'),
     })
     return { success: true }
   } catch (error) {
@@ -563,6 +646,7 @@ export async function sendOrderConfirmation(data: {
   }
 }
 
+// 7. Shipping Notification
 export async function sendShippingNotification(data: {
   to: string
   name: string
@@ -570,65 +654,48 @@ export async function sendShippingNotification(data: {
   trackingNumber: string
   carrier: string
 }) {
-  try {
-    const trackingUrl = getCarrierTrackingUrl(data.carrier, data.trackingNumber)
+  const trackingUrl = getCarrierTrackingUrl(data.carrier, data.trackingNumber)
 
+  const content = `
+    <div style="text-align: center; margin: 0 0 24px 0;">
+      <div style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 24px; border-radius: 16px;">
+        <p style="margin: 0; color: #ffffff; font-size: 32px; font-weight: 700;">📦</p>
+        <p style="margin: 12px 0 0 0; color: #ffffff; font-size: 20px; font-weight: 700;">SHIPPED</p>
+      </div>
+    </div>
+
+    <h2 style="margin: 0 0 16px 0; color: #18181b; font-size: 24px; font-weight: 700; text-align: center;" class="text-primary">
+      Your Order is On Its Way!
+    </h2>
+    <p style="margin: 0 0 24px 0; color: #52525b; font-size: 15px; line-height: 1.6; text-align: center;" class="text-secondary">
+      Hello ${data.name}! Great news - your order has been shipped and is heading your way.
+    </p>
+
+    ${getCard(`
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+        ${getDetailRow('Order Number', data.orderNumber)}
+        ${getDetailRow('Carrier', data.carrier)}
+        ${getDetailRow('Tracking Number', data.trackingNumber)}
+      </table>
+    `, true)}
+
+    <div style="text-align: center;">
+      ${getButton('Track Your Package', trackingUrl)}
+    </div>
+
+    <p style="margin: 32px 0 0 0; color: #71717a; font-size: 13px; text-align: center;" class="text-muted">
+      Delivery times vary based on your location and shipping method selected.<br>
+      Most orders arrive within 5-10 business days.
+    </p>
+  `
+
+  try {
     await getResend().emails.send({
       from: FROM_EMAIL,
       to: data.to,
       bcc: CONFIRMATION_BCC,
       subject: `Your Order Has Shipped - ${data.orderNumber}`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: #000; color: #fff; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
-            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
-            .highlight { background: #10b981; color: #fff; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0; }
-            .tracking-box { background: #fff; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #e5e5e5; }
-            .button { display: inline-block; background: #3b82f6; color: #fff; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; }
-            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1 style="margin: 0;">47 Industries</h1>
-              <p style="margin: 10px 0 0 0; opacity: 0.8;">Shipping Notification</p>
-            </div>
-            <div class="content">
-              <div class="highlight">
-                <p style="margin: 0; font-size: 24px; font-weight: bold;">SHIPPED</p>
-                <p style="margin: 10px 0 0 0; font-size: 18px; font-weight: bold;">Your Order is On Its Way!</p>
-              </div>
-
-              <h2>Hello ${data.name}!</h2>
-              <p>Great news! Your order has been shipped and is on its way to you.</p>
-
-              <div class="tracking-box">
-                <p style="margin: 0 0 10px 0;"><strong>Order Number:</strong> ${data.orderNumber}</p>
-                <p style="margin: 0 0 10px 0;"><strong>Carrier:</strong> ${data.carrier}</p>
-                <p style="margin: 0;"><strong>Tracking Number:</strong> ${data.trackingNumber}</p>
-              </div>
-
-              <div style="text-align: center; margin: 30px 0;">
-                <a href="${trackingUrl}" class="button">Track Your Package</a>
-              </div>
-
-              <p style="color: #666; font-size: 14px;">Delivery times vary based on your location and shipping method selected. Most orders arrive within 5-10 business days.</p>
-
-              <div class="footer">
-                <p>47 Industries</p>
-                <p><a href="https://47industries.com">47industries.com</a></p>
-              </div>
-            </div>
-          </div>
-        </body>
-        </html>
-      `,
+      html: getEmailTemplate(content, 'Order Shipped'),
     })
     return { success: true }
   } catch (error) {
@@ -637,6 +704,7 @@ export async function sendShippingNotification(data: {
   }
 }
 
+// 8. Digital Product Delivery
 export async function sendDigitalProductDelivery(data: {
   to: string
   name: string
@@ -650,91 +718,74 @@ export async function sendDigitalProductDelivery(data: {
   }>
   total: number
 }) {
-  try {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://47industries.com'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://47industries.com'
 
-    const itemsHtml = data.items.map(item => {
-      const downloadLink = `${appUrl}/api/download/${item.downloadToken}`
-      const expiryDate = new Date(item.expiresAt).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })
+  const itemsHtml = data.items.map(item => {
+    const downloadLink = `${appUrl}/api/download/${item.downloadToken}`
+    const expiryDate = new Date(item.expiresAt).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
 
-      return `
-        <div style="background: #fff; padding: 20px; border-radius: 12px; margin: 15px 0; border: 1px solid #e5e5e5;">
-          <div style="display: flex; align-items: center; justify-content: space-between;">
-            <div>
-              <h3 style="margin: 0 0 8px 0; color: #1a1a1a;">${item.name}</h3>
-              <p style="margin: 0; color: #666; font-size: 14px;">
-                Downloads remaining: ${item.downloadLimit} • Expires: ${expiryDate}
-              </p>
+    return getCard(`
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+        <tr>
+          <td style="padding: 20px;">
+            <h3 style="margin: 0 0 12px 0; color: #18181b; font-size: 16px; font-weight: 700;" class="text-primary">${item.name}</h3>
+            <p style="margin: 0 0 16px 0; color: #71717a; font-size: 13px;" class="text-muted">
+              Downloads remaining: <strong>${item.downloadLimit}</strong> • Expires: <strong>${expiryDate}</strong>
+            </p>
+            <div style="text-align: left;">
+              ${getButton('Download File', downloadLink, false)}
             </div>
-          </div>
-          <a href="${downloadLink}"
-             style="display: inline-block; margin-top: 15px; background: #8b5cf6; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">
-            Download File
-          </a>
-        </div>
-      `
-    }).join('')
+          </td>
+        </tr>
+      </table>
+    `)
+  }).join('')
 
+  const content = `
+    <div style="text-align: center; margin: 0 0 24px 0;">
+      <div style="display: inline-block; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); padding: 24px; border-radius: 16px;">
+        <p style="margin: 0; color: #ffffff; font-size: 32px; font-weight: 700;">⬇</p>
+        <p style="margin: 12px 0 0 0; color: #ffffff; font-size: 20px; font-weight: 700;">READY</p>
+      </div>
+    </div>
+
+    <h2 style="margin: 0 0 16px 0; color: #18181b; font-size: 24px; font-weight: 700; text-align: center;" class="text-primary">
+      Your Downloads Are Ready!
+    </h2>
+    <p style="margin: 0 0 24px 0; color: #52525b; font-size: 15px; line-height: 1.6; text-align: center;" class="text-secondary">
+      Hello ${data.name || 'there'}! Thank you for your purchase. Your digital products are ready for download.
+    </p>
+
+    ${getAccentBox('Order Number', data.orderNumber)}
+
+    <h3 style="margin: 32px 0 16px 0; color: #18181b; font-size: 16px; font-weight: 700;" class="text-primary">
+      Your Downloads
+    </h3>
+
+    ${itemsHtml}
+
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 24px 0;">
+      <tr>
+        <td style="background-color: #fef3c7; border: 2px solid #f59e0b; border-radius: 12px; padding: 16px;">
+          <p style="margin: 0; color: #92400e; font-size: 14px; line-height: 1.6;">
+            <strong>Important:</strong> Download links are unique to your order and have limited downloads. Please save your files after downloading.
+          </p>
+        </td>
+      </tr>
+    </table>
+  `
+
+  try {
     await getResend().emails.send({
       from: FROM_EMAIL,
       to: data.to,
       bcc: CONFIRMATION_BCC,
       subject: `Your Digital Downloads Are Ready - ${data.orderNumber}`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); color: #fff; padding: 30px; text-align: center; border-radius: 12px 12px 0 0; }
-            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 12px 12px; }
-            .highlight { background: #8b5cf6; color: #fff; padding: 15px 20px; border-radius: 8px; text-align: center; margin: 20px 0; }
-            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
-            .icon { font-size: 48px; margin-bottom: 10px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <div class="icon" style="font-size: 48px; margin-bottom: 10px;">&#8595;</div>
-              <h1 style="margin: 0;">Your Downloads Are Ready!</h1>
-              <p style="margin: 10px 0 0 0; opacity: 0.9;">47 Industries Digital Products</p>
-            </div>
-            <div class="content">
-              <h2>Hello ${data.name || 'there'}!</h2>
-              <p>Thank you for your purchase! Your digital products are ready for download.</p>
-
-              <div class="highlight">
-                <p style="margin: 0; font-size: 14px;">Order Number</p>
-                <p style="margin: 5px 0 0 0; font-size: 24px; font-weight: bold;">${data.orderNumber}</p>
-              </div>
-
-              <h3 style="margin-top: 30px;">Your Downloads</h3>
-              ${itemsHtml}
-
-              <div style="background: #fef3c7; border: 1px solid #f59e0b; padding: 15px; border-radius: 8px; margin-top: 25px;">
-                <p style="margin: 0; color: #92400e; font-size: 14px;">
-                  <strong>Important:</strong> Download links are unique to your order and have limited downloads.
-                  Please save your files after downloading.
-                </p>
-              </div>
-
-              <p style="margin-top: 25px;">If you have any issues with your downloads, please contact us at support@47industries.com</p>
-
-              <div class="footer">
-                <p>47 Industries - Digital Products</p>
-                <p><a href="https://47industries.com" style="color: #8b5cf6;">47industries.com</a></p>
-              </div>
-            </div>
-          </div>
-        </body>
-        </html>
-      `,
+      html: getEmailTemplate(content, 'Downloads Ready'),
     })
     return { success: true }
   } catch (error) {
@@ -743,6 +794,7 @@ export async function sendDigitalProductDelivery(data: {
   }
 }
 
+// 9. Payment Failure Notification
 export async function sendPaymentFailureNotification(data: {
   to: string
   name: string
@@ -750,68 +802,53 @@ export async function sendPaymentFailureNotification(data: {
   amount: number
   reason?: string
 }) {
+  const content = `
+    <div style="text-align: center; margin: 0 0 24px 0;">
+      <div style="display: inline-block; background-color: #fef2f2; border: 2px solid #dc2626; padding: 24px; border-radius: 16px;">
+        <p style="margin: 0; color: #dc2626; font-size: 32px; font-weight: 700;">⚠</p>
+        <p style="margin: 12px 0 0 0; color: #dc2626; font-size: 20px; font-weight: 700;">PAYMENT FAILED</p>
+      </div>
+    </div>
+
+    <h2 style="margin: 0 0 16px 0; color: #18181b; font-size: 24px; font-weight: 700;" class="text-primary">
+      Hello ${data.name || 'there'},
+    </h2>
+    <p style="margin: 0 0 24px 0; color: #52525b; font-size: 15px; line-height: 1.6;" class="text-secondary">
+      Unfortunately, we were unable to process your payment of <strong style="color: #18181b;" class="text-primary">$${data.amount.toFixed(2)}</strong>.
+    </p>
+
+    ${data.reason ? getCard(`
+      <div style="padding: 20px;">
+        <p style="margin: 0; color: #dc2626; font-size: 14px; font-weight: 600;">Reason</p>
+        <p style="margin: 8px 0 0 0; color: #52525b; font-size: 14px;" class="text-secondary">${data.reason}</p>
+      </div>
+    `) : ''}
+
+    <h3 style="margin: 32px 0 16px 0; color: #18181b; font-size: 16px; font-weight: 700;" class="text-primary">
+      What You Can Do
+    </h3>
+
+    ${getCard(`
+      <ul style="margin: 0; padding: 20px 20px 20px 40px; color: #52525b; font-size: 14px; line-height: 1.8;" class="text-secondary">
+        <li>Check that your card details are correct</li>
+        <li>Ensure your card has sufficient funds</li>
+        <li>Contact your bank if the issue persists</li>
+        <li>Try a different payment method</li>
+      </ul>
+    `)}
+
+    <div style="text-align: center;">
+      ${getButton('Try Again', 'https://47industries.com/shop')}
+    </div>
+  `
+
   try {
     await getResend().emails.send({
       from: FROM_EMAIL,
       to: data.to,
       bcc: CONFIRMATION_BCC,
       subject: `Payment Failed${data.orderNumber ? ` - ${data.orderNumber}` : ''}`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: #000; color: #fff; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
-            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
-            .alert-box { background: #fef2f2; border: 1px solid #fecaca; padding: 20px; border-radius: 8px; margin: 20px 0; }
-            .alert-icon { color: #dc2626; font-size: 32px; }
-            .button { display: inline-block; background: #3b82f6; color: #fff; padding: 15px 30px; text-decoration: none; border-radius: 8px; margin-top: 15px; font-weight: bold; }
-            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1 style="margin: 0;">47 Industries</h1>
-              <p style="margin: 10px 0 0 0; opacity: 0.8;">Payment Notification</p>
-            </div>
-            <div class="content">
-              <h2>Hello ${data.name || 'there'},</h2>
-
-              <div class="alert-box">
-                <p class="alert-icon" style="margin: 0;">!</p>
-                <p style="margin: 10px 0 0 0; font-size: 18px; font-weight: bold; color: #dc2626;">Payment Failed</p>
-                <p style="margin: 10px 0 0 0; color: #7f1d1d;">
-                  Unfortunately, we were unable to process your payment of <strong>$${data.amount.toFixed(2)}</strong>.
-                </p>
-                ${data.reason ? `<p style="margin: 10px 0 0 0; color: #7f1d1d;">Reason: ${data.reason}</p>` : ''}
-              </div>
-
-              <p><strong>What you can do:</strong></p>
-              <ul>
-                <li>Check that your card details are correct</li>
-                <li>Ensure your card has sufficient funds</li>
-                <li>Contact your bank if the issue persists</li>
-                <li>Try a different payment method</li>
-              </ul>
-
-              <div style="text-align: center;">
-                <a href="https://47industries.com/shop" class="button">Try Again</a>
-              </div>
-
-              <p style="margin-top: 25px;">If you continue to experience issues, please contact us at support@47industries.com and we'll be happy to help.</p>
-
-              <div class="footer">
-                <p>47 Industries</p>
-                <p><a href="https://47industries.com">47industries.com</a></p>
-              </div>
-            </div>
-          </div>
-        </body>
-        </html>
-      `,
+      html: getEmailTemplate(content, 'Payment Failed'),
     })
     return { success: true }
   } catch (error) {
@@ -820,6 +857,63 @@ export async function sendPaymentFailureNotification(data: {
   }
 }
 
+// 10. 3D Print Quote Email
+export async function sendQuoteEmail(data: {
+  to: string
+  name: string
+  requestNumber: string
+  estimatedPrice: number
+  estimatedDays: number
+  notes?: string
+}) {
+  const content = `
+    <h2 style="margin: 0 0 16px 0; color: #18181b; font-size: 24px; font-weight: 700;" class="text-primary">
+      Hello ${data.name}!
+    </h2>
+    <p style="margin: 0 0 24px 0; color: #52525b; font-size: 15px; line-height: 1.6;" class="text-secondary">
+      Great news! We've reviewed your 3D printing request and prepared a quote for you.
+    </p>
+
+    ${getCard(`
+      <div style="padding: 24px; text-align: center;">
+        <p style="margin: 0 0 8px 0; color: #71717a; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;" class="text-muted">Request #${data.requestNumber}</p>
+        <p style="margin: 0 0 16px 0; color: #10b981; font-size: 48px; font-weight: 700; line-height: 1;">$${data.estimatedPrice.toFixed(2)}</p>
+        <p style="margin: 0; color: #52525b; font-size: 14px;" class="text-secondary">Estimated delivery: <strong style="color: #18181b;" class="text-primary">${data.estimatedDays} business days</strong></p>
+      </div>
+    `)}
+
+    ${data.notes ? getCard(`
+      <div style="padding: 20px;">
+        <p style="margin: 0 0 12px 0; color: #18181b; font-size: 14px; font-weight: 700;" class="text-primary">Notes from our team:</p>
+        <p style="margin: 0; color: #52525b; font-size: 14px; line-height: 1.6;" class="text-secondary">${data.notes}</p>
+      </div>
+    `) : ''}
+
+    <p style="margin: 24px 0; color: #52525b; font-size: 15px; line-height: 1.6;" class="text-secondary">
+      <strong style="color: #18181b;" class="text-primary">Ready to proceed?</strong> Simply reply to this email to confirm your order, or let us know if you have any questions.
+    </p>
+
+    <p style="margin: 0; color: #71717a; font-size: 13px; text-align: center;" class="text-muted">
+      This quote is valid for 14 days
+    </p>
+  `
+
+  try {
+    await getResend().emails.send({
+      from: FROM_EMAIL,
+      to: data.to,
+      bcc: CONFIRMATION_BCC,
+      subject: `Your 3D Print Quote is Ready - ${data.requestNumber}`,
+      html: getEmailTemplate(content, 'Quote Ready'),
+    })
+    return { success: true }
+  } catch (error) {
+    console.error('Failed to send quote email:', error)
+    return { success: false, error }
+  }
+}
+
+// Helper function for carrier tracking URLs
 function getCarrierTrackingUrl(carrier: string, trackingNumber: string): string {
   const carrierLower = carrier.toLowerCase()
 
@@ -837,77 +931,4 @@ function getCarrierTrackingUrl(carrier: string, trackingNumber: string): string 
   }
 
   return `https://www.google.com/search?q=${carrier}+tracking+${trackingNumber}`
-}
-
-export async function sendQuoteEmail(data: {
-  to: string
-  name: string
-  requestNumber: string
-  estimatedPrice: number
-  estimatedDays: number
-  notes?: string
-}) {
-  try {
-    await getResend().emails.send({
-      from: FROM_EMAIL,
-      to: data.to,
-      bcc: CONFIRMATION_BCC,
-      subject: `Your 3D Print Quote is Ready - ${data.requestNumber}`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: #000; color: #fff; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
-            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
-            .quote-box { background: #fff; padding: 25px; border-radius: 8px; border: 2px solid #3b82f6; margin: 20px 0; }
-            .price { font-size: 36px; font-weight: bold; color: #10b981; }
-            .button { display: inline-block; background: #3b82f6; color: #fff; padding: 15px 30px; text-decoration: none; border-radius: 8px; margin-top: 20px; font-weight: bold; }
-            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1 style="margin: 0;">47 Industries</h1>
-              <p style="margin: 10px 0 0 0; opacity: 0.8;">Custom 3D Printing</p>
-            </div>
-            <div class="content">
-              <h2>Hello ${data.name}!</h2>
-              <p>Great news! We've reviewed your 3D printing request and prepared a quote for you.</p>
-
-              <div class="quote-box">
-                <p style="margin: 0 0 10px 0; color: #666;">Request #${data.requestNumber}</p>
-                <p class="price">$${data.estimatedPrice.toFixed(2)}</p>
-                <p style="margin: 10px 0 0 0; color: #666;">Estimated delivery: ${data.estimatedDays} business days</p>
-              </div>
-
-              ${data.notes ? `
-                <div style="background: #fff; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                  <p style="margin: 0 0 10px 0; font-weight: bold;">Notes from our team:</p>
-                  <p style="margin: 0; color: #555;">${data.notes}</p>
-                </div>
-              ` : ''}
-
-              <p><strong>Ready to proceed?</strong> Simply reply to this email to confirm your order, or let us know if you have any questions.</p>
-
-              <p style="color: #666; font-size: 14px;">This quote is valid for 14 days.</p>
-
-              <div class="footer">
-                <p>47 Industries - Innovation in 3D Printing</p>
-                <p><a href="https://47industries.com">47industries.com</a></p>
-              </div>
-            </div>
-          </div>
-        </body>
-        </html>
-      `,
-    })
-    return { success: true }
-  } catch (error) {
-    console.error('Failed to send quote email:', error)
-    return { success: false, error }
-  }
 }
