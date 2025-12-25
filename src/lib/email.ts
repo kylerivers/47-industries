@@ -104,10 +104,16 @@ function getEmailTemplate(content: string, title: string = '47 Industries') {
     </head>
     <body>
       <!-- Header -->
-      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="email-header" style="background-color: #000000; border-bottom: 1px solid #27272a;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #000000 !important;">
         <tr>
-          <td style="padding: 24px 32px;">
-            <img src="${APP_URL}/logo.png" alt="47 Industries" style="height: 40px; width: auto; display: block; border-radius: 8px;" />
+          <td style="padding: 24px 32px; background-color: #000000;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 24px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px;">
+                  47 Industries
+                </td>
+              </tr>
+            </table>
           </td>
         </tr>
       </table>
