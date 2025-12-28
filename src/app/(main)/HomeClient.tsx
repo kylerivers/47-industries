@@ -25,6 +25,12 @@ type Project = {
   liveUrl: string | null
 }
 
+type Service = {
+  title: string
+  description: string
+  category: string
+}
+
 // Format category for display
 function formatCategory(category: string): string {
   // Handle special cases
@@ -49,9 +55,11 @@ function formatCategory(category: string): string {
 export default function HomeClient({
   featuredProducts,
   featuredProjects,
+  services,
 }: {
   featuredProducts: Product[]
   featuredProjects: Project[]
+  services: Service[]
 }) {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const heroRef = useRef<HTMLDivElement>(null)
@@ -91,7 +99,7 @@ export default function HomeClient({
     elements.forEach((el) => observer.observe(el))
 
     return () => observer.disconnect()
-  }, [featuredProjects])
+  }, [featuredProjects, services])
 
   return (
     <div className="min-h-screen">
@@ -154,27 +162,20 @@ export default function HomeClient({
             <div className="mb-16">
               <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-12 reveal">Services</h2>
 
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <Link href="/services?category=web" className="reveal group p-6 bg-background border border-border rounded-2xl hover:border-text-primary transition-all" data-delay="0">
-                  <h3 className="text-xl font-bold mb-2">Web Development</h3>
-                  <p className="text-text-secondary text-sm leading-relaxed">
-                    Websites and web applications built with modern technologies
-                  </p>
-                </Link>
-
-                <Link href="/services?category=app" className="reveal group p-6 bg-background border border-border rounded-2xl hover:border-text-primary transition-all" data-delay="100">
-                  <h3 className="text-xl font-bold mb-2">Mobile Apps</h3>
-                  <p className="text-text-secondary text-sm leading-relaxed">
-                    Native iOS and Android applications
-                  </p>
-                </Link>
-
-                <Link href="/services" className="reveal group p-6 bg-background border border-border rounded-2xl hover:border-text-primary transition-all" data-delay="200">
-                  <h3 className="text-xl font-bold mb-2">Consulting</h3>
-                  <p className="text-text-secondary text-sm leading-relaxed">
-                    Technical guidance and project planning
-                  </p>
-                </Link>
+              <div className="grid md:grid-cols-3 gap-6">
+                {services.map((service, index) => (
+                  <Link
+                    key={service.title}
+                    href={`/services?category=${service.category}`}
+                    className="reveal group p-6 bg-background border border-border rounded-2xl hover:border-text-primary transition-all"
+                    data-delay={index * 100}
+                  >
+                    <h3 className="text-xl font-bold mb-2">{service.title}</h3>
+                    <p className="text-text-secondary text-sm leading-relaxed">
+                      {service.description}
+                    </p>
+                  </Link>
+                ))}
               </div>
             </div>
 

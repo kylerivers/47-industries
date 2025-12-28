@@ -28,6 +28,25 @@ export default async function Home() {
     orderBy: { sortOrder: 'asc' },
   })
 
+  // Define the services we want to show
+  const services = [
+    {
+      title: 'Websites',
+      description: 'Custom websites and landing pages',
+      category: 'web',
+    },
+    {
+      title: 'Web Apps',
+      description: 'Web applications and SaaS platforms',
+      category: 'web',
+    },
+    {
+      title: 'Mobile',
+      description: 'iOS and Android applications',
+      category: 'app',
+    },
+  ]
+
   // Serialize data
   const serializedProducts = featuredProducts.map(product => ({
     id: product.id,
@@ -54,6 +73,7 @@ export default async function Home() {
     <HomeClient
       featuredProducts={serializedProducts}
       featuredProjects={serializedProjects}
+      services={services}
     />
   )
 }
