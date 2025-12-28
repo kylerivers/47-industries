@@ -87,20 +87,17 @@ export default function HomeClient({
         </div>
 
         <div className="container mx-auto px-6 relative z-10">
-          <div className="max-w-6xl mx-auto text-center">
+          <div className="max-w-6xl mx-auto">
             <div className="space-y-6 mb-12 fade-in-up">
-              <h1 className="text-6xl sm:text-7xl md:text-9xl font-bold tracking-tight leading-none gradient-text">
+              <h1 className="text-5xl sm:text-7xl md:text-9xl font-bold tracking-tight leading-none">
                 47 Industries
               </h1>
-              <p className="text-xl sm:text-2xl md:text-3xl text-text-secondary font-light max-w-4xl mx-auto fade-in-up delay-1">
-                Manufacturing excellence meets digital innovation
-              </p>
-              <p className="text-base sm:text-lg text-text-muted max-w-3xl mx-auto fade-in-up delay-2">
-                From custom 3D printing and manufacturing to cutting-edge web and mobile applications
+              <p className="text-xl sm:text-2xl md:text-3xl text-text-secondary font-light max-w-3xl fade-in-up delay-1">
+                Advanced manufacturing and digital innovation
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-20 fade-in-up delay-3">
+            <div className="flex flex-col sm:flex-row gap-4 mb-20 fade-in-up delay-2">
               <Link
                 href="/shop"
                 className="group px-8 py-4 bg-text-primary text-background rounded-lg font-medium hover:bg-text-secondary transition-all inline-flex items-center justify-center hover:scale-105 hover:shadow-lg hover:shadow-text-primary/20"
@@ -111,10 +108,10 @@ export default function HomeClient({
                 </svg>
               </Link>
               <Link
-                href="/custom-3d-printing"
+                href="/services"
                 className="group px-8 py-4 border border-border rounded-lg font-medium hover:bg-surface transition-all inline-flex items-center justify-center hover:scale-105 hover:border-text-primary"
               >
-                Request Custom Quote
+                View Services
               </Link>
             </div>
 
