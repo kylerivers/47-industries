@@ -146,120 +146,179 @@ export default function HomeClient({
         </div>
       </section>
 
-      {/* Services Section */}
+      {/* Services & Work Section */}
       <section className="py-16 md:py-32 bg-surface">
         <div className="container mx-auto px-6">
-          <div className="mb-12 md:mb-20">
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 reveal">Services</h2>
-            <p className="text-lg md:text-xl text-text-secondary max-w-2xl reveal" data-delay="100">
-              Comprehensive solutions for modern manufacturing and development
-            </p>
-          </div>
+          <div className="max-w-6xl mx-auto">
+            {/* Services */}
+            <div className="mb-16">
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-12 reveal">Services</h2>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-            {/* Web Apps */}
-            <Link href="/services?category=web" className="reveal group p-6 md:p-8 bg-background border border-border rounded-2xl hover:border-text-primary transition-all flex flex-col" data-delay="0">
-              <h3 className="text-xl md:text-2xl font-bold mb-3">Web Apps</h3>
-              <p className="text-text-secondary mb-6 leading-relaxed text-sm flex-grow">
-                Full-featured web applications with modern frameworks and scalable architecture.
-              </p>
-              <div className="text-text-primary group-hover:translate-x-2 transition-transform inline-flex items-center text-sm mt-auto">
-                View services
-                <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </div>
-            </Link>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <Link href="/services?category=web" className="reveal group p-6 bg-background border border-border rounded-2xl hover:border-text-primary transition-all" data-delay="0">
+                  <h3 className="text-xl font-bold mb-2">Web Development</h3>
+                  <p className="text-text-secondary text-sm leading-relaxed">
+                    Websites and web applications built with modern technologies
+                  </p>
+                </Link>
 
-            {/* Websites */}
-            <Link href="/services?category=web" className="reveal group p-6 md:p-8 bg-background border border-border rounded-2xl hover:border-text-primary transition-all flex flex-col" data-delay="100">
-              <h3 className="text-xl md:text-2xl font-bold mb-3">Websites</h3>
-              <p className="text-text-secondary mb-6 leading-relaxed text-sm flex-grow">
-                Custom websites built with modern technologies. Fast, secure, and beautifully designed.
-              </p>
-              <div className="text-text-primary group-hover:translate-x-2 transition-transform inline-flex items-center text-sm mt-auto">
-                View services
-                <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </div>
-            </Link>
+                <Link href="/services?category=app" className="reveal group p-6 bg-background border border-border rounded-2xl hover:border-text-primary transition-all" data-delay="100">
+                  <h3 className="text-xl font-bold mb-2">Mobile Apps</h3>
+                  <p className="text-text-secondary text-sm leading-relaxed">
+                    Native iOS and Android applications
+                  </p>
+                </Link>
 
-            {/* Mobile Development */}
-            <Link href="/services?category=app" className="reveal group p-6 md:p-8 bg-background border border-border rounded-2xl hover:border-text-primary transition-all flex flex-col" data-delay="200">
-              <h3 className="text-xl md:text-2xl font-bold mb-3">Mobile Development</h3>
-              <p className="text-text-secondary mb-6 leading-relaxed text-sm flex-grow">
-                Native and cross-platform mobile apps for iOS and Android.
-              </p>
-              <div className="text-text-primary group-hover:translate-x-2 transition-transform inline-flex items-center text-sm mt-auto">
-                Learn more
-                <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
+                <Link href="/services" className="reveal group p-6 bg-background border border-border rounded-2xl hover:border-text-primary transition-all" data-delay="200">
+                  <h3 className="text-xl font-bold mb-2">Consulting</h3>
+                  <p className="text-text-secondary text-sm leading-relaxed">
+                    Technical guidance and project planning
+                  </p>
+                </Link>
               </div>
-            </Link>
+            </div>
 
-            {/* Custom Manufacturing */}
-            <Link href="/custom-3d-printing" className="reveal group p-6 md:p-8 bg-background border border-border rounded-2xl hover:border-text-primary transition-all flex flex-col" data-delay="300">
-              <h3 className="text-xl md:text-2xl font-bold mb-3">Custom Manufacturing</h3>
-              <p className="text-text-secondary mb-6 leading-relaxed text-sm flex-grow">
-                Upload your designs and receive instant quotes. From prototypes to production runs.
-              </p>
-              <div className="text-text-primary group-hover:translate-x-2 transition-transform inline-flex items-center text-sm mt-auto">
-                Request quote
-                <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
+            {/* Featured Work */}
+            {featuredProjects.length > 0 && (
+              <div className="pt-16 border-t border-border">
+                <h3 className="text-3xl md:text-4xl font-bold mb-8 reveal">Featured Work</h3>
+
+                <div className="grid md:grid-cols-3 gap-6">
+                  {featuredProjects.slice(0, 3).map((project, index) => (
+                    <Link
+                      key={project.id}
+                      href={`/projects/${project.slug}`}
+                      className="reveal group block bg-background border border-border rounded-2xl overflow-hidden hover:border-text-primary transition-all"
+                      data-delay={index * 100}
+                    >
+                      <div className="aspect-video bg-surface relative overflow-hidden">
+                        {project.thumbnailUrl ? (
+                          <Image
+                            src={project.thumbnailUrl}
+                            alt={project.title}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-text-muted">
+                            No preview
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-4">
+                        <div className="text-xs text-accent mb-1 font-semibold">{formatCategory(project.category)}</div>
+                        <h4 className="font-bold mb-1">{project.title}</h4>
+                        <p className="text-text-secondary text-xs line-clamp-2">{project.description}</p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
               </div>
-            </Link>
+            )}
           </div>
         </div>
       </section>
 
-      {/* Featured Projects */}
-      {featuredProjects.length > 0 && (
-        <section className="py-16 md:py-32">
-          <div className="container mx-auto px-6">
-            <div className="mb-12 md:mb-20">
-              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 reveal">Featured Work</h2>
-              <p className="text-lg md:text-xl text-text-secondary max-w-2xl reveal" data-delay="100">
-                Recent projects we're proud of
+      {/* 3D Printing & Products Section */}
+      <section className="py-16 md:py-32">
+        <div className="container mx-auto px-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="mb-12">
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 reveal">3D Printing</h2>
+              <p className="text-lg md:text-xl text-text-secondary max-w-3xl reveal" data-delay="100">
+                From custom prototyping to premium ready-made products
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-6">
-              {featuredProjects.slice(0, 3).map((project, index) => (
-                <Link
-                  key={project.id}
-                  href={`/projects/${project.slug}`}
-                  className="reveal group block bg-surface border border-border rounded-2xl overflow-hidden hover:border-text-primary transition-all"
-                  data-delay={index * 100}
-                >
-                  <div className="aspect-video bg-background relative overflow-hidden">
-                    {project.thumbnailUrl ? (
-                      <Image
-                        src={project.thumbnailUrl}
-                        alt={project.title}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-text-muted">
-                        No preview
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-6">
-                    <div className="text-xs font-semibold text-accent mb-2 tracking-wider uppercase">{formatCategory(project.category)}</div>
-                    <h3 className="text-xl font-bold mb-2">{project.title}</h3>
-                    <p className="text-text-secondary text-sm leading-relaxed line-clamp-2">{project.description}</p>
-                  </div>
-                </Link>
-              ))}
+            <div className="grid md:grid-cols-2 gap-6 mb-12">
+              {/* Custom Prototyping */}
+              <Link href="/custom-3d-printing" className="reveal group p-8 bg-surface border border-border rounded-2xl hover:border-text-primary transition-all" data-delay="0">
+                <div className="mb-4">
+                  <svg className="w-12 h-12 text-text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold mb-3">Custom Prototyping</h3>
+                <p className="text-text-secondary mb-6 leading-relaxed">
+                  Upload your designs and receive instant quotes. Professional-grade 3D printing from prototypes to production runs with a variety of materials and finishes.
+                </p>
+                <div className="text-text-primary group-hover:translate-x-2 transition-transform inline-flex items-center font-medium">
+                  Get a quote
+                  <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </div>
+              </Link>
+
+              {/* Products */}
+              <Link href="/shop" className="reveal group p-8 bg-surface border border-border rounded-2xl hover:border-text-primary transition-all" data-delay="100">
+                <div className="mb-4">
+                  <svg className="w-12 h-12 text-text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold mb-3">Ready-Made Products</h3>
+                <p className="text-text-secondary mb-6 leading-relaxed">
+                  Browse our collection of premium 3D printed products. Unique designs, high-quality materials, ready to ship.
+                </p>
+                <div className="text-text-primary group-hover:translate-x-2 transition-transform inline-flex items-center font-medium">
+                  Browse products
+                  <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </div>
+              </Link>
             </div>
+
+            {/* Featured Products */}
+            {featuredProducts.length > 0 && (
+              <div className="pt-8 border-t border-border">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-2xl md:text-3xl font-bold reveal">Featured Products</h3>
+                  <Link href="/shop" className="reveal text-text-primary hover:text-text-secondary transition-colors text-sm font-medium" data-delay="100">
+                    View all →
+                  </Link>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {featuredProducts.slice(0, 4).map((product, index) => (
+                    <Link
+                      key={product.id}
+                      href={`/shop/${product.slug}`}
+                      className="reveal group block bg-surface border border-border rounded-xl overflow-hidden hover:border-text-primary transition-all"
+                      data-delay={index * 100}
+                    >
+                      <div className="aspect-square bg-background relative overflow-hidden">
+                        {product.images.length > 0 ? (
+                          <Image
+                            src={product.images[0]}
+                            alt={product.name}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-text-muted text-xs">
+                            No image
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-3">
+                        <h4 className="font-bold text-sm mb-1 line-clamp-1">{product.name}</h4>
+                        <div className="flex items-center gap-2">
+                          {product.comparePrice && (
+                            <span className="text-text-muted line-through text-xs">${parseFloat(product.comparePrice).toFixed(2)}</span>
+                          )}
+                          <span className="text-text-primary font-bold text-sm">${parseFloat(product.price).toFixed(2)}</span>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-        </section>
-      )}
+        </div>
+      </section>
 
       {/* CTA Section */}
       <section className="py-16 md:py-32 bg-surface">
