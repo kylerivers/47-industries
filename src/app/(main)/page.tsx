@@ -31,18 +31,18 @@ export default async function Home() {
   // Define the services we want to show
   const services = [
     {
-      title: 'Websites',
-      description: 'Custom websites and landing pages',
+      title: 'Web Development',
+      description: 'Custom websites, landing pages, and marketing sites built with modern frameworks. Fast, secure, and optimized for conversions.',
       category: 'web',
     },
     {
-      title: 'Web Apps',
-      description: 'Web applications and SaaS platforms',
+      title: 'Web Applications',
+      description: 'Full-featured web apps, SaaS platforms, and dashboards. Scalable architecture built to handle growth and complexity.',
       category: 'web',
     },
     {
-      title: 'Mobile',
-      description: 'iOS and Android applications',
+      title: 'Mobile Apps',
+      description: 'Native iOS and Android applications. Beautiful interfaces, seamless performance, and built for the App Store and Google Play.',
       category: 'app',
     },
   ]

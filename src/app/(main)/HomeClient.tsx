@@ -167,13 +167,19 @@ export default function HomeClient({
                   <Link
                     key={service.title}
                     href={`/services?category=${service.category}`}
-                    className="reveal group p-6 bg-background border border-border rounded-2xl hover:border-text-primary transition-all"
+                    className="reveal group p-8 bg-background border border-border rounded-2xl hover:border-text-primary transition-all flex flex-col"
                     data-delay={index * 100}
                   >
-                    <h3 className="text-xl font-bold mb-2">{service.title}</h3>
-                    <p className="text-text-secondary text-sm leading-relaxed">
+                    <h3 className="text-xl md:text-2xl font-bold mb-4">{service.title}</h3>
+                    <p className="text-text-secondary leading-relaxed flex-grow">
                       {service.description}
                     </p>
+                    <div className="text-text-primary group-hover:translate-x-2 transition-transform inline-flex items-center text-sm mt-6">
+                      View packages
+                      <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                      </svg>
+                    </div>
                   </Link>
                 ))}
               </div>
