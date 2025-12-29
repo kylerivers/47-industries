@@ -468,9 +468,13 @@ export async function sendReplyEmail(data: {
   referenceNumber?: string
   fromAddress?: string
   senderName?: string
+  inReplyTo?: string  // Message-ID of the message being replied to
 }) {
   const fromEmail = data.fromAddress || FROM_EMAIL
   const from = data.senderName ? `${data.senderName} <${fromEmail}>` : fromEmail
+
+  // Generate unique Message-ID for this email
+  const messageId = `<${Date.now()}.${Math.random().toString(36).substring(2)}@47industries.com>`
 
   const content = `
     <h1 style="margin: 0 0 32px 0; color: #18181b; font-size: 28px; font-weight: 700; line-height: 1.3;" class="text-primary">
@@ -489,14 +493,25 @@ export async function sendReplyEmail(data: {
   `
 
   try {
-    await getResend().emails.send({
+    const emailPayload: any = {
       from,
       to: data.to,
       bcc: CONFIRMATION_BCC,
       subject: data.referenceNumber ? `Re: ${data.subject} [${data.referenceNumber}]` : `Re: ${data.subject}`,
       html: getEmailTemplate(content, data.subject),
-    })
-    return { success: true }
+      headers: {
+        'Message-ID': messageId,
+      },
+    }
+
+    // Add threading headers if this is a reply
+    if (data.inReplyTo) {
+      emailPayload.headers['In-Reply-To'] = data.inReplyTo
+      emailPayload.headers['References'] = data.inReplyTo
+    }
+
+    await getResend().emails.send(emailPayload)
+    return { success: true, messageId }
   } catch (error) {
     console.error('Failed to send reply email:', error)
     return { success: false, error }

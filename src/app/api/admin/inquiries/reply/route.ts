@@ -15,6 +15,19 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Get the latest message from this inquiry for email threading
+    let inReplyTo: string | undefined
+    if (body.inquiryId) {
+      const latestMessage = await prisma.inquiryMessage.findFirst({
+        where: {
+          inquiryId: body.inquiryId,
+          emailMessageId: { not: null },
+        },
+        orderBy: { createdAt: 'desc' },
+      })
+      inReplyTo = latestMessage?.emailMessageId || undefined
+    }
+
     const result = await sendReplyEmail({
       to: body.to,
       subject: body.subject,
@@ -22,6 +35,7 @@ export async function POST(req: NextRequest) {
       referenceNumber: body.referenceNumber,
       fromAddress: 'contact@47industries.com',
       senderName: '47 Industries',
+      inReplyTo,
     })
 
     if (result.success) {
@@ -33,6 +47,10 @@ export async function POST(req: NextRequest) {
             message: body.message,
             isFromAdmin: true,
             senderName: body.senderName || '47 Industries',
+            senderEmail: 'contact@47industries.com',
+            emailMessageId: result.messageId,
+            emailInReplyTo: inReplyTo,
+            emailSubject: body.subject,
           },
         })
 

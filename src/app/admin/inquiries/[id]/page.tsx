@@ -5,6 +5,18 @@ import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { useToast } from '@/components/ui/Toast'
 
+interface InquiryMessage {
+  id: string
+  message: string
+  isFromAdmin: boolean
+  senderName: string | null
+  senderEmail: string | null
+  createdAt: string
+  isQuote: boolean
+  quoteAmount: number | null
+  quoteMonthly: number | null
+}
+
 interface ServiceInquiry {
   id: string
   inquiryNumber: string
@@ -44,6 +56,7 @@ interface ServiceInquiry {
   adminNotes?: string
   createdAt: string
   updatedAt: string
+  messages?: InquiryMessage[]
 }
 
 export default function InquiryDetailPage() {
@@ -214,6 +227,8 @@ export default function InquiryDetailPage() {
         setEmailSuccess('Email sent successfully!')
         setEmailSubject('')
         setEmailMessage('')
+        // Refresh inquiry to show new message in thread
+        await fetchInquiry()
         setTimeout(() => {
           setShowEmailModal(false)
           setEmailSuccess('')
@@ -259,7 +274,9 @@ export default function InquiryDetailPage() {
         // Update status to PROPOSAL_SENT
         setStatus('PROPOSAL_SENT')
         setEstimatedCost(quoteAmount || quoteMonthly || '')
-        handleSave()
+        // Refresh inquiry to show new message in thread
+        await fetchInquiry()
+        await handleSave()
       } else {
         const data = await res.json()
         showToast(data.error || 'Failed to send quote', 'error')
@@ -713,6 +730,122 @@ export default function InquiryDetailPage() {
               </div>
             </div>
           </div>
+
+          {/* Conversation Thread */}
+          {inquiry.messages && inquiry.messages.length > 0 && (
+            <div style={{
+              background: '#18181b',
+              border: '1px solid #27272a',
+              borderRadius: '16px',
+              padding: '24px',
+            }}>
+              <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '16px', margin: '0 0 16px 0' }}>
+                Conversation History ({inquiry.messages.length})
+              </h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {inquiry.messages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    style={{
+                      padding: '16px',
+                      background: msg.isFromAdmin ? '#3b82f610' : '#09090b',
+                      border: `1px solid ${msg.isFromAdmin ? '#3b82f630' : '#27272a'}`,
+                      borderRadius: '12px',
+                      borderLeft: `4px solid ${msg.isFromAdmin ? '#3b82f6' : '#71717a'}`,
+                    }}
+                  >
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'start',
+                      marginBottom: '8px',
+                      flexWrap: 'wrap',
+                      gap: '8px',
+                    }}>
+                      <div>
+                        <p style={{
+                          margin: 0,
+                          fontWeight: 600,
+                          fontSize: '14px',
+                          color: msg.isFromAdmin ? '#3b82f6' : '#ffffff',
+                        }}>
+                          {msg.senderName || (msg.isFromAdmin ? '47 Industries' : inquiry.name)}
+                        </p>
+                        {msg.senderEmail && (
+                          <p style={{
+                            margin: '2px 0 0 0',
+                            fontSize: '12px',
+                            color: '#71717a',
+                          }}>
+                            {msg.senderEmail}
+                          </p>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {msg.isQuote && (
+                          <span style={{
+                            padding: '3px 8px',
+                            background: '#10b98120',
+                            color: '#10b981',
+                            borderRadius: '4px',
+                            fontSize: '11px',
+                            fontWeight: 600,
+                          }}>
+                            QUOTE
+                          </span>
+                        )}
+                        <span style={{ fontSize: '12px', color: '#71717a' }}>
+                          {new Date(msg.createdAt).toLocaleString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                      </div>
+                    </div>
+
+                    {msg.isQuote && (msg.quoteAmount || msg.quoteMonthly) && (
+                      <div style={{
+                        padding: '12px',
+                        background: '#10b98110',
+                        border: '1px solid #10b98130',
+                        borderRadius: '8px',
+                        marginBottom: '12px',
+                      }}>
+                        {msg.quoteAmount && (
+                          <div style={{ marginBottom: msg.quoteMonthly ? '8px' : 0 }}>
+                            <p style={{ margin: 0, fontSize: '12px', color: '#71717a' }}>One-Time Cost</p>
+                            <p style={{ margin: '4px 0 0 0', fontSize: '20px', fontWeight: 700, color: '#10b981' }}>
+                              ${msg.quoteAmount.toLocaleString()}
+                            </p>
+                          </div>
+                        )}
+                        {msg.quoteMonthly && (
+                          <div>
+                            <p style={{ margin: 0, fontSize: '12px', color: '#71717a' }}>Monthly Cost</p>
+                            <p style={{ margin: '4px 0 0 0', fontSize: '20px', fontWeight: 700, color: '#10b981' }}>
+                              ${msg.quoteMonthly.toLocaleString()}/mo
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <p style={{
+                      margin: 0,
+                      color: '#a1a1aa',
+                      fontSize: '14px',
+                      lineHeight: 1.6,
+                      whiteSpace: 'pre-wrap',
+                    }}>
+                      {msg.message}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right Column */}

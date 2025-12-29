@@ -585,6 +585,12 @@ model InquiryMessage {
   message     String         @db.Text
   isFromAdmin Boolean        @default(false)  // true = from team, false = from customer
   senderName  String?                         // Name of sender (admin name or customer name)
+  senderEmail String?                         // Email address of sender
+
+  // Email threading metadata
+  emailMessageId String?      @unique          // Unique Message-ID header from sent email
+  emailInReplyTo String?                      // In-Reply-To header (references parent message)
+  emailSubject   String?                      // Email subject line
 
   // For quotes
   isQuote     Boolean        @default(false)
@@ -595,6 +601,7 @@ model InquiryMessage {
   createdAt   DateTime       @default(now())
 
   @@index([inquiryId])
+  @@index([emailMessageId])
 }
 
 // ============================================

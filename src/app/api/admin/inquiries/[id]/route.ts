@@ -22,6 +22,13 @@ export async function GET(
 
     const inquiry = await prisma.serviceInquiry.findUnique({
       where: { id },
+      include: {
+        messages: {
+          orderBy: {
+            createdAt: 'asc',
+          },
+        },
+      },
     })
 
     if (!inquiry) {
