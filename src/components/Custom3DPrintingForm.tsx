@@ -61,9 +61,8 @@ export default function Custom3DPrintingForm() {
     try {
       const formData = new FormData()
       formData.append('file', file)
-      formData.append('folder', 'custom-requests')
 
-      const res = await fetch('/api/upload', {
+      const res = await fetch('/api/upload-3d-file', {
         method: 'POST',
         body: formData,
       })
