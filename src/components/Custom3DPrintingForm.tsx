@@ -50,13 +50,14 @@ export default function Custom3DPrintingForm() {
     color: 'Black',
     quantity: 1,
     notes: '',
-    description: '', // New: text description when no file
+    description: '', // Description when prototyping is needed
     // Add-ons
     expedited: false,
     assembly: false,
     packaging: false,
   })
   const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null)
+  const [needsPrototyping, setNeedsPrototyping] = useState(false) // "I don't have a 3D file" checkbox
   const [uploading, setUploading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -78,8 +79,14 @@ export default function Custom3DPrintingForm() {
     const colorCost = COLOR_PRICES[formData.color as keyof typeof COLOR_PRICES] || 0
 
     // Base cost calculation (simplified - actual would use file volume)
-    const baseCost = uploadedFile ? 15 : 10 // Lower base if no file (just consultation)
-    const cost = (baseCost + colorCost) * finishMultiplier * materialCost * 100 * formData.quantity
+    const baseCost = 15
+    let cost = (baseCost + colorCost) * finishMultiplier * materialCost * 100 * formData.quantity
+
+    // MASSIVE prototyping fee if no 3D file
+    if (needsPrototyping) {
+      cost = cost * 3 // Triple the base cost
+      cost += 250 * formData.quantity // Add $250 per unit for design/prototyping
+    }
 
     let addOnCost = 0
     if (formData.expedited) addOnCost += cost * 0.5 // 50% rush fee
@@ -87,7 +94,7 @@ export default function Custom3DPrintingForm() {
     if (formData.packaging) addOnCost += formData.quantity * 5
 
     setEstimatedCost(Math.ceil(cost + addOnCost))
-  }, [formData.material, formData.finish, formData.color, formData.quantity, formData.expedited, formData.assembly, formData.packaging, uploadedFile])
+  }, [formData.material, formData.finish, formData.color, formData.quantity, formData.expedited, formData.assembly, formData.packaging, needsPrototyping])
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -147,9 +154,15 @@ export default function Custom3DPrintingForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Either file OR description is required
-    if (!uploadedFile && !formData.description.trim()) {
-      setError('Please upload a 3D file OR provide a detailed description of what you need')
+    // Validation: file is required UNLESS needsPrototyping is checked
+    if (!needsPrototyping && !uploadedFile) {
+      setError('Please upload a 3D file, or check "I don\'t have a 3D file" to describe your project')
+      return
+    }
+
+    // If needsPrototyping is checked, description is required
+    if (needsPrototyping && !formData.description.trim()) {
+      setError('Please provide a detailed description of what you need')
       return
     }
 
@@ -310,78 +323,111 @@ export default function Custom3DPrintingForm() {
       {/* File Upload OR Description */}
       <div className="border border-border rounded-xl p-6">
         <h3 className="text-lg font-semibold mb-4">Your Design</h3>
-        <p className="text-sm text-text-secondary mb-4">
-          Upload a 3D file if you have one, or describe what you need and we'll help design it.
-        </p>
 
-        {/* File Upload */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-2">3D File (Optional)</label>
-          {uploadedFile ? (
-            <div className="border border-border rounded-lg p-4 flex items-center justify-between bg-surface">
-              <div className="flex items-center gap-3">
-                <div className="text-2xl text-accent">
-                  <FontAwesomeIcon icon={faFile} />
-                </div>
-                <div>
-                  <p className="font-medium">{uploadedFile.name}</p>
-                  <p className="text-sm text-text-secondary">{formatFileSize(uploadedFile.size)}</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={removeFile}
-                className="p-2 text-red-400 hover:text-red-300 transition-colors"
-                disabled={submitting}
-              >
-                <FontAwesomeIcon icon={faTrash} />
-              </button>
-            </div>
-          ) : (
-            <div className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${uploading ? 'border-accent bg-accent/5' : 'border-border hover:border-accent cursor-pointer'}`}>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".stl,.obj,.step,.stp"
-                className="hidden"
-                id="file-upload"
-                onChange={handleFileUpload}
-                disabled={uploading || submitting}
-              />
-              <label htmlFor="file-upload" className={uploading ? '' : 'cursor-pointer'}>
-                <div className="text-3xl mb-3 text-zinc-400">
-                  <FontAwesomeIcon icon={faFolder} />
-                </div>
-                {uploading ? (
-                  <p className="text-sm font-medium mb-2">Uploading...</p>
-                ) : (
-                  <>
-                    <p className="text-sm font-medium mb-1">Drop your file here or click to browse</p>
-                    <p className="text-xs text-text-secondary">Supports .STL, .OBJ, .STEP files (Max 50MB)</p>
-                  </>
-                )}
-              </label>
-            </div>
+        {/* Checkbox for no file */}
+        <div className="mb-6">
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={needsPrototyping}
+              onChange={(e) => {
+                setNeedsPrototyping(e.target.checked)
+                if (e.target.checked) {
+                  // Clear file when switching to prototyping
+                  setUploadedFile(null)
+                  if (fileInputRef.current) {
+                    fileInputRef.current.value = ''
+                  }
+                } else {
+                  // Clear description when switching back to file upload
+                  setFormData({ ...formData, description: '' })
+                }
+              }}
+              className="w-4 h-4 accent-accent"
+              disabled={submitting}
+            />
+            <span className="text-sm font-medium">
+              I don't have a 3D file (we'll design it for you)
+            </span>
+          </label>
+          {needsPrototyping && (
+            <p className="text-xs text-yellow-400 mt-2 ml-7">
+              Note: Design and prototyping services significantly increase the quote price
+            </p>
           )}
         </div>
 
-        {/* Description Field (shows when no file) */}
-        {!uploadedFile && (
+        {!needsPrototyping ? (
+          /* File Upload Section */
+          <div>
+            <label className="block text-sm font-medium mb-2">3D File *</label>
+            {uploadedFile ? (
+              <div className="border border-border rounded-lg p-4 flex items-center justify-between bg-surface">
+                <div className="flex items-center gap-3">
+                  <div className="text-2xl text-accent">
+                    <FontAwesomeIcon icon={faFile} />
+                  </div>
+                  <div>
+                    <p className="font-medium">{uploadedFile.name}</p>
+                    <p className="text-sm text-text-secondary">{formatFileSize(uploadedFile.size)}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={removeFile}
+                  className="p-2 text-red-400 hover:text-red-300 transition-colors"
+                  disabled={submitting}
+                >
+                  <FontAwesomeIcon icon={faTrash} />
+                </button>
+              </div>
+            ) : (
+              <div className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${uploading ? 'border-accent bg-accent/5' : 'border-border hover:border-accent cursor-pointer'}`}>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".stl,.obj,.step,.stp"
+                  className="hidden"
+                  id="file-upload"
+                  onChange={handleFileUpload}
+                  disabled={uploading || submitting}
+                />
+                <label htmlFor="file-upload" className={uploading ? '' : 'cursor-pointer'}>
+                  <div className="text-3xl mb-3 text-zinc-400">
+                    <FontAwesomeIcon icon={faFolder} />
+                  </div>
+                  {uploading ? (
+                    <p className="text-sm font-medium mb-2">Uploading...</p>
+                  ) : (
+                    <>
+                      <p className="text-sm font-medium mb-1">Drop your file here or click to browse</p>
+                      <p className="text-xs text-text-secondary">Supports .STL, .OBJ, .STEP files (Max 50MB)</p>
+                    </>
+                  )}
+                </label>
+              </div>
+            )}
+            <p className="text-xs text-text-muted mt-2">
+              Upload your ready-to-print 3D file. We support STL, OBJ, and STEP formats.
+            </p>
+          </div>
+        ) : (
+          /* Description Field (when prototyping) */
           <div>
             <label className="block text-sm font-medium mb-2">
-              Or Describe What You Need {!uploadedFile && '*'}
+              Describe Your Project *
             </label>
             <textarea
-              required={!uploadedFile}
+              required
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              rows={6}
+              rows={8}
               className="w-full px-4 py-3 bg-surface border border-border rounded-lg focus:outline-none focus:border-accent resize-none"
-              placeholder="Describe your project in detail: dimensions, purpose, features, materials, etc. We'll help you go from idea to product!"
+              placeholder="Describe your vision in detail:&#10;- What is it? (e.g., phone case, custom bracket, figurine)&#10;- Dimensions and size requirements&#10;- Purpose and how it will be used&#10;- Any specific features or requirements&#10;- Reference images or similar products (if any)&#10;&#10;The more detail you provide, the better we can bring your idea to life!"
               disabled={submitting}
             />
             <p className="text-xs text-text-muted mt-2">
-              No 3D file? No problem! Describe your vision and we'll handle the design and manufacturing.
+              Our design team will create a 3D model based on your description, then manufacture it. This includes design consultation, prototyping, and revisions.
             </p>
           </div>
         )}

@@ -45,10 +45,20 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Either file OR description is required
-    if (!body.fileUrl && !body.description) {
+    // File is required UNLESS needsPrototyping is true
+    const needsPrototyping = !body.fileUrl && body.description
+
+    if (!needsPrototyping && !body.fileUrl) {
       return NextResponse.json(
-        { error: 'Please upload a 3D file OR provide a detailed description' },
+        { error: 'Please upload a 3D file, or check "I don\'t have a 3D file" to describe your project' },
+        { status: 400 }
+      )
+    }
+
+    // If prototyping, description is required
+    if (needsPrototyping && !body.description) {
+      return NextResponse.json(
+        { error: 'Please provide a detailed description of what you need' },
         { status: 400 }
       )
     }
