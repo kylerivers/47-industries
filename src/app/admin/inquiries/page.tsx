@@ -1304,7 +1304,7 @@ export default function InquiriesPage() {
   const tabs = [
     { id: 'print-requests' as const, label: '3D Print Requests' },
     { id: 'service-inquiries' as const, label: 'Service Inquiries' },
-    { id: 'contact-forms' as const, label: 'Contact Forms' },
+    { id: 'contact-forms' as const, label: 'General Inquiries' },
   ]
 
   const handleTabChange = (tabId: 'print-requests' | 'service-inquiries' | 'contact-forms') => {

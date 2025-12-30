@@ -209,7 +209,7 @@ export default function ServicesClient({ packages, projects }: ServicesClientPro
                       View Packages
                     </Link>
                     <Link
-                      href="/contact"
+                      href={`/services/inquiry?type=${selectedType}`}
                       className="px-6 py-3 border border-border rounded-lg font-medium hover:bg-surface transition-all"
                     >
                       Get Custom Quote
@@ -379,7 +379,7 @@ export default function ServicesClient({ packages, projects }: ServicesClientPro
                   )}
 
                   <Link
-                    href={pkg.slug === 'leadchopper-marketing' ? 'https://leadchopper.app' : `/start-project?service=${pkg.slug}`}
+                    href={pkg.slug === 'leadchopper-marketing' ? 'https://leadchopper.app' : `/services/inquiry?type=${pkg.category}`}
                     target={pkg.slug === 'leadchopper-marketing' ? '_blank' : undefined}
                     rel={pkg.slug === 'leadchopper-marketing' ? 'noopener noreferrer' : undefined}
                     className={`block w-full py-3 text-center rounded-lg font-medium transition-all ${
