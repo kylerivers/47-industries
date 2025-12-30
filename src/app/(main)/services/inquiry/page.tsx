@@ -1,5 +1,6 @@
 import ServiceInquiryForm from '@/components/ServiceInquiryForm'
 import Link from 'next/link'
+import { Suspense } from 'react'
 
 export default function ServiceInquiryPage() {
   return (
@@ -17,7 +18,9 @@ export default function ServiceInquiryPage() {
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Main Form */}
             <div className="lg:col-span-2">
-              <ServiceInquiryForm />
+              <Suspense fallback={<div className="text-center py-12 text-text-secondary">Loading form...</div>}>
+                <ServiceInquiryForm />
+              </Suspense>
             </div>
 
             {/* Sidebar Info */}
