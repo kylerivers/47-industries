@@ -32,6 +32,8 @@ export default function ServiceInquiryForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const defaultServiceType = searchParams.get('type') || ''
+  const defaultDescription = searchParams.get('description') || ''
+  const projectReference = searchParams.get('projectTitle') || ''
 
   const [formData, setFormData] = useState({
     website_url: '', // Honeypot field
@@ -43,7 +45,7 @@ export default function ServiceInquiryForm() {
     serviceType: defaultServiceType,
     budget: '',
     timeline: '',
-    description: '',
+    description: defaultDescription,
   })
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -272,6 +274,19 @@ export default function ServiceInquiryForm() {
 
           <div>
             <label className="block text-sm font-medium mb-2">Project Description *</label>
+            {projectReference && (
+              <div className="mb-3 p-3 bg-accent/10 border border-accent/30 rounded-lg">
+                <p className="text-sm text-accent flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Pre-filled based on: <strong>{projectReference}</strong>
+                </p>
+                <p className="text-xs text-text-secondary mt-1">
+                  Feel free to edit the description below to match your specific needs.
+                </p>
+              </div>
+            )}
             <textarea
               required
               value={formData.description}

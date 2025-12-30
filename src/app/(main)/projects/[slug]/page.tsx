@@ -177,7 +177,28 @@ export default async function ProjectPage({ params }: Props) {
                   </a>
                 )}
                 <Link
-                  href="/start-project"
+                  href={(() => {
+                    const params = new URLSearchParams()
+
+                    // Map project category to service type
+                    if (categories.includes('WEB_DEVELOPMENT') || project.category === 'WEB_DEVELOPMENT') {
+                      params.set('type', 'WEB_DEVELOPMENT')
+                    } else if (categories.includes('IOS_APP') || categories.includes('ANDROID_APP') || categories.includes('CROSS_PLATFORM_APP') || project.category === 'IOS_APP' || project.category === 'ANDROID_APP' || project.category === 'CROSS_PLATFORM_APP') {
+                      params.set('type', 'APP_DEVELOPMENT')
+                    } else if (categories.includes('AI_AUTOMATION') || project.category === 'AI_AUTOMATION') {
+                      params.set('type', 'AI_SOLUTIONS')
+                    }
+
+                    // Add project reference
+                    params.set('project', project.slug)
+                    params.set('projectTitle', project.title)
+
+                    // Add description template
+                    const descTemplate = `I'm interested in a project similar to ${project.title}.${project.description ? `\n\nSimilar to: ${project.description}` : ''}`
+                    params.set('description', descTemplate)
+
+                    return `/services/inquiry?${params.toString()}`
+                  })()}
                   className="inline-flex items-center px-5 py-2.5 border border-border rounded-lg font-medium hover:bg-surface transition-colors text-sm"
                 >
                   Start Your Project
