@@ -18,10 +18,16 @@ export async function GET(req: NextRequest) {
     const search = searchParams.get('search') || ''
     const status = searchParams.get('status') || ''
     const serviceType = searchParams.get('serviceType') || ''
+    const inquiryType = searchParams.get('inquiryType') || ''
 
     const skip = (page - 1) * limit
 
     const where: any = {}
+
+    // Filter by inquiry type (contact forms only)
+    if (inquiryType === 'contact') {
+      where.inquiryNumber = { startsWith: 'CONTACT-' }
+    }
 
     if (search) {
       where.OR = [

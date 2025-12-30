@@ -35,9 +35,9 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Generate inquiry number
+    // Generate inquiry number (CONTACT- prefix for general contact forms)
     const date = new Date()
-    const prefix = 'INQ'
+    const prefix = 'CONTACT'
     const timestamp = date.getFullYear().toString().slice(-2) +
       (date.getMonth() + 1).toString().padStart(2, '0') +
       date.getDate().toString().padStart(2, '0')

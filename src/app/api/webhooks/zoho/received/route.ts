@@ -17,7 +17,8 @@ export async function POST(req: NextRequest) {
     const { from, to, subject, content, plainTextContent, messageId, inReplyTo } = body
 
     // Extract reference number from subject
-    const referenceMatch = subject?.match(/\[(INQ-\d{6}-[A-Z0-9]{4}|REQ-\d{6}-[A-Z0-9]{4}|CONTACT-\d{6}-[A-Z0-9]{4})\]/)
+    // Supports: REQ- (3D print), CONTACT- (contact forms), WEB-/APP-/AI-/CON-/SVC- (service inquiries)
+    const referenceMatch = subject?.match(/\[(REQ-\d{6}-[A-Z0-9]{4}|CONTACT-\d{6}-[A-Z0-9]{4}|WEB-\d{6}-[A-Z0-9]{4}|APP-\d{6}-[A-Z0-9]{4}|AI-\d{6}-[A-Z0-9]{4}|CON-\d{6}-[A-Z0-9]{4}|SVC-\d{6}-[A-Z0-9]{4})\]/)
     const referenceNumber = referenceMatch?.[1]
 
     if (!referenceNumber) {
