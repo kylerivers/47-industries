@@ -21,6 +21,29 @@ interface InquiryMessage {
   quoteMonthly: number | null
 }
 
+interface InvoiceItem {
+  id: string
+  description: string
+  quantity: number
+  unitPrice: string
+  total: string
+}
+
+interface Invoice {
+  id: string
+  invoiceNumber: string
+  items: InvoiceItem[]
+  subtotal: string
+  taxAmount: string
+  total: string
+  status: string
+  dueDate: string | null
+  sentAt: string | null
+  paidAt: string | null
+  stripePaymentLink: string | null
+  createdAt: string
+}
+
 interface ServiceInquiry {
   id: string
   inquiryNumber: string
@@ -61,6 +84,7 @@ interface ServiceInquiry {
   createdAt: string
   updatedAt: string
   messages?: InquiryMessage[]
+  invoices?: Invoice[]
 }
 
 export default function InquiryDetailPage() {
@@ -84,6 +108,42 @@ export default function InquiryDetailPage() {
 
   // Invoice state
   const [showInvoiceModal, setShowInvoiceModal] = useState(false)
+  const [sendingInvoiceId, setSendingInvoiceId] = useState<string | null>(null)
+
+  const handleSendInvoice = async (invoiceId: string) => {
+    setSendingInvoiceId(invoiceId)
+    try {
+      const res = await fetch(`/api/admin/invoices/${invoiceId}/send`, {
+        method: 'POST',
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to send invoice')
+      }
+
+      showToast('Invoice sent successfully!', 'success')
+      fetchInquiry() // Refresh to get updated invoice status
+    } catch (error: any) {
+      console.error('Error sending invoice:', error)
+      showToast(error.message || 'Failed to send invoice', 'error')
+    } finally {
+      setSendingInvoiceId(null)
+    }
+  }
+
+  const getInvoiceStatusColor = (status: string) => {
+    const colors: Record<string, string> = {
+      DRAFT: '#6b7280',
+      SENT: '#3b82f6',
+      VIEWED: '#8b5cf6',
+      PAID: '#10b981',
+      CANCELLED: '#ef4444',
+      OVERDUE: '#f59e0b',
+    }
+    return colors[status] || '#6b7280'
+  }
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768)
@@ -768,6 +828,118 @@ export default function InquiryDetailPage() {
               </button>
             </div>
           </div>
+
+          {/* Invoices */}
+          {inquiry.invoices && inquiry.invoices.length > 0 && (
+            <div style={{
+              background: '#18181b',
+              border: '1px solid #27272a',
+              borderRadius: '16px',
+              padding: '24px',
+            }}>
+              <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '16px', margin: '0 0 16px 0' }}>
+                Invoices
+              </h2>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {inquiry.invoices.map((invoice) => (
+                  <div
+                    key={invoice.id}
+                    style={{
+                      background: '#0a0a0a',
+                      border: '1px solid #27272a',
+                      borderRadius: '12px',
+                      padding: '16px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                      <div>
+                        <p style={{ fontWeight: 600, margin: '0 0 4px 0', fontSize: '14px' }}>
+                          {invoice.invoiceNumber}
+                        </p>
+                        <p style={{ color: '#71717a', margin: 0, fontSize: '13px' }}>
+                          {new Date(invoice.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <span style={{
+                        padding: '4px 10px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        fontWeight: 500,
+                        background: `${getInvoiceStatusColor(invoice.status)}20`,
+                        color: getInvoiceStatusColor(invoice.status),
+                      }}>
+                        {invoice.status}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                      <span style={{ color: '#a1a1aa', fontSize: '14px' }}>Total</span>
+                      <span style={{ fontWeight: 600, color: '#3b82f6', fontSize: '16px' }}>
+                        ${parseFloat(invoice.total).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      <a
+                        href={`/invoice/${invoice.invoiceNumber}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          flex: 1,
+                          padding: '8px 12px',
+                          background: '#27272a',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          fontSize: '13px',
+                          textDecoration: 'none',
+                          textAlign: 'center',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        View
+                      </a>
+                      {invoice.status !== 'PAID' && invoice.status !== 'CANCELLED' && (
+                        <button
+                          onClick={() => handleSendInvoice(invoice.id)}
+                          disabled={sendingInvoiceId === invoice.id}
+                          style={{
+                            flex: 1,
+                            padding: '8px 12px',
+                            background: invoice.status === 'DRAFT' ? '#3b82f6' : '#10b981',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            fontSize: '13px',
+                            cursor: sendingInvoiceId === invoice.id ? 'not-allowed' : 'pointer',
+                            opacity: sendingInvoiceId === invoice.id ? 0.7 : 1,
+                          }}
+                        >
+                          {sendingInvoiceId === invoice.id
+                            ? 'Sending...'
+                            : invoice.status === 'DRAFT'
+                            ? 'Send Invoice'
+                            : 'Resend Invoice'}
+                        </button>
+                      )}
+                    </div>
+
+                    {invoice.sentAt && (
+                      <p style={{ color: '#71717a', margin: '8px 0 0 0', fontSize: '12px' }}>
+                        Last sent: {new Date(invoice.sentAt).toLocaleString()}
+                      </p>
+                    )}
+                    {invoice.paidAt && (
+                      <p style={{ color: '#10b981', margin: '8px 0 0 0', fontSize: '12px' }}>
+                        Paid on: {new Date(invoice.paidAt).toLocaleString()}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Update Inquiry */}
           <div style={{

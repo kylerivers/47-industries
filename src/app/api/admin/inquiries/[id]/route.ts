@@ -28,6 +28,14 @@ export async function GET(
             createdAt: 'asc',
           },
         },
+        invoices: {
+          include: {
+            items: true,
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
       },
     })
 

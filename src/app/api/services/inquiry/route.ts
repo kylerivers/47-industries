@@ -2,7 +2,18 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Lazy initialization to avoid build-time errors
+let resendClient: Resend | null = null
+
+function getResend(): Resend {
+  if (!resendClient) {
+    if (!process.env.RESEND_API_KEY) {
+      throw new Error('RESEND_API_KEY environment variable is not set')
+    }
+    resendClient = new Resend(process.env.RESEND_API_KEY)
+  }
+  return resendClient
+}
 
 // Map form values to database enum values
 const SERVICE_TYPE_MAP: Record<string, string> = {
@@ -73,7 +84,7 @@ export async function POST(req: NextRequest) {
 
     // Send confirmation email to customer
     try {
-      await resend.emails.send({
+      await getResend().emails.send({
         from: '47 Industries <noreply@47industries.com>',
         to: body.email,
         subject: `Service Inquiry Received - ${inquiryNumber}`,
@@ -138,7 +149,7 @@ export async function POST(req: NextRequest) {
 
     // Send notification to admin
     try {
-      await resend.emails.send({
+      await getResend().emails.send({
         from: '47 Industries <noreply@47industries.com>',
         to: 'contact@47industries.com',
         subject: `New Service Inquiry: ${serviceType.replace('_', ' ')} - ${inquiryNumber}`,

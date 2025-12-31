@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { stripe, formatAmountFromStripe, isStripeConfigured } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
-import { sendOrderConfirmation, sendDigitalProductDelivery, sendPaymentFailureNotification } from '@/lib/email'
+import { sendOrderConfirmation, sendDigitalProductDelivery, sendPaymentFailureNotification, sendInvoicePaymentConfirmation } from '@/lib/email'
 import Stripe from 'stripe'
 import { randomBytes } from 'crypto'
 
@@ -84,6 +84,13 @@ export async function POST(req: NextRequest) {
 
 async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
   const metadata = session.metadata || {}
+
+  // Check if this is an invoice payment
+  if (metadata.invoiceId) {
+    await handleInvoicePayment(session)
+    return
+  }
+
   const orderNumber = metadata.orderNumber
   const customerEmail = session.customer_email || metadata.customerEmail
   const customerName = metadata.customerName || 'Customer'
@@ -339,5 +346,65 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
     console.log('Payment failure notification sent to:', customerEmail)
   } catch (emailError) {
     console.error('Failed to send payment failure email:', emailError)
+  }
+}
+
+async function handleInvoicePayment(session: Stripe.Checkout.Session) {
+  const metadata = session.metadata || {}
+  const invoiceId = metadata.invoiceId
+  const invoiceNumber = metadata.invoiceNumber
+
+  if (!invoiceId) {
+    console.error('No invoice ID in session metadata')
+    return
+  }
+
+  console.log('Processing invoice payment:', invoiceNumber)
+
+  // Find the invoice
+  const invoice = await prisma.invoice.findUnique({
+    where: { id: invoiceId },
+    include: { items: true },
+  })
+
+  if (!invoice) {
+    console.error('Invoice not found:', invoiceId)
+    return
+  }
+
+  // Check if already paid
+  if (invoice.status === 'PAID') {
+    console.log('Invoice already paid:', invoiceNumber)
+    return
+  }
+
+  // Update invoice status
+  await prisma.invoice.update({
+    where: { id: invoiceId },
+    data: {
+      status: 'PAID',
+      paidAt: new Date(),
+      stripePaymentId: session.payment_intent as string || session.id,
+    },
+  })
+
+  console.log('Invoice marked as paid:', invoiceNumber)
+
+  // Send payment confirmation email
+  try {
+    await sendInvoicePaymentConfirmation({
+      to: invoice.customerEmail,
+      name: invoice.customerName,
+      invoiceNumber: invoice.invoiceNumber,
+      total: parseFloat(invoice.total.toString()),
+      items: invoice.items.map((item) => ({
+        description: item.description,
+        quantity: item.quantity,
+        total: parseFloat(item.total.toString()),
+      })),
+    })
+    console.log('Invoice payment confirmation sent to:', invoice.customerEmail)
+  } catch (emailError) {
+    console.error('Failed to send invoice payment confirmation:', emailError)
   }
 }

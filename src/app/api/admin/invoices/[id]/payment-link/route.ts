@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { verifyAdminAuth } from '@/lib/auth-helper'
-import Stripe from 'stripe'
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia',
-})
+import { stripe, isStripeConfigured } from '@/lib/stripe'
 
 // POST /api/admin/invoices/[id]/payment-link - Generate Stripe payment link
 export async function POST(
@@ -13,6 +9,13 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
+    if (!isStripeConfigured) {
+      return NextResponse.json(
+        { error: 'Stripe is not configured' },
+        { status: 500 }
+      )
+    }
+
     const isAuthorized = await verifyAdminAuth(req)
 
     if (!isAuthorized) {

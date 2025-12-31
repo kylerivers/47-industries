@@ -937,6 +937,230 @@ export async function sendQuoteEmail(data: {
   }
 }
 
+// 11. Invoice Email (send invoice to customer with payment link)
+export async function sendInvoice(data: {
+  to: string
+  name: string
+  invoiceNumber: string
+  items: Array<{ description: string; quantity: number; total: number }>
+  subtotal: number
+  taxAmount: number
+  total: number
+  dueDate?: Date | null
+  paymentLink: string
+  notes?: string | null
+}) {
+  const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://47industries.com'
+  const invoiceUrl = `${APP_URL}/invoice/${data.invoiceNumber}`
+
+  const itemsHtml = data.items.map((item, index) => {
+    const isLast = index === data.items.length - 1
+
+    return `
+      <tr>
+        <td style="padding: 16px 0; ${isLast ? '' : 'border-bottom: 1px solid #e4e4e7;'}" class="divider">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+            <tr>
+              <td width="70%" style="padding-right: 20px;">
+                <p style="margin: 0 0 4px 0; color: #18181b; font-size: 15px; font-weight: 500;" class="text-primary">${item.description}</p>
+                <p style="margin: 0; color: #71717a; font-size: 13px;" class="text-muted">Qty: ${item.quantity}</p>
+              </td>
+              <td width="30%" align="right">
+                <p style="margin: 0; color: #18181b; font-size: 16px; font-weight: 600;" class="text-primary">$${item.total.toFixed(2)}</p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    `
+  }).join('')
+
+  const dueDateStr = data.dueDate
+    ? new Date(data.dueDate).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    : null
+
+  const content = `
+    <h1 style="margin: 0 0 12px 0; color: #18181b; font-size: 28px; font-weight: 700; line-height: 1.3;" class="text-primary">
+      Hello ${data.name}!
+    </h1>
+    <p style="margin: 0 0 8px 0; color: #52525b; font-size: 16px; line-height: 1.6;" class="text-secondary">
+      We've prepared an invoice for you. Please review the details below and click the button to complete your payment.
+    </p>
+
+    ${getAccentBox('Invoice Number', data.invoiceNumber, dueDateStr ? `Due: ${dueDateStr}` : undefined)}
+
+    ${getCard(`
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+        <tr>
+          <td style="padding-bottom: 16px;">
+            <p style="margin: 0; color: #18181b; font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;" class="text-primary">Invoice Details</p>
+          </td>
+        </tr>
+        ${itemsHtml}
+      </table>
+    `)}
+
+    ${getCard(`
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+        <tr>
+          <td style="padding: 12px 0;">
+            <p style="margin: 0; color: #52525b; font-size: 15px;" class="text-secondary">Subtotal</p>
+          </td>
+          <td align="right" style="padding: 12px 0;">
+            <p style="margin: 0; color: #18181b; font-size: 15px; font-weight: 500;" class="text-primary">$${data.subtotal.toFixed(2)}</p>
+          </td>
+        </tr>
+        ${data.taxAmount > 0 ? `
+          <tr>
+            <td style="padding: 12px 0;">
+              <p style="margin: 0; color: #52525b; font-size: 15px;" class="text-secondary">Tax</p>
+            </td>
+            <td align="right" style="padding: 12px 0;">
+              <p style="margin: 0; color: #18181b; font-size: 15px; font-weight: 500;" class="text-primary">$${data.taxAmount.toFixed(2)}</p>
+            </td>
+          </tr>
+        ` : ''}
+        <tr>
+          <td style="padding: 20px 0 0 0; border-top: 2px solid #e4e4e7;" class="divider">
+            <p style="margin: 0; color: #18181b; font-size: 18px; font-weight: 700;" class="text-primary">Amount Due</p>
+          </td>
+          <td align="right" style="padding: 20px 0 0 0; border-top: 2px solid #e4e4e7;" class="divider">
+            <p style="margin: 0; color: #3b82f6; font-size: 24px; font-weight: 700;">$${data.total.toFixed(2)}</p>
+          </td>
+        </tr>
+      </table>
+    `)}
+
+    ${data.notes ? getCard(`
+      <p style="margin: 0 0 8px 0; color: #71717a; font-size: 13px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600;" class="text-muted">Notes</p>
+      <p style="margin: 0; color: #52525b; font-size: 15px; line-height: 1.6;" class="text-secondary">${data.notes}</p>
+    `) : ''}
+
+    ${getButton('Pay Now - $' + data.total.toFixed(2), data.paymentLink)}
+
+    <p style="margin: 24px 0 0 0; color: #71717a; font-size: 14px; text-align: center;" class="text-muted">
+      <a href="${invoiceUrl}" style="color: #3b82f6; text-decoration: none;">View invoice online</a>
+    </p>
+
+    <p style="margin: 32px 0 0 0; color: #71717a; font-size: 13px; text-align: center; line-height: 1.6;" class="text-muted">
+      Secure payment powered by Stripe. All major credit cards accepted.
+    </p>
+  `
+
+  try {
+    await getResend().emails.send({
+      from: FROM_EMAIL,
+      to: data.to,
+      bcc: CONFIRMATION_BCC,
+      subject: `Invoice ${data.invoiceNumber} from 47 Industries`,
+      html: getEmailTemplate(content, 'Invoice'),
+    })
+    return { success: true }
+  } catch (error) {
+    console.error('Failed to send invoice email:', error)
+    return { success: false, error }
+  }
+}
+
+// 12. Invoice Payment Confirmation
+export async function sendInvoicePaymentConfirmation(data: {
+  to: string
+  name: string
+  invoiceNumber: string
+  total: number
+  items: Array<{ description: string; quantity: number; total: number }>
+}) {
+  const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://47industries.com'
+  const invoiceUrl = `${APP_URL}/invoice/${data.invoiceNumber}`
+
+  const itemsHtml = data.items.map((item, index) => {
+    const isLast = index === data.items.length - 1
+
+    return `
+      <tr>
+        <td style="padding: 12px 0; ${isLast ? '' : 'border-bottom: 1px solid #e4e4e7;'}" class="divider">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+            <tr>
+              <td width="70%" style="padding-right: 16px;">
+                <p style="margin: 0; color: #18181b; font-size: 14px;" class="text-primary">${item.description}</p>
+              </td>
+              <td width="30%" align="right">
+                <p style="margin: 0; color: #18181b; font-size: 14px;" class="text-primary">$${item.total.toFixed(2)}</p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    `
+  }).join('')
+
+  const content = `
+    <div style="text-align: center; margin: 0 0 32px 0;">
+      <div style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 32px; border-radius: 20px;">
+        <p style="margin: 0 0 12px 0; font-size: 48px; line-height: 1;">
+          <span style="display: inline-block; width: 56px; height: 56px; background-color: rgba(255,255,255,0.2); border-radius: 50%; line-height: 56px; font-size: 28px;">&#10003;</span>
+        </p>
+        <p style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 700; letter-spacing: 1px;">PAID</p>
+      </div>
+    </div>
+
+    <h1 style="margin: 0 0 16px 0; color: #18181b; font-size: 32px; font-weight: 700; text-align: center; line-height: 1.2;" class="text-primary">
+      Payment Received!
+    </h1>
+    <p style="margin: 0 0 8px 0; color: #52525b; font-size: 16px; line-height: 1.6; text-align: center;" class="text-secondary">
+      Thank you, ${data.name}! We've received your payment.
+    </p>
+
+    ${getAccentBox('Invoice Number', data.invoiceNumber)}
+
+    ${getCard(`
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+        ${itemsHtml}
+        <tr>
+          <td colspan="2" style="padding-top: 16px; border-top: 2px solid #e4e4e7;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+              <tr>
+                <td width="70%">
+                  <p style="margin: 0; color: #18181b; font-size: 16px; font-weight: 700;" class="text-primary">Total Paid</p>
+                </td>
+                <td width="30%" align="right">
+                  <p style="margin: 0; color: #10b981; font-size: 18px; font-weight: 700;">$${data.total.toFixed(2)}</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    `)}
+
+    <p style="margin: 24px 0 0 0; color: #52525b; font-size: 15px; text-align: center;" class="text-secondary">
+      This email serves as your payment receipt.
+    </p>
+
+    <p style="margin: 16px 0 0 0; color: #71717a; font-size: 14px; text-align: center;" class="text-muted">
+      <a href="${invoiceUrl}" style="color: #3b82f6; text-decoration: none;">View invoice</a>
+    </p>
+  `
+
+  try {
+    await getResend().emails.send({
+      from: FROM_EMAIL,
+      to: data.to,
+      bcc: CONFIRMATION_BCC,
+      subject: `Payment Received - Invoice ${data.invoiceNumber}`,
+      html: getEmailTemplate(content, 'Payment Received'),
+    })
+    return { success: true }
+  } catch (error) {
+    console.error('Failed to send invoice payment confirmation:', error)
+    return { success: false, error }
+  }
+}
+
 // Helper function for carrier tracking URLs
 function getCarrierTrackingUrl(carrier: string, trackingNumber: string): string {
   const carrierLower = carrier.toLowerCase()
