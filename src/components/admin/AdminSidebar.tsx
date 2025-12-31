@@ -7,7 +7,13 @@ import { usePathname, useSearchParams } from 'next/navigation'
 interface NavItem {
   label: string
   href: string
+  icon?: string
   subitems?: { label: string; href: string; tabValue?: string }[]
+}
+
+interface NavSection {
+  title?: string
+  items: NavItem[]
 }
 
 interface AdminSidebarProps {
@@ -21,55 +27,95 @@ export default function AdminSidebar({ isMobile, isMobileMenuOpen, onCloseMobile
   const searchParams = useSearchParams()
   const [expandedItems, setExpandedItems] = useState<string[]>([])
 
+  const navSections: NavSection[] = [
+    {
+      items: [
+        { label: 'Dashboard', href: '/admin' },
+        { label: 'Analytics', href: '/admin/analytics' },
+      ],
+    },
+    {
+      title: 'Shop',
+      items: [
+        { label: 'Products', href: '/admin/products' },
+        { label: 'Categories', href: '/admin/categories' },
+        { label: 'Orders', href: '/admin/orders' },
+        { label: 'Inventory', href: '/admin/inventory' },
+        { label: 'Returns', href: '/admin/returns' },
+      ],
+    },
+    {
+      title: 'Services',
+      items: [
+        { label: 'Service Packages', href: '/admin/services' },
+        { label: 'Portfolio', href: '/admin/services/projects/new' },
+        {
+          label: 'Inquiries',
+          href: '/admin/inquiries',
+          subitems: [
+            { label: '3D Print Requests', href: '/admin/inquiries', tabValue: 'print-requests' },
+            { label: 'Service Inquiries', href: '/admin/inquiries', tabValue: 'service-inquiries' },
+            { label: 'General Inquiries', href: '/admin/inquiries', tabValue: 'contact-forms' },
+          ],
+        },
+      ],
+    },
+    {
+      title: 'Finance',
+      items: [
+        { label: 'Expenses', href: '/admin/expenses' },
+        { label: 'Reports', href: '/admin/reports' },
+      ],
+    },
+    {
+      title: 'Marketing',
+      items: [
+        { label: 'Campaigns', href: '/admin/marketing' },
+        { label: 'Email', href: '/admin/email' },
+        { label: 'Blog', href: '/admin/blog' },
+      ],
+    },
+    {
+      title: 'Customers',
+      items: [
+        { label: 'All Customers', href: '/admin/customers' },
+        { label: 'Users', href: '/admin/users' },
+      ],
+    },
+    {
+      title: 'Settings',
+      items: [
+        { label: 'General', href: '/admin/settings' },
+        { label: 'Shipping', href: '/admin/settings/shipping' },
+        { label: 'Tax', href: '/admin/settings/tax' },
+        { label: 'OAuth Apps', href: '/admin/oauth-applications' },
+        { label: 'Notifications', href: '/admin/notifications' },
+      ],
+    },
+  ]
+
+  // Flatten items for auto-expand logic
+  const allNavItems = navSections.flatMap((section) => section.items)
+
   // Auto-expand items based on current path
   useEffect(() => {
-    const navItems: NavItem[] = [
-      { label: 'Dashboard', href: '/admin' },
-      { label: 'Analytics', href: '/admin/analytics' },
-      {
-        label: 'Shop',
-        href: '#',
-        subitems: [
-          { label: 'Products', href: '/admin/products' },
-          { label: 'Categories', href: '/admin/categories' },
-          { label: 'Orders', href: '/admin/orders' },
-          { label: 'Inventory', href: '/admin/inventory' },
-        ],
-      },
-      {
-        label: 'Inquiries',
-        href: '/admin/inquiries',
-        subitems: [
-          { label: '3D Print Requests', href: '/admin/inquiries', tabValue: 'print-requests' },
-          { label: 'Service Inquiries', href: '/admin/inquiries', tabValue: 'service-inquiries' },
-          { label: 'General Inquiries', href: '/admin/inquiries', tabValue: 'contact-forms' },
-        ],
-      },
-      { label: 'Customers', href: '/admin/customers' },
-      { label: 'Finances', href: '/admin/finances' },
-      { label: 'Expenses', href: '/admin/expenses' },
-      { label: 'Bills', href: '/admin/bills' },
-      { label: 'Marketing', href: '/admin/marketing' },
-      { label: 'Email', href: '/admin/email' },
-      { label: 'Blog', href: '/admin/blog' },
-      { label: 'Returns', href: '/admin/returns' },
-      { label: 'Shipping', href: '/admin/shipping' },
-      { label: 'Tax', href: '/admin/tax' },
-      { label: 'Users', href: '/admin/users' },
-      { label: 'Settings', href: '/admin/settings' },
-    ]
-
     const itemsToExpand: string[] = []
-    navItems.forEach((item) => {
+    allNavItems.forEach((item) => {
       if (item.subitems) {
-        const hasActiveSubitem = item.subitems.some((sub) => pathname.startsWith(sub.href))
-        if (hasActiveSubitem) {
+        const hasActiveSubitem = item.subitems.some((sub) => {
+          if (sub.tabValue) {
+            const currentTab = searchParams.get('tab')
+            return pathname === sub.href && currentTab === sub.tabValue
+          }
+          return pathname.startsWith(sub.href)
+        })
+        if (hasActiveSubitem || pathname.startsWith(item.href)) {
           itemsToExpand.push(item.label)
         }
       }
     })
     setExpandedItems(itemsToExpand)
-  }, [pathname])
+  }, [pathname, searchParams])
 
   const toggleExpanded = (label: string) => {
     setExpandedItems((prev) =>
@@ -86,44 +132,8 @@ export default function AdminSidebar({ isMobile, isMobileMenuOpen, onCloseMobile
     if (href === '/admin') {
       return pathname === '/admin'
     }
-    return pathname.startsWith(href)
+    return pathname.startsWith(href) && href !== '#'
   }
-
-  const navItems: NavItem[] = [
-    { label: 'Dashboard', href: '/admin' },
-    { label: 'Analytics', href: '/admin/analytics' },
-    {
-      label: 'Shop',
-      href: '#',
-      subitems: [
-        { label: 'Products', href: '/admin/products' },
-        { label: 'Categories', href: '/admin/categories' },
-        { label: 'Orders', href: '/admin/orders' },
-        { label: 'Inventory', href: '/admin/inventory' },
-      ],
-    },
-    {
-      label: 'Inquiries',
-      href: '/admin/inquiries',
-      subitems: [
-        { label: '3D Print Requests', href: '/admin/inquiries', tabValue: 'print-requests' },
-        { label: 'Service Inquiries', href: '/admin/inquiries', tabValue: 'service-inquiries' },
-        { label: 'General Inquiries', href: '/admin/inquiries', tabValue: 'contact-forms' },
-      ],
-    },
-    { label: 'Customers', href: '/admin/customers' },
-    { label: 'Finances', href: '/admin/finances' },
-    { label: 'Expenses', href: '/admin/expenses' },
-    { label: 'Bills', href: '/admin/bills' },
-    { label: 'Marketing', href: '/admin/marketing' },
-    { label: 'Email', href: '/admin/email' },
-    { label: 'Blog', href: '/admin/blog' },
-    { label: 'Returns', href: '/admin/returns' },
-    { label: 'Shipping', href: '/admin/shipping' },
-    { label: 'Tax', href: '/admin/tax' },
-    { label: 'Users', href: '/admin/users' },
-    { label: 'Settings', href: '/admin/settings' },
-  ]
 
   return (
     <>
@@ -158,14 +168,15 @@ export default function AdminSidebar({ isMobile, isMobileMenuOpen, onCloseMobile
           zIndex: 50,
         }}
       >
-        <div style={{ padding: '24px' }}>
+        <div style={{ padding: '24px 16px' }}>
           <Link href="/admin" style={{ textDecoration: 'none' }}>
             <h1
               style={{
-                fontSize: '24px',
+                fontSize: '20px',
                 fontWeight: 'bold',
                 color: 'white',
                 marginBottom: '24px',
+                paddingLeft: '8px',
               }}
             >
               47 Admin
@@ -173,123 +184,158 @@ export default function AdminSidebar({ isMobile, isMobileMenuOpen, onCloseMobile
           </Link>
 
           <nav>
-            {navItems.map((item) => (
-              <div key={item.label} style={{ marginBottom: '4px' }}>
-                {item.subitems ? (
-                  <>
-                    <button
-                      onClick={() => toggleExpanded(item.label)}
-                      style={{
-                        width: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '10px 16px',
-                        background: 'transparent',
-                        border: 'none',
-                        borderRadius: '8px',
-                        color: '#a1a1aa',
-                        fontSize: '14px',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = '#18181b'
-                        e.currentTarget.style.color = 'white'
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'transparent'
-                        e.currentTarget.style.color = '#a1a1aa'
-                      }}
-                    >
-                      <span>{item.label}</span>
-                      <span
-                        style={{
-                          transform: expandedItems.includes(item.label)
-                            ? 'rotate(90deg)'
-                            : 'rotate(0deg)',
-                          transition: 'transform 0.2s',
-                        }}
-                      >
-                        ›
-                      </span>
-                    </button>
-                    {expandedItems.includes(item.label) && (
-                      <div style={{ marginLeft: '16px', marginTop: '4px' }}>
-                        {item.subitems.map((subitem) => {
-                          const active = isActive(subitem.href, subitem.tabValue)
-                          const href = subitem.tabValue
-                            ? `${subitem.href}?tab=${subitem.tabValue}`
-                            : subitem.href
-                          return (
-                            <Link
-                              key={subitem.label}
-                              href={href}
-                              onClick={isMobile ? onCloseMobile : undefined}
-                              style={{
-                                display: 'block',
-                                padding: '8px 16px',
-                                background: active ? '#3b82f6' : 'transparent',
-                                borderRadius: '6px',
-                                color: active ? 'white' : '#a1a1aa',
-                                fontSize: '13px',
-                                textDecoration: 'none',
-                                marginBottom: '2px',
-                                transition: 'all 0.2s',
-                              }}
-                              onMouseEnter={(e) => {
-                                if (!active) {
-                                  e.currentTarget.style.background = '#18181b'
-                                  e.currentTarget.style.color = 'white'
-                                }
-                              }}
-                              onMouseLeave={(e) => {
-                                if (!active) {
-                                  e.currentTarget.style.background = 'transparent'
-                                  e.currentTarget.style.color = '#a1a1aa'
-                                }
-                              }}
-                            >
-                              {subitem.label}
-                            </Link>
-                          )
-                        })}
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <Link
-                    href={item.href}
-                    onClick={isMobile ? onCloseMobile : undefined}
+            {navSections.map((section, sectionIndex) => (
+              <div key={sectionIndex} style={{ marginBottom: '20px' }}>
+                {section.title && (
+                  <p
                     style={{
-                      display: 'block',
-                      padding: '10px 16px',
-                      background: isActive(item.href) ? '#3b82f6' : 'transparent',
-                      borderRadius: '8px',
-                      color: isActive(item.href) ? 'white' : '#a1a1aa',
-                      fontSize: '14px',
-                      textDecoration: 'none',
-                      transition: 'all 0.2s',
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isActive(item.href)) {
-                        e.currentTarget.style.background = '#18181b'
-                        e.currentTarget.style.color = 'white'
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isActive(item.href)) {
-                        e.currentTarget.style.background = 'transparent'
-                        e.currentTarget.style.color = '#a1a1aa'
-                      }
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      color: '#71717a',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      padding: '0 8px',
+                      marginBottom: '8px',
                     }}
                   >
-                    {item.label}
-                  </Link>
+                    {section.title}
+                  </p>
                 )}
+                {section.items.map((item) => (
+                  <div key={item.label} style={{ marginBottom: '2px' }}>
+                    {item.subitems ? (
+                      <>
+                        <button
+                          onClick={() => toggleExpanded(item.label)}
+                          style={{
+                            width: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '8px 12px',
+                            background: expandedItems.includes(item.label) ? '#18181b' : 'transparent',
+                            border: 'none',
+                            borderRadius: '6px',
+                            color: expandedItems.includes(item.label) ? 'white' : '#a1a1aa',
+                            fontSize: '13px',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s',
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!expandedItems.includes(item.label)) {
+                              e.currentTarget.style.background = '#18181b'
+                              e.currentTarget.style.color = 'white'
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!expandedItems.includes(item.label)) {
+                              e.currentTarget.style.background = 'transparent'
+                              e.currentTarget.style.color = '#a1a1aa'
+                            }
+                          }}
+                        >
+                          <span>{item.label}</span>
+                          <svg
+                            style={{
+                              width: '12px',
+                              height: '12px',
+                              transform: expandedItems.includes(item.label)
+                                ? 'rotate(90deg)'
+                                : 'rotate(0deg)',
+                              transition: 'transform 0.15s',
+                            }}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </button>
+                        {expandedItems.includes(item.label) && (
+                          <div style={{ marginLeft: '12px', marginTop: '4px', borderLeft: '1px solid #27272a', paddingLeft: '12px' }}>
+                            {item.subitems.map((subitem) => {
+                              const active = isActive(subitem.href, subitem.tabValue)
+                              const href = subitem.tabValue
+                                ? `${subitem.href}?tab=${subitem.tabValue}`
+                                : subitem.href
+                              return (
+                                <Link
+                                  key={subitem.label}
+                                  href={href}
+                                  onClick={isMobile ? onCloseMobile : undefined}
+                                  style={{
+                                    display: 'block',
+                                    padding: '6px 12px',
+                                    background: active ? '#3b82f6' : 'transparent',
+                                    borderRadius: '4px',
+                                    color: active ? 'white' : '#a1a1aa',
+                                    fontSize: '12px',
+                                    textDecoration: 'none',
+                                    marginBottom: '2px',
+                                    transition: 'all 0.15s',
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    if (!active) {
+                                      e.currentTarget.style.background = '#18181b'
+                                      e.currentTarget.style.color = 'white'
+                                    }
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    if (!active) {
+                                      e.currentTarget.style.background = 'transparent'
+                                      e.currentTarget.style.color = '#a1a1aa'
+                                    }
+                                  }}
+                                >
+                                  {subitem.label}
+                                </Link>
+                              )
+                            })}
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <Link
+                        href={item.href}
+                        onClick={isMobile ? onCloseMobile : undefined}
+                        style={{
+                          display: 'block',
+                          padding: '8px 12px',
+                          background: isActive(item.href) ? '#3b82f6' : 'transparent',
+                          borderRadius: '6px',
+                          color: isActive(item.href) ? 'white' : '#a1a1aa',
+                          fontSize: '13px',
+                          textDecoration: 'none',
+                          transition: 'all 0.15s',
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isActive(item.href)) {
+                            e.currentTarget.style.background = '#18181b'
+                            e.currentTarget.style.color = 'white'
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isActive(item.href)) {
+                            e.currentTarget.style.background = 'transparent'
+                            e.currentTarget.style.color = '#a1a1aa'
+                          }
+                        }}
+                      >
+                        {item.label}
+                      </Link>
+                    )}
+                  </div>
+                ))}
               </div>
             ))}
           </nav>
+
+          {/* Version */}
+          <div style={{ marginTop: '32px', padding: '0 8px' }}>
+            <p style={{ fontSize: '11px', color: '#52525b' }}>
+              47 Industries Admin v1.0
+            </p>
+          </div>
         </div>
       </aside>
     </>
