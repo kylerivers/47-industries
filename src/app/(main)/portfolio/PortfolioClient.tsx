@@ -23,12 +23,13 @@ interface PortfolioClientProps {
 
 const CATEGORY_LABELS: Record<string, string> = {
   WEB_DEVELOPMENT: 'Web Development',
+  WEB_APP: 'Web App',
   IOS_APP: 'iOS App',
   ANDROID_APP: 'Android App',
   CROSS_PLATFORM_APP: 'Cross-Platform App',
+  AI_AUTOMATION: 'AI Automation',
   DESKTOP_APP: 'Desktop App',
   THREE_D_PRINTING: '3D Printing',
-  WEB_APP: 'Web App',
   LANDING_PAGE: 'Landing Page',
 }
 

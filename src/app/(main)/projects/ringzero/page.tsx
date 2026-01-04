@@ -31,7 +31,7 @@ export default async function RingZeroPage() {
   const categories = (project.categories as string[]) || []
   const displayCategories = categories.length > 0 ? categories : [project.category]
 
-  // Key Features
+  // Key Features (for custom section below)
   const features = [
     {
       icon: (
@@ -112,6 +112,7 @@ export default async function RingZeroPage() {
             main .bg-accent\\/5 { background-color: ${project.accentColor}0d !important; }
             main .border-accent { border-color: ${project.accentColor} !important; }
             main .border-accent\\/20 { border-color: ${project.accentColor}33 !important; }
+            main .border-accent\\/30 { border-color: ${project.accentColor}4d !important; }
             main .hover\\:bg-accent\\/90:hover { background-color: ${project.accentColor}e6 !important; }
             main .ring-accent\\/50 { --tw-ring-color: ${project.accentColor}80 !important; }
             main .from-accent { --tw-gradient-from: ${project.accentColor} !important; }
@@ -120,7 +121,9 @@ export default async function RingZeroPage() {
         }} />
       )}
       <div className="min-h-screen">
-        {/* Hero Section */}
+        {/* ============================================ */}
+        {/* STANDARD TEMPLATE: Hero Section */}
+        {/* ============================================ */}
         <div className="pt-20 pb-12 md:pt-24 md:pb-16">
           <div className="container mx-auto px-4 md:px-6">
             <div className="mb-6">
@@ -130,9 +133,9 @@ export default async function RingZeroPage() {
             </div>
 
             <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start">
-              {/* Left: Hero Image */}
-              {project.thumbnailUrl && (
-                <div className="order-2 lg:order-1">
+              {/* Left: Visual - Image or Icon Placeholder */}
+              <div className="order-2 lg:order-1">
+                {project.thumbnailUrl ? (
                   <div className="rounded-xl overflow-hidden bg-surface inline-block">
                     <img
                       src={project.thumbnailUrl}
@@ -140,11 +143,42 @@ export default async function RingZeroPage() {
                       className="w-auto h-auto max-w-full max-h-[450px] object-contain"
                     />
                   </div>
-                </div>
-              )}
+                ) : (
+                  /* Icon-based visual when no image */
+                  <div className="bg-gradient-to-br from-surface to-surface-elevated border border-border rounded-2xl p-8 md:p-12">
+                    {/* Large product icon */}
+                    <div className="flex justify-center mb-8">
+                      <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-accent/10 border-2 border-accent/30 flex items-center justify-center">
+                        <svg className="w-12 h-12 md:w-16 md:h-16 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        </svg>
+                      </div>
+                    </div>
+                    {/* Quick stats grid */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-background/50 rounded-lg p-4 text-center">
+                        <div className="text-2xl md:text-3xl font-bold text-accent mb-1">99.7%</div>
+                        <div className="text-xs text-text-secondary">Calls Captured</div>
+                      </div>
+                      <div className="bg-background/50 rounded-lg p-4 text-center">
+                        <div className="text-2xl md:text-3xl font-bold text-accent mb-1">24/7</div>
+                        <div className="text-xs text-text-secondary">Always On</div>
+                      </div>
+                      <div className="bg-background/50 rounded-lg p-4 text-center">
+                        <div className="text-2xl md:text-3xl font-bold text-accent mb-1">&lt;1s</div>
+                        <div className="text-xs text-text-secondary">Answer Time</div>
+                      </div>
+                      <div className="bg-background/50 rounded-lg p-4 text-center">
+                        <div className="text-2xl md:text-3xl font-bold text-green-400 mb-1">$497</div>
+                        <div className="text-xs text-text-secondary">/month</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Right: Text Content */}
-              <div className={`order-1 lg:order-2 ${!project.thumbnailUrl ? 'lg:col-span-2 max-w-2xl' : ''}`}>
+              <div className="order-1 lg:order-2">
                 {/* Category tags */}
                 <div className="flex flex-wrap gap-2 mb-4">
                   {displayCategories.map((cat) => (
@@ -212,8 +246,6 @@ export default async function RingZeroPage() {
                   {project.liveUrl && (
                     <a
                       href={project.liveUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
                       className="inline-flex items-center px-5 py-2.5 border border-border rounded-lg font-medium hover:bg-surface transition-colors text-sm"
                     >
                       Try Demo Call
@@ -228,29 +260,39 @@ export default async function RingZeroPage() {
           </div>
         </div>
 
-        {/* Key Stats */}
-        <div className="py-12 bg-surface/30">
-          <div className="container mx-auto px-4 md:px-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
-              <div className="bg-surface rounded-lg p-4 text-center border border-border">
-                <div className="text-2xl font-bold text-accent mb-1">99.7%</div>
-                <div className="text-xs text-text-secondary">Calls Captured</div>
-              </div>
-              <div className="bg-surface rounded-lg p-4 text-center border border-border">
-                <div className="text-2xl font-bold text-accent mb-1">24/7</div>
-                <div className="text-xs text-text-secondary">Always Available</div>
-              </div>
-              <div className="bg-surface rounded-lg p-4 text-center border border-border">
-                <div className="text-2xl font-bold text-accent mb-1">&lt;1s</div>
-                <div className="text-xs text-text-secondary">Answer Time</div>
-              </div>
-              <div className="bg-surface rounded-lg p-4 text-center border border-border">
-                <div className="text-2xl font-bold text-green-400 mb-1">$497</div>
-                <div className="text-xs text-text-secondary">/month</div>
+        {/* ============================================ */}
+        {/* STANDARD TEMPLATE: Challenge / Solution / Results */}
+        {/* ============================================ */}
+        {(project.challenge || project.solution || project.results) && (
+          <div className="py-12 bg-surface/30">
+            <div className="container mx-auto px-4 md:px-6">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+                {project.challenge && (
+                  <div className="bg-background/50 rounded-xl p-6">
+                    <h2 className="text-lg font-bold mb-3">The Challenge</h2>
+                    <p className="text-text-secondary text-sm leading-relaxed">{project.challenge}</p>
+                  </div>
+                )}
+                {project.solution && (
+                  <div className="bg-background/50 rounded-xl p-6">
+                    <h2 className="text-lg font-bold mb-3">Our Solution</h2>
+                    <p className="text-text-secondary text-sm leading-relaxed">{project.solution}</p>
+                  </div>
+                )}
+                {project.results && (
+                  <div className="bg-background/50 rounded-xl p-6">
+                    <h2 className="text-lg font-bold mb-3">Results</h2>
+                    <p className="text-text-secondary text-sm leading-relaxed">{project.results}</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
-        </div>
+        )}
+
+        {/* ============================================ */}
+        {/* CUSTOM CONTENT: RingZero-specific sections below */}
+        {/* ============================================ */}
 
         {/* Try Demo Section */}
         <div className="py-16 bg-gradient-to-b from-background to-surface/20">
@@ -405,34 +447,6 @@ export default async function RingZeroPage() {
             </div>
           </div>
         </div>
-
-        {/* Case Study Section */}
-        {(project.challenge || project.solution || project.results) && (
-          <div className="py-12 bg-surface/30">
-            <div className="container mx-auto px-4 md:px-6">
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-                {project.challenge && (
-                  <div className="bg-background/50 rounded-xl p-6">
-                    <h2 className="text-lg font-bold mb-3">The Challenge</h2>
-                    <p className="text-text-secondary text-sm leading-relaxed">{project.challenge}</p>
-                  </div>
-                )}
-                {project.solution && (
-                  <div className="bg-background/50 rounded-xl p-6">
-                    <h2 className="text-lg font-bold mb-3">Our Solution</h2>
-                    <p className="text-text-secondary text-sm leading-relaxed">{project.solution}</p>
-                  </div>
-                )}
-                {project.results && (
-                  <div className="bg-background/50 rounded-xl p-6">
-                    <h2 className="text-lg font-bold mb-3">Results</h2>
-                    <p className="text-text-secondary text-sm leading-relaxed">{project.results}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Final CTA */}
         <div className="py-20">
